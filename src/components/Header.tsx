@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   return (
@@ -17,9 +18,9 @@ const Header = () => {
               <a href="#artistas" className="text-sm font-medium hover:text-primary transition-colors">
                 ARTISTAS
               </a>
-              <a href="#candinho" className="text-sm font-medium hover:text-primary transition-colors">
+              <Link to="/candinho" className="text-sm font-medium hover:text-primary transition-colors">
                 CANDINHO
-              </a>
+              </Link>
               <a href="#contato" className="text-sm font-medium hover:text-primary transition-colors">
                 CONTATO
               </a>

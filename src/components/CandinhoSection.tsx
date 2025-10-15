@@ -1,5 +1,6 @@
 import candinhoHero from "@/assets/candinho-hero.png";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const CandinhoSection = () => {
   return (
@@ -39,9 +40,11 @@ const CandinhoSection = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="text-base px-8">
-                Saiba Mais
-              </Button>
+              <Link to="/candinho">
+                <Button size="lg" className="text-base px-8 w-full">
+                  Saiba Mais
+                </Button>
+              </Link>
               <Button size="lg" variant="outline" className="text-base px-8 border-2">
                 Ver Trailer
               </Button>
