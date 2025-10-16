@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { getArtistById } from "@/data/artistsData";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Instagram, Youtube, Facebook } from "lucide-react";
+import { ArrowLeft, Instagram, Youtube, Facebook, User, Share2 } from "lucide-react";
 
 const ArtistDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,7 +32,7 @@ const ArtistDetail = () => {
       
       <main className="pt-20">
         {/* Hero Section */}
-        <section className="relative h-[60vh] bg-theater-black">
+        <section className="relative h-[40vh] bg-theater-black">
           <div className="absolute inset-0">
             <img 
               src={artist.heroImage} 
@@ -50,87 +50,143 @@ const ArtistDetail = () => {
               </Button>
             </Link>
             
-            <div className="flex items-end gap-8 animate-fade-in">
-              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-[var(--shadow-hover)]">
-                <img 
-                  src={artist.image} 
-                  alt={artist.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="text-white flex-1">
-                <h1 className="text-5xl font-bold mb-2">{artist.name}</h1>
-                <p className="text-xl text-white/80">{artist.role}</p>
-              </div>
-              
-              {artist.social && (
-                <div className="flex gap-3">
-                  {artist.social.instagram && (
-                    <a href={`https://instagram.com/${artist.social.instagram}`} target="_blank" rel="noopener noreferrer">
-                      <Button size="icon" variant="ghost" className="text-white hover:text-white/80">
-                        <Instagram className="h-5 w-5" />
-                      </Button>
-                    </a>
-                  )}
-                  {artist.social.youtube && (
-                    <a href={`https://youtube.com/@${artist.social.youtube}`} target="_blank" rel="noopener noreferrer">
-                      <Button size="icon" variant="ghost" className="text-white hover:text-white/80">
-                        <Youtube className="h-5 w-5" />
-                      </Button>
-                    </a>
-                  )}
-                  {artist.social.facebook && (
-                    <a href={`https://facebook.com/${artist.social.facebook}`} target="_blank" rel="noopener noreferrer">
-                      <Button size="icon" variant="ghost" className="text-white hover:text-white/80">
-                        <Facebook className="h-5 w-5" />
-                      </Button>
-                    </a>
-                  )}
-                </div>
-              )}
+            <div className="animate-fade-in">
+              <h1 className="text-5xl font-bold mb-2 text-white">{artist.name}</h1>
+              <p className="text-xl text-white/80">{artist.role}</p>
             </div>
           </div>
         </section>
 
-        {/* Content Section */}
+        {/* Main Content with Sidebar */}
         <section className="py-12 bg-background">
           <div className="container mx-auto px-4 lg:px-8">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="mb-8 bg-muted">
-                <TabsTrigger value="overview">VISÃO GERAL</TabsTrigger>
-                <TabsTrigger value="trajectory">TRAJETÓRIA PESSOAL</TabsTrigger>
-                <TabsTrigger value="career">CARREIRA</TabsTrigger>
-                <TabsTrigger value="more">MAIS</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="overview" className="space-y-8">
-                {artist.quote && (
-                  <div className="bg-muted/50 p-8 rounded-lg border-l-4 border-primary">
-                    <p className="text-lg italic text-muted-foreground">"{artist.quote}"</p>
+            <div className="flex flex-col lg:flex-row gap-8">
+              {/* Left Sidebar */}
+              <aside className="lg:w-80 flex-shrink-0">
+                <div className="bg-card rounded-lg overflow-hidden shadow-[var(--shadow-card)] sticky top-24">
+                  {/* Artist Photo */}
+                  <div className="aspect-square overflow-hidden">
+                    <img 
+                      src={artist.image} 
+                      alt={artist.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                )}
-                
-                <div className="prose prose-lg max-w-none">
-                  <p className="text-foreground leading-relaxed">{artist.bio}</p>
+                  
+                  {/* Artist Info */}
+                  <div className="p-6 space-y-4">
+                    <div className="text-sm text-muted-foreground">
+                      <p className="mb-2">"A percussão pode ser encontrado em todos os cantos do mundo e tem um poder primordial a todos nós"</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">Alemanho</span>
+                    </div>
+                    
+                    <Button variant="outline" className="w-full">
+                      <Share2 className="mr-2 h-4 w-4" />
+                      Compartilhar perfil
+                    </Button>
+                    
+                    {/* Social Links */}
+                    {artist.social && (
+                      <div className="flex gap-2 pt-4 border-t">
+                        {artist.social.facebook && (
+                          <a href={`https://facebook.com/${artist.social.facebook}`} target="_blank" rel="noopener noreferrer">
+                            <Button size="icon" variant="ghost">
+                              <Facebook className="h-5 w-5" />
+                            </Button>
+                          </a>
+                        )}
+                        {artist.social.instagram && (
+                          <a href={`https://instagram.com/${artist.social.instagram}`} target="_blank" rel="noopener noreferrer">
+                            <Button size="icon" variant="ghost">
+                              <Instagram className="h-5 w-5" />
+                            </Button>
+                          </a>
+                        )}
+                        {artist.social.youtube && (
+                          <a href={`https://youtube.com/@${artist.social.youtube}`} target="_blank" rel="noopener noreferrer">
+                            <Button size="icon" variant="ghost">
+                              <Youtube className="h-5 w-5" />
+                            </Button>
+                          </a>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Biography Button */}
+                    <Button className="w-full" variant="secondary">
+                      Biografia
+                    </Button>
+                  </div>
                 </div>
-              </TabsContent>
+              </aside>
 
-              <TabsContent value="trajectory" className="space-y-6">
-                <div className="prose prose-lg max-w-none">
-                  <p className="text-foreground leading-relaxed whitespace-pre-line">{artist.trajectory}</p>
-                </div>
-              </TabsContent>
+              {/* Main Content Area */}
+              <div className="flex-1">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="mb-8 bg-theater-black w-full justify-start rounded-none h-auto p-0 border-b border-border">
+                    <TabsTrigger 
+                      value="overview" 
+                      className="rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-8 py-4 text-base font-medium"
+                    >
+                      VISÃO GERAL
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="trajectory"
+                      className="rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-8 py-4 text-base font-medium"
+                    >
+                      TRAJETÓRIA PESSOAL
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="career"
+                      className="rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-8 py-4 text-base font-medium"
+                    >
+                      CARREIRA
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="more"
+                      className="rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-8 py-4 text-base font-medium"
+                    >
+                      MAIS
+                    </TabsTrigger>
+                  </TabsList>
 
-              <TabsContent value="career" className="space-y-6">
-                <div className="prose prose-lg max-w-none">
-                  <p className="text-foreground leading-relaxed whitespace-pre-line">{artist.career}</p>
-                </div>
-              </TabsContent>
+                  <TabsContent value="overview" className="space-y-8 mt-8">
+                    {artist.quote && (
+                      <div className="bg-muted/50 p-8 rounded-lg">
+                        <p className="text-lg italic text-center mb-2">&ldquo;{artist.quote}&rdquo;</p>
+                        <p className="text-center text-sm text-muted-foreground font-semibold">
+                          Júri do Concurso Tromp em 2020
+                        </p>
+                      </div>
+                    )}
+                    
+                    <div className="prose prose-lg max-w-none">
+                      <p className="text-foreground leading-relaxed text-justify">{artist.bio}</p>
+                    </div>
+                  </TabsContent>
 
-              <TabsContent value="more" className="space-y-8">
-                <p className="text-muted-foreground">Informações adicionais em breve.</p>
-              </TabsContent>
-            </Tabs>
+                  <TabsContent value="trajectory" className="space-y-6 mt-8">
+                    <div className="prose prose-lg max-w-none">
+                      <p className="text-foreground leading-relaxed text-justify whitespace-pre-line">{artist.trajectory}</p>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="career" className="space-y-6 mt-8">
+                    <div className="prose prose-lg max-w-none">
+                      <p className="text-foreground leading-relaxed text-justify whitespace-pre-line">{artist.career}</p>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="more" className="space-y-8 mt-8">
+                    <p className="text-muted-foreground">Informações adicionais em breve.</p>
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -138,10 +194,10 @@ const ArtistDetail = () => {
         {artist.videos && artist.videos.length > 0 && (
           <section className="py-20 bg-theater-black">
             <div className="container mx-auto px-4 lg:px-8">
-              <h2 className="text-4xl font-bold mb-12 text-center text-white">VÍDEOS</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <h2 className="text-5xl font-bold mb-16 text-center text-white">VÍDEOS</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {artist.videos.map((video, index) => (
-                  <div key={index} className="aspect-video bg-muted rounded-lg overflow-hidden">
+                  <div key={index} className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-shadow">
                     <iframe
                       src={video}
                       title={`${artist.name} video ${index + 1}`}
@@ -157,12 +213,12 @@ const ArtistDetail = () => {
 
         {/* Photos Section */}
         {artist.photos && artist.photos.length > 0 && (
-          <section className="py-20 bg-muted/30">
+          <section className="py-20 bg-background">
             <div className="container mx-auto px-4 lg:px-8">
-              <h2 className="text-4xl font-bold mb-12 text-center">FOTOGRAFIAS</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <h2 className="text-5xl font-bold mb-16 text-center">FOTOGRAFIAS</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {artist.photos.map((photo, index) => (
-                  <div key={index} className="aspect-square overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                  <div key={index} className="aspect-[4/3] overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow border-2 border-white/10">
                     <img 
                       src={photo} 
                       alt={`${artist.name} foto ${index + 1}`}
