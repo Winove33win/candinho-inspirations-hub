@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, Check, Loader2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getSignedUrl } from "@/integrations/supabase/storage";
 
 interface UploaderProps {
   label: string;
@@ -10,8 +11,8 @@ interface UploaderProps {
   bucket?: string;
   bucketPath?: string;
   accept?: string;
-  onUploaded: (url: string) => void;
-  currentUrl?: string;
+  onUploaded: (path: string) => void;
+  currentPath?: string;
   id?: string;
   previewClassName?: string;
 }
@@ -23,18 +24,38 @@ export function Uploader({
   bucketPath,
   accept = "*/*",
   onUploaded,
-  currentUrl,
+  currentPath,
   id,
   previewClassName,
 }: UploaderProps) {
   const [uploading, setUploading] = useState(false);
-  const [preview, setPreview] = useState(currentUrl || "");
+  const [preview, setPreview] = useState("");
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const loadPreview = useCallback(async (path?: string | null) => {
+    if (!path) {
+      setPreview("");
+      return;
+    }
+
+    if (path.startsWith("http://") || path.startsWith("https://")) {
+      setPreview(path);
+      return;
+    }
+
+    try {
+      const signedUrl = await getSignedUrl(path);
+      setPreview(signedUrl);
+    } catch (error) {
+      console.error("[UPLOAD::SIGNED_URL]", error);
+      setPreview("");
+    }
+  }, []);
+
   useEffect(() => {
-    setPreview(currentUrl || "");
-  }, [currentUrl]);
+    void loadPreview(currentPath);
+  }, [currentPath, loadPreview]);
 
   const resolveBucket = () => {
     const target = bucketPath ?? bucket;
@@ -68,9 +89,9 @@ export function Uploader({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
-      const fileExt = file.name.split(".").pop();
+      const fileExt = file.name.split(".").pop() || "bin";
       const pathPrefix = [user.id, folderPath].filter(Boolean).join("/");
-      const fileName = `${pathPrefix}/${Date.now()}.${fileExt}`;
+      const fileName = pathPrefix ? `${pathPrefix}/${Date.now()}.${fileExt}` : `${user.id}/${Date.now()}.${fileExt}`;
 
       const { data, error } = await supabase.storage
         .from(resolvedBucket)
@@ -78,12 +99,9 @@ export function Uploader({
 
       if (error) throw error;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from(resolvedBucket)
-        .getPublicUrl(data.path);
-
-      setPreview(publicUrl);
-      onUploaded(publicUrl);
+      const storagePath = `${resolvedBucket}/${data.path}`;
+      onUploaded(storagePath);
+      await loadPreview(storagePath);
 
       toast({
         title: "Sucesso",

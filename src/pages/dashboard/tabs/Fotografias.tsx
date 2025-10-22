@@ -96,7 +96,7 @@ export default function Fotografias({ artistDetails, onUpsert }: FotografiasProp
                 maxBytes={1024 * 1024}
                 bucketPath="artist-media/photos"
                 accept="image/*"
-                currentUrl={photo.image}
+                currentPath={photo.image}
                 onUploaded={(url) => updatePhoto(index, "image", url)}
               />
 

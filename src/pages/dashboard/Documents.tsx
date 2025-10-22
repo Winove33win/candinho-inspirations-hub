@@ -8,6 +8,7 @@ import { Uploader } from "@/components/dashboard/Uploader";
 import { ToolbarSave } from "@/components/dashboard/ToolbarSave";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getSignedUrl } from "@/integrations/supabase/storage";
 import type { Database } from "@/integrations/supabase/types";
 import { useDashboardContext } from "./context";
 
@@ -27,6 +28,7 @@ export default function Documents() {
   const { toast } = useToast();
 
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [newDocument, setNewDocument] = useState<{
@@ -61,11 +63,53 @@ export default function Documents() {
     loadDocuments();
   }, [user?.id, toast]);
 
+  useEffect(() => {
+    const refreshSignedUrls = async () => {
+      if (documents.length === 0) {
+        setSignedUrls({});
+        return;
+      }
+
+      const entries = await Promise.all(
+        documents.map(async (document) => {
+          if (!document.file_url) {
+            return [document.id, ""] as const;
+          }
+
+          if (document.file_url.startsWith("http://") || document.file_url.startsWith("https://")) {
+            return [document.id, document.file_url] as const;
+          }
+
+          try {
+            const url = await getSignedUrl(document.file_url);
+            return [document.id, url] as const;
+          } catch (error) {
+            console.error("[DOCUMENT::SIGNED_URL]", error);
+            return [document.id, ""] as const;
+          }
+        })
+      );
+
+      setSignedUrls(Object.fromEntries(entries));
+    };
+
+    void refreshSignedUrls();
+  }, [documents]);
+
   const handleAddDocument = async () => {
     if (!newDocument.title.trim() || !newDocument.file_url) {
       toast({
         title: "Campos obrigatórios",
         description: "Informe o título e envie o arquivo do documento.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (!user?.id) {
+      toast({
+        title: "Erro",
+        description: "Sessão expirada. Faça login novamente para adicionar documentos.",
         variant: "destructive",
       });
       return false;
@@ -113,6 +157,15 @@ export default function Documents() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!user?.id) {
+      toast({
+        title: "Erro",
+        description: "Sessão expirada. Faça login novamente para remover o documento.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const previous = documents;
     setDocuments((current) => current.filter((item) => item.id !== id));
 
@@ -134,6 +187,11 @@ export default function Documents() {
       toast({
         title: "Documento removido",
         description: "O documento foi excluído com sucesso.",
+      });
+      setSignedUrls((current) => {
+        const next = { ...current };
+        delete next[id];
+        return next;
       });
     }
   };
@@ -176,7 +234,7 @@ export default function Documents() {
             maxBytes={4 * 1024 * 1024}
             bucketPath="artist-media/docs"
             accept=".pdf,.doc,.docx"
-            currentUrl={newDocument.file_url}
+            currentPath={newDocument.file_url}
             onUploaded={(url) => setNewDocument((prev) => ({ ...prev, file_url: url }))}
           />
         </div>
@@ -205,16 +263,20 @@ export default function Documents() {
                   <p className="text-sm text-muted-foreground">
                     {kindOptions.find((option) => option.value === document.kind)?.label || ""}
                   </p>
-                  {document.file_url && (
+                  {signedUrls[document.id] ? (
                     <a
-                      href={document.file_url}
+                      href={signedUrls[document.id]}
                       target="_blank"
                       rel="noreferrer"
                       className="text-primary text-sm underline"
                     >
                       Abrir documento
                     </a>
-                  )}
+                  ) : document.file_url ? (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Link temporário indisponível. Tente novamente mais tarde.
+                    </p>
+                  ) : null}
                 </div>
                 <Button
                   variant="outline"
