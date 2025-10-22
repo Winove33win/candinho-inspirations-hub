@@ -1,3 +1,4 @@
+// src/pages/Dashboard.tsx
 import { useEffect, useMemo, type ReactNode } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,10 +24,21 @@ import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import type { ArtistDetails } from "@/hooks/useArtistDetails";
 
+type MenuItem = {
+  icon: LucideIcon;
+  label: string;
+  path: string;
+};
+
+type QuickAction = MenuItem & {
+  description: string;
+};
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, loading: userLoading } = useCurrentMember();
+
   const {
     artistDetails,
     loading: detailsLoading,
@@ -42,21 +54,27 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast({
-      title: "Logout realizado",
-      description: "Até logo!",
-    });
+    toast({ title: "Logout realizado", description: "Até logo!" });
     navigate("/login");
   };
 
+  // Loading geral
+  if (userLoading || detailsLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
   const menuItems: MenuItem[] = [
-    { icon: User, label: "Meu perfil profissional", path: "/dashboard" },
-    { icon: FolderKanban, label: "Projetos", path: "/dashboard/projetos" },
-    { icon: Calendar, label: "Eventos", path: "/dashboard/eventos" },
-    { icon: FileText, label: "Documentos", path: "/dashboard/documentos" },
-    { icon: ClipboardList, label: "Minha Inscrição", path: "/dashboard/inscricao" },
-    { icon: HelpCircle, label: "Suporte", path: "/dashboard/suporte" },
-    { icon: Settings, label: "Cadastro Personalizado", path: "/dashboard/personalizado" },
+    { icon: User,          label: "Meu perfil profissional", path: "/dashboard" },
+    { icon: FolderKanban,  label: "Projetos",                path: "/dashboard/projetos" },
+    { icon: Calendar,      label: "Eventos",                 path: "/dashboard/eventos" },
+    { icon: FileText,      label: "Documentos",              path: "/dashboard/documentos" },
+    { icon: ClipboardList, label: "Minha Inscrição",         path: "/dashboard/inscricao" },
+    { icon: HelpCircle,    label: "Suporte",                 path: "/dashboard/suporte" },
+    { icon: Settings,      label: "Cadastro Personalizado",  path: "/dashboard/personalizado" },
   ];
 
   const contextValue: DashboardContextValue = {
@@ -129,14 +147,6 @@ export default function Dashboard() {
     },
   ];
 
-  if (userLoading || detailsLoading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-b from-neutral-50 via-white to-white text-neutral-900">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.18),transparent_55%),radial-gradient(circle_at_top_right,hsl(var(--accent)/0.12),transparent_55%)]" />
@@ -144,8 +154,10 @@ export default function Dashboard() {
 
       <div className="relative flex min-h-screen flex-col pt-20">
         <div className="flex flex-1">
+          {/* Sidebar desktop */}
           <aside className="relative hidden w-[280px] shrink-0 border-r border-transparent bg-white/70 px-6 pb-12 pt-12 shadow-[inset_-1px_0_0_rgba(255,255,255,0.4)] backdrop-blur xl:block">
             <div className="sticky top-28 space-y-8">
+              {/* Card do usuário */}
               <div className="rounded-3xl border border-white/60 bg-white/90 p-6 shadow-[var(--shadow-card)] backdrop-blur">
                 <div className="flex items-center gap-4">
                   <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-lg font-semibold text-primary">
@@ -156,6 +168,7 @@ export default function Dashboard() {
                     <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                 </div>
+
                 <div className="mt-6 rounded-2xl bg-neutral-900 px-4 py-3 text-white">
                   <p className="text-[11px] uppercase tracking-[0.32em] text-white/60">Progresso</p>
                   <div className="mt-2 flex items-baseline gap-2">
@@ -176,6 +189,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
+              {/* Menu */}
               <nav className="space-y-1">
                 {menuItems.map((item) => (
                   <Item key={item.path} to={item.path} icon={item.icon}>
@@ -196,8 +210,10 @@ export default function Dashboard() {
             </div>
           </aside>
 
+          {/* Conteúdo */}
           <main className="flex-1">
             <div className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 pb-16 pt-10 md:px-8">
+              {/* Hero do dashboard */}
               <section className="relative overflow-hidden rounded-3xl border border-white/60 bg-white/90 p-8 shadow-[var(--shadow-card)] backdrop-blur md:p-10">
                 <div className="absolute -right-16 -top-24 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
                 <div className="absolute -bottom-28 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-neutral-900/5 blur-3xl" />
@@ -213,6 +229,7 @@ export default function Dashboard() {
                       Centralize seu posicionamento profissional, divulgue eventos, organize documentos estratégicos e acompanhe o relacionamento com a curadoria SMARTx em um ambiente premium.
                     </p>
                   </div>
+
                   <div className="relative w-full max-w-sm rounded-3xl border border-white/70 bg-neutral-900 p-6 text-white shadow-2xl">
                     <div className="flex items-center justify-between">
                       <p className="text-[11px] uppercase tracking-[0.32em] text-white/60">Status do perfil</p>
@@ -240,6 +257,7 @@ export default function Dashboard() {
                 </div>
               </section>
 
+              {/* Menu compacto no mobile */}
               <div className="lg:hidden">
                 <nav className="flex gap-2 overflow-x-auto rounded-full border border-white/60 bg-white/90 p-2 shadow-[var(--shadow-card)] backdrop-blur">
                   {menuItems.map((item) => (
@@ -262,6 +280,7 @@ export default function Dashboard() {
                 </nav>
               </div>
 
+              {/* Quick actions */}
               <div className="grid gap-4 md:grid-cols-3">
                 {quickActions.map((action) => (
                   <NavLink
@@ -288,6 +307,7 @@ export default function Dashboard() {
                 ))}
               </div>
 
+              {/* Páginas internas */}
               <Outlet context={contextValue} />
             </div>
           </main>
@@ -298,16 +318,6 @@ export default function Dashboard() {
     </div>
   );
 }
-
-type MenuItem = {
-  icon: LucideIcon;
-  label: string;
-  path: string;
-};
-
-type QuickAction = MenuItem & {
-  description: string;
-};
 
 function Item({
   to,

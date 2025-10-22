@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+// src/pages/dashboard/MeuPerfil.tsx
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ArtistDetails } from "@/hooks/useArtistDetails";
 import { useDashboardContext } from "./context";
+
 import DadosPessoais from "./tabs/DadosPessoais";
 import VisaoGeral from "./tabs/VisaoGeral";
 import TrajetoriaPessoal from "./tabs/TrajetoriaPessoal";
@@ -18,6 +20,7 @@ export default function MeuPerfil() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dados-pessoais");
 
+  // navegação programática para uma aba específica (vinda de outra rota)
   useEffect(() => {
     const state = location.state as { focusTab?: string } | null;
     if (state?.focusTab) {
@@ -26,88 +29,52 @@ export default function MeuPerfil() {
     }
   }, [location.pathname, location.state, navigate]);
 
+  // fallback seguro
   useEffect(() => {
-    if (!user) {
-      setActiveTab("dados-pessoais");
-    }
+    if (!user) setActiveTab("dados-pessoais");
   }, [user]);
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   const details: ArtistDetails | null = artistDetails ?? null;
 
   return (
-    <div className="dashboard-content space-y-8 pb-12">
-      <div className="relative overflow-hidden rounded-3xl border border-white/60 bg-white/90 p-6 shadow-[var(--shadow-card)] backdrop-blur md:p-8">
-        <div className="absolute -right-16 -top-16 h-32 w-32 rounded-full bg-primary/10 blur-3xl" />
-        <div className="relative space-y-3">
-          <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.32em] text-primary">
-            Meu perfil profissional
-          </span>
-          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Construa uma vitrine alinhada à identidade SMARTx</h1>
-          <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
-            Atualize suas informações, história e portfólio em um fluxo organizado. Cada aba representa um capítulo da sua narrativa — preencha com cuidado para que o time de curadoria tenha um panorama completo.
-          </p>
-        </div>
-      </div>
+    <div className="dashboard-content space-y-6 pb-12">
+      <h1 className="text-3xl font-bold font-['League_Spartan']">Meu perfil profissional</h1>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
+        {/* LISTA DE ABAS — sticky + z-index alto para garantir clique */}
         <TabsList
           aria-label="Navegação do perfil"
-          className="sticky top-6 z-30 flex w-full gap-2 overflow-x-auto rounded-full border border-white/60 bg-white/90 p-2 shadow-[var(--shadow-card)] backdrop-blur"
+          className="sticky top-0 z-30 flex h-auto w-full gap-2 overflow-x-auto rounded-md border bg-white/95 p-2 backdrop-blur"
         >
-          <TabsTrigger
-            className="flex min-w-[160px] flex-1 items-center justify-center whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:text-foreground"
-            value="dados-pessoais"
-          >
+          <TabsTrigger className="flex-1 whitespace-normal text-center" value="dados-pessoais">
             Dados pessoais
           </TabsTrigger>
-          <TabsTrigger
-            className="flex min-w-[160px] flex-1 items-center justify-center whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:text-foreground"
-            value="visao-geral"
-          >
+          <TabsTrigger className="flex-1 whitespace-normal text-center" value="visao-geral">
             Visão Geral
           </TabsTrigger>
-          <TabsTrigger
-            className="flex min-w-[160px] flex-1 items-center justify-center whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:text-foreground"
-            value="trajetoria"
-          >
+          <TabsTrigger className="flex-1 whitespace-normal text-center" value="trajetoria">
             Trajetória Pessoal
           </TabsTrigger>
-          <TabsTrigger
-            className="flex min-w-[160px] flex-1 items-center justify-center whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:text-foreground"
-            value="carreira"
-          >
+          <TabsTrigger className="flex-1 whitespace-normal text-center" value="carreira">
             Carreira
           </TabsTrigger>
-          <TabsTrigger
-            className="flex min-w-[160px] flex-1 items-center justify-center whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:text-foreground"
-            value="mais"
-          >
+          <TabsTrigger className="flex-1 whitespace-normal text-center" value="mais">
             Mais
           </TabsTrigger>
-          <TabsTrigger
-            className="flex min-w-[160px] flex-1 items-center justify-center whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:text-foreground"
-            value="biografia"
-          >
+          <TabsTrigger className="flex-1 whitespace-normal text-center" value="biografia">
             Biografia e redes
           </TabsTrigger>
-          <TabsTrigger
-            className="flex min-w-[160px] flex-1 items-center justify-center whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:text-foreground"
-            value="videos"
-          >
+          <TabsTrigger className="flex-1 whitespace-normal text-center" value="videos">
             Vídeos e Áudios
           </TabsTrigger>
-          <TabsTrigger
-            className="flex min-w-[160px] flex-1 items-center justify-center whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:text-foreground"
-            value="fotografias"
-          >
+          <TabsTrigger className="flex-1 whitespace-normal text-center" value="fotografias">
             Fotografias
           </TabsTrigger>
         </TabsList>
 
+        {/* CONTEÚDO */}
         <div className="rounded-3xl border border-white/60 bg-white/95 p-6 shadow-[var(--shadow-card)] backdrop-blur md:p-8">
           <TabsContent value="dados-pessoais" className="focus-visible:outline-none">
             <DadosPessoais artistDetails={details} onUpsert={upsertArtistDetails} />
@@ -145,4 +112,3 @@ export default function MeuPerfil() {
     </div>
   );
 }
-
