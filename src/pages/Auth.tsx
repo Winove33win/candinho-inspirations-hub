@@ -85,10 +85,11 @@ export default function Auth() {
         });
         setIsLogin(true);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Ocorreu um erro. Tente novamente.";
       toast({
         title: "Erro",
-        description: error.message || "Ocorreu um erro. Tente novamente.",
+        description: message,
         variant: "destructive",
       });
     } finally {

@@ -5,44 +5,47 @@ import { FormSection } from "@/components/dashboard/FormSection";
 import { Uploader } from "@/components/dashboard/Uploader";
 import { ToolbarSave } from "@/components/dashboard/ToolbarSave";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import type { ArtistDetails } from "@/hooks/useArtistDetails";
+import type { DashboardContextValue } from "../context";
 
 interface FotografiasProps {
-  artistDetails: any;
-  userId: string;
+  artistDetails: ArtistDetails | null;
+  onUpsert: DashboardContextValue["upsertArtistDetails"];
 }
 
-export default function Fotografias({ artistDetails, userId }: FotografiasProps) {
+export default function Fotografias({ artistDetails, onUpsert }: FotografiasProps) {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  const [photos, setPhotos] = useState<Array<{ image: string; text: string }>>([]);
+  const [photos, setPhotos] = useState<Array<{ image: string; text: string }>>(
+    Array.from({ length: 12 }, () => ({ image: "", text: "" }))
+  );
 
   useEffect(() => {
     if (artistDetails) {
-      const photoData = [];
-      for (let i = 1; i <= 12; i++) {
-        photoData.push({
-          image: artistDetails[`image${i}`] || "",
-          text: artistDetails[`image${i}_text`] || "",
-        });
-      }
-      setPhotos(photoData);
-    } else {
-      setPhotos(Array(12).fill({ image: "", text: "" }));
+      const photoData = Array.from({ length: 12 }, (_, index) => {
+        const position = index + 1;
+        return {
+          image: artistDetails[`image${position}` as keyof ArtistDetails] as string | null || "",
+          text: artistDetails[`image${position}_text` as keyof ArtistDetails] as string | null || "",
+        };
+      });
+      setPhotos(photoData.map((item) => ({ image: item.image, text: item.text })));
     }
   }, [artistDetails]);
 
   const updatePhoto = (index: number, field: "image" | "text", value: string) => {
-    const newPhotos = [...photos];
-    newPhotos[index] = { ...newPhotos[index], [field]: value };
-    setPhotos(newPhotos);
+    setPhotos((current) => {
+      const updated = [...current];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
   };
 
   const handleSave = async () => {
     setSaving(true);
-    
-    const photoFields: any = {};
+
+    const photoFields: Record<string, string> = {};
     photos.forEach((photo, index) => {
       const num = index + 1;
       photoFields[`image${num}`] = photo.image;
@@ -52,26 +55,25 @@ export default function Fotografias({ artistDetails, userId }: FotografiasProps)
     console.log("[SAVE::FOTOGRAFIAS]", photoFields);
 
     try {
-      const { error } = await supabase
-        .from("new_artist_details")
-        .upsert({
-          ...photoFields,
-          member_id: userId,
-        });
-
-      if (error) throw error;
+      const response = await onUpsert(photoFields as Partial<ArtistDetails>);
+      if (!response || response.error) {
+        throw response?.error || new Error("Não foi possível salvar fotografias");
+      }
 
       toast({
         title: "Sucesso",
         description: "Fotografias publicadas com sucesso!",
       });
-    } catch (error: any) {
+      return true;
+    } catch (error: unknown) {
       console.error("[SAVE::FOTOGRAFIAS]", error);
+      const message = error instanceof Error ? error.message : "Erro ao salvar";
       toast({
         title: "Erro",
-        description: error.message || "Erro ao salvar",
+        description: message,
         variant: "destructive",
       });
+      return false;
     } finally {
       setSaving(false);
     }
@@ -87,12 +89,12 @@ export default function Fotografias({ artistDetails, userId }: FotografiasProps)
           {photos.map((photo, index) => (
             <div key={index} className="space-y-2 p-4 border rounded-lg">
               <h4 className="font-semibold">Foto {index + 1}</h4>
-              
+
               <Uploader
                 id={`uploaderFoto${index + 1}`}
                 label={`Enviar Foto ${index + 1}`}
                 maxBytes={1024 * 1024}
-                bucket="artist-photos"
+                bucketPath="artist-media/photos"
                 accept="image/*"
                 currentUrl={photo.image}
                 onUploaded={(url) => updatePhoto(index, "image", url)}

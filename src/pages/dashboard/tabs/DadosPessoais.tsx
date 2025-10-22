@@ -8,7 +8,6 @@ import { FormSection } from "@/components/dashboard/FormSection";
 import { Uploader } from "@/components/dashboard/Uploader";
 import { ToolbarSave } from "@/components/dashboard/ToolbarSave";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -16,13 +15,15 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import type { ArtistDetails } from "@/hooks/useArtistDetails";
+import type { DashboardContextValue } from "../context";
 
 interface DadosPessoaisProps {
-  artistDetails: any;
-  userId: string;
+  artistDetails: ArtistDetails | null;
+  onUpsert: DashboardContextValue["upsertArtistDetails"];
 }
 
-export default function DadosPessoais({ artistDetails, userId }: DadosPessoaisProps) {
+export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoaisProps) {
   const [saving, setSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const { toast } = useToast();
@@ -97,47 +98,69 @@ export default function DadosPessoais({ artistDetails, userId }: DadosPessoaisPr
       return false;
     }
 
+    if (formData.date_of_birth) {
+      const parsed = Date.parse(formData.date_of_birth);
+      if (Number.isNaN(parsed)) {
+        toast({
+          title: "Erro de validação",
+          description: "Informe uma data de nascimento válida",
+          variant: "destructive",
+        });
+        return false;
+      }
+    }
+
     return true;
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) return false;
 
     setSaving(true);
     console.log("[SAVE::DADOS_PESSOAIS]", formData);
 
     try {
       const wasIncomplete = !artistDetails?.perfil_completo;
+      const isProfileComplete = Boolean(
+        formData.artistic_name &&
+        formData.full_name &&
+        formData.accepted_terms1 &&
+        formData.accepted_terms2
+      );
 
-      const { error } = await supabase
-        .from("new_artist_details")
-        .upsert({
-          ...formData,
-          member_id: userId,
-          perfil_completo: true,
-        });
+      const response = await onUpsert({
+        ...formData,
+        perfil_completo: isProfileComplete || artistDetails?.perfil_completo || false,
+      });
 
-      if (error) throw error;
+      if (!response || response.error) {
+        throw response?.error || new Error("Não foi possível salvar os dados");
+      }
 
       toast({
         title: "Sucesso",
         description: "Dados pessoais salvos com sucesso!",
       });
 
-      if (wasIncomplete) {
+      if (wasIncomplete && response.data?.perfil_completo) {
         setShowSuccessModal(true);
       }
-    } catch (error: any) {
+      return true;
+    } catch (error: unknown) {
       console.error("[SAVE::DADOS_PESSOAIS]", error);
+      const message = error instanceof Error ? error.message : "Erro ao salvar dados";
       toast({
         title: "Erro",
-        description: error.message || "Erro ao salvar dados",
+        description: message,
         variant: "destructive",
       });
+      return false;
     } finally {
       setSaving(false);
     }
   };
+
+  const canSave = formData.accepted_terms1 && formData.accepted_terms2;
 
   return (
     <>
@@ -169,10 +192,11 @@ export default function DadosPessoais({ artistDetails, userId }: DadosPessoaisPr
                 id="imageX80"
                 label="Foto de Perfil"
                 maxBytes={1024 * 1024}
-                bucket="artist-photos"
+                bucketPath="artist-media/photos"
                 accept="image/*"
                 currentUrl={formData.profile_image}
                 onUploaded={(url) => setFormData({ ...formData, profile_image: url })}
+                previewClassName="rounded-full w-32 h-32 object-cover border"
               />
             </div>
 
@@ -331,7 +355,12 @@ export default function DadosPessoais({ artistDetails, userId }: DadosPessoaisPr
         </FormSection>
 
         <div className="flex justify-end pt-4">
-          <ToolbarSave onSave={handleSave} saving={saving} defaultLabel="Salvar" />
+          <ToolbarSave
+            onSave={handleSave}
+            saving={saving}
+            defaultLabel="Salvar"
+            disabled={!canSave}
+          />
         </div>
       </div>
 

@@ -1,4 +1,6 @@
-import { Textarea } from "@/components/ui/textarea";
+import { useMemo } from "react";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 interface RichTextEditorProps {
   value: string;
@@ -8,13 +10,42 @@ interface RichTextEditorProps {
 }
 
 export function RichTextEditor({ value, onChange, placeholder, id }: RichTextEditorProps) {
+  const modules = useMemo(
+    () => ({
+      toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ["bold", "italic", "underline", "strike"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["link"],
+        ["clean"],
+      ],
+    }),
+    []
+  );
+
+  const formats = [
+    "header",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "list",
+    "bullet",
+    "link",
+  ];
+
   return (
-    <Textarea
-      id={id}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="min-h-[200px] font-['Open_Sans']"
-    />
+    <div className="rich-text-editor">
+      <ReactQuill
+        id={id}
+        theme="snow"
+        value={value}
+        onChange={onChange}
+        modules={modules}
+        formats={formats}
+        placeholder={placeholder}
+        className="font-['Open_Sans']"
+      />
+    </div>
   );
 }

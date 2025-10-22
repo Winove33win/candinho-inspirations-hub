@@ -3,14 +3,15 @@ import { FormSection } from "@/components/dashboard/FormSection";
 import { RichTextEditor } from "@/components/dashboard/RichTextEditor";
 import { ToolbarSave } from "@/components/dashboard/ToolbarSave";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import type { ArtistDetails } from "@/hooks/useArtistDetails";
+import type { DashboardContextValue } from "../context";
 
 interface TrajetoriaPessoalProps {
-  artistDetails: any;
-  userId: string;
+  artistDetails: ArtistDetails | null;
+  onUpsert: DashboardContextValue["upsertArtistDetails"];
 }
 
-export default function TrajetoriaPessoal({ artistDetails, userId }: TrajetoriaPessoalProps) {
+export default function TrajetoriaPessoal({ artistDetails, onUpsert }: TrajetoriaPessoalProps) {
   const [saving, setSaving] = useState(false);
   const [content, setContent] = useState("");
   const { toast } = useToast();
@@ -26,26 +27,25 @@ export default function TrajetoriaPessoal({ artistDetails, userId }: TrajetoriaP
     console.log("[SAVE::TRAJETORIA_PESSOAL]", { historia_titulo: content });
 
     try {
-      const { error } = await supabase
-        .from("new_artist_details")
-        .upsert({
-          member_id: userId,
-          historia_titulo: content,
-        });
-
-      if (error) throw error;
+      const response = await onUpsert({ historia_titulo: content });
+      if (!response || response.error) {
+        throw response?.error || new Error("Não foi possível salvar a trajetória pessoal");
+      }
 
       toast({
         title: "Sucesso",
-        description: "Trajetória Pessoal publicada com sucesso!",
+        description: "Trajetória pessoal publicada com sucesso!",
       });
-    } catch (error: any) {
+      return true;
+    } catch (error: unknown) {
       console.error("[SAVE::TRAJETORIA_PESSOAL]", error);
+      const message = error instanceof Error ? error.message : "Erro ao salvar";
       toast({
         title: "Erro",
-        description: error.message || "Erro ao salvar",
+        description: message,
         variant: "destructive",
       });
+      return false;
     } finally {
       setSaving(false);
     }

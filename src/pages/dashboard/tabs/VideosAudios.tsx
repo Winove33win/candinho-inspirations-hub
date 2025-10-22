@@ -5,14 +5,15 @@ import { FormSection } from "@/components/dashboard/FormSection";
 import { Uploader } from "@/components/dashboard/Uploader";
 import { ToolbarSave } from "@/components/dashboard/ToolbarSave";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import type { ArtistDetails } from "@/hooks/useArtistDetails";
+import type { DashboardContextValue } from "../context";
 
 interface VideosAudiosProps {
-  artistDetails: any;
-  userId: string;
+  artistDetails: ArtistDetails | null;
+  onUpsert: DashboardContextValue["upsertArtistDetails"];
 }
 
-export default function VideosAudios({ artistDetails, userId }: VideosAudiosProps) {
+export default function VideosAudios({ artistDetails, onUpsert }: VideosAudiosProps) {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
@@ -75,32 +76,31 @@ export default function VideosAudios({ artistDetails, userId }: VideosAudiosProp
   };
 
   const handleSave = async () => {
-    if (!validateYoutubeLinks()) return;
+    if (!validateYoutubeLinks()) return false;
 
     setSaving(true);
     console.log("[SAVE::VIDEOS_AUDIOS]", formData);
 
     try {
-      const { error } = await supabase
-        .from("new_artist_details")
-        .upsert({
-          ...formData,
-          member_id: userId,
-        });
-
-      if (error) throw error;
+      const response = await onUpsert(formData);
+      if (!response || response.error) {
+        throw response?.error || new Error("Não foi possível salvar vídeos e áudios");
+      }
 
       toast({
         title: "Sucesso",
         description: "Vídeos e áudios publicados com sucesso!",
       });
-    } catch (error: any) {
+      return true;
+    } catch (error: unknown) {
       console.error("[SAVE::VIDEOS_AUDIOS]", error);
+      const message = error instanceof Error ? error.message : "Erro ao salvar";
       toast({
         title: "Erro",
-        description: error.message || "Erro ao salvar",
+        description: message,
         variant: "destructive",
       });
+      return false;
     } finally {
       setSaving(false);
     }
@@ -113,7 +113,7 @@ export default function VideosAudios({ artistDetails, userId }: VideosAudiosProp
           id="uploadButton6"
           label="Ouça-me"
           maxBytes={4 * 1024 * 1024}
-          bucket="artist-audio"
+          bucketPath="artist-media/audio"
           accept="audio/*"
           currentUrl={formData.audio}
           onUploaded={(url) => setFormData({ ...formData, audio: url })}
@@ -125,7 +125,7 @@ export default function VideosAudios({ artistDetails, userId }: VideosAudiosProp
           <Uploader
             label="Vídeo Banner Landscape (Desktop 16:9)"
             maxBytes={15 * 1024 * 1024}
-            bucket="artist-video"
+            bucketPath="artist-media/video"
             accept="video/*"
             currentUrl={formData.video_banner_landscape}
             onUploaded={(url) => setFormData({ ...formData, video_banner_landscape: url })}
@@ -134,7 +134,7 @@ export default function VideosAudios({ artistDetails, userId }: VideosAudiosProp
           <Uploader
             label="Vídeo Banner Portrait (Mobile 9:16)"
             maxBytes={15 * 1024 * 1024}
-            bucket="artist-video"
+            bucketPath="artist-media/video"
             accept="video/*"
             currentUrl={formData.video_banner_portrait}
             onUploaded={(url) => setFormData({ ...formData, video_banner_portrait: url })}
@@ -144,23 +144,26 @@ export default function VideosAudios({ artistDetails, userId }: VideosAudiosProp
 
       <FormSection title="Links do YouTube" description="Adicione até 10 links de vídeos do YouTube">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-            <div key={num}>
-              <Label htmlFor={`input${83 + num}`}>Vídeo {num}</Label>
-              <Input
-                id={`input${83 + num}`}
-                type="url"
-                value={formData[`link_to_video${num === 1 ? '' : num}` as keyof typeof formData]}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    [`link_to_video${num === 1 ? '' : num}`]: e.target.value,
-                  })
-                }
-                placeholder="https://youtube.com/watch?v=..."
-              />
-            </div>
-          ))}
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
+            const key = `link_to_video${num === 1 ? "" : num}` as keyof typeof formData;
+            return (
+              <div key={num}>
+                <Label htmlFor={`input${83 + num}`}>Vídeo {num}</Label>
+                <Input
+                  id={`input${83 + num}`}
+                  type="url"
+                  value={formData[key]}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      [key]: e.target.value,
+                    })
+                  }
+                  placeholder="https://youtube.com/watch?v=..."
+                />
+              </div>
+            );
+          })}
         </div>
       </FormSection>
 
