@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
+  const isLogin = searchParams.get("mode") !== "signup";
 
   useEffect(() => {
     // Check if user is already logged in
@@ -34,7 +35,7 @@ export default function Auth() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       toast({
         title: "Erro",
@@ -83,7 +84,7 @@ export default function Auth() {
           title: "Sucesso",
           description: "Conta criada com sucesso! Faça login para continuar.",
         });
-        setIsLogin(true);
+        setSearchParams({}, { replace: true });
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Ocorreu um erro. Tente novamente.";
@@ -150,7 +151,12 @@ export default function Auth() {
           <div className="text-center">
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() =>
+                setSearchParams(
+                  isLogin ? { mode: "signup" } : {},
+                  { replace: true }
+                )
+              }
               className="text-sm text-primary hover:underline"
               disabled={loading}
             >

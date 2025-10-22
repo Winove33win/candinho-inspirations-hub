@@ -21,17 +21,20 @@ const Header = () => {
               <Link to="/candinho" className="text-sm font-medium hover:text-primary transition-colors">
                 CANDINHO
               </Link>
+              <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
+                PORTAL DO ARTISTA
+              </Link>
               <a href="#contato" className="text-sm font-medium hover:text-primary transition-colors">
                 CONTATO
               </a>
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" className="hidden md:inline-flex">
-              Login
+            <Button variant="ghost" size="sm" className="hidden md:inline-flex" asChild>
+              <Link to="/login">Login</Link>
             </Button>
-            <Button size="sm" className="hidden md:inline-flex">
-              Cadastre-se
+            <Button size="sm" className="hidden md:inline-flex" asChild>
+              <Link to="/auth?mode=signup">Cadastre-se</Link>
             </Button>
             <Button variant="ghost" size="icon" className="md:hidden">
               <Menu className="h-5 w-5" />

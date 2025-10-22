@@ -100,7 +100,7 @@ export default function BiografiaRedes({ artistDetails, onUpsert }: BiografiaRed
           maxBytes={2 * 1024 * 1024}
           bucketPath="artist-media/docs"
           accept=".pdf,.doc,.docx"
-          currentUrl={formData.biography1}
+          currentPath={formData.biography1}
           onUploaded={(url) => setFormData({ ...formData, biography1: url })}
         />
       </FormSection>
