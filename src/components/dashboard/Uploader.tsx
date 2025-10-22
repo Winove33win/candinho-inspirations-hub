@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, Check, Loader2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -7,26 +7,46 @@ import { supabase } from "@/integrations/supabase/client";
 interface UploaderProps {
   label: string;
   maxBytes: number;
-  bucket: string;
+  bucket?: string;
+  bucketPath?: string;
   accept?: string;
   onUploaded: (url: string) => void;
   currentUrl?: string;
   id?: string;
+  previewClassName?: string;
 }
 
 export function Uploader({
   label,
   maxBytes,
   bucket,
+  bucketPath,
   accept = "*/*",
   onUploaded,
   currentUrl,
   id,
+  previewClassName,
 }: UploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState(currentUrl || "");
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setPreview(currentUrl || "");
+  }, [currentUrl]);
+
+  const resolveBucket = () => {
+    const target = bucketPath ?? bucket;
+    if (!target) {
+      throw new Error("Bucket não configurado para o uploader");
+    }
+
+    const segments = target.split("/").filter(Boolean);
+    const resolvedBucket = segments.shift() ?? target;
+    const folderPath = segments.join("/");
+    return { resolvedBucket, folderPath };
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -44,20 +64,22 @@ export function Uploader({
     setUploading(true);
 
     try {
+      const { resolvedBucket, folderPath } = resolveBucket();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
       const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const pathPrefix = [user.id, folderPath].filter(Boolean).join("/");
+      const fileName = `${pathPrefix}/${Date.now()}.${fileExt}`;
 
       const { data, error } = await supabase.storage
-        .from(bucket)
+        .from(resolvedBucket)
         .upload(fileName, file);
 
       if (error) throw error;
 
       const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
+        .from(resolvedBucket)
         .getPublicUrl(data.path);
 
       setPreview(publicUrl);
@@ -67,11 +89,12 @@ export function Uploader({
         title: "Sucesso",
         description: "Arquivo enviado com sucesso!",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[UPLOAD::ERROR]", error);
+      const message = error instanceof Error ? error.message : "Erro ao enviar arquivo";
       toast({
         title: "Erro",
-        description: error.message || "Erro ao enviar arquivo",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -92,7 +115,7 @@ export function Uploader({
   return (
     <div className="space-y-2" id={id}>
       <label className="text-sm font-medium">{label}</label>
-      
+
       <div className="flex items-center gap-2">
         <input
           ref={fileInputRef}
@@ -101,14 +124,16 @@ export function Uploader({
           onChange={handleFileChange}
           className="hidden"
           disabled={uploading}
+          id={id ? `${id}-input` : undefined}
         />
-        
+
         <Button
           type="button"
           variant="outline"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
           className="flex-1"
+          aria-label={label}
         >
           {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {!uploading && preview && <Check className="mr-2 h-4 w-4" />}
@@ -123,6 +148,7 @@ export function Uploader({
             size="icon"
             onClick={handleRemove}
             disabled={uploading}
+            aria-label="Remover arquivo"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -134,7 +160,7 @@ export function Uploader({
           <img
             src={preview}
             alt="Preview"
-            className="max-w-xs h-auto rounded-lg border"
+            className={previewClassName || "max-w-xs h-auto rounded-lg border"}
           />
         </div>
       )}

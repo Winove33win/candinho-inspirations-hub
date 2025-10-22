@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Check } from "lucide-react";
 
 interface ToolbarSaveProps {
-  onSave: () => Promise<void>;
+  onSave: () => Promise<boolean>;
   saving?: boolean;
   successLabel?: string;
   defaultLabel?: string;
   variant?: "default" | "outline";
+  disabled?: boolean;
 }
 
 export function ToolbarSave({
@@ -16,6 +17,7 @@ export function ToolbarSave({
   successLabel = "Conteúdo enviado ✔️",
   defaultLabel = "Publicar",
   variant = "default",
+  disabled = false,
 }: ToolbarSaveProps) {
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -29,15 +31,17 @@ export function ToolbarSave({
   }, [saving, showSuccess]);
 
   const handleClick = async () => {
-    await onSave();
-    setShowSuccess(true);
+    const result = await onSave();
+    if (result) {
+      setShowSuccess(true);
+    }
   };
 
   return (
     <Button
       type="button"
       onClick={handleClick}
-      disabled={saving}
+      disabled={saving || disabled}
       variant={variant}
       className="bg-[#90080b] hover:bg-[#7b0509] text-white"
     >

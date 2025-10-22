@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
-import { useArtistDetails } from "@/hooks/useArtistDetails";
+import type { ArtistDetails } from "@/hooks/useArtistDetails";
+import { useDashboardContext } from "./context";
 import DadosPessoais from "./tabs/DadosPessoais";
 import VisaoGeral from "./tabs/VisaoGeral";
 import TrajetoriaPessoal from "./tabs/TrajetoriaPessoal";
@@ -12,29 +13,36 @@ import VideosAudios from "./tabs/VideosAudios";
 import Fotografias from "./tabs/Fotografias";
 
 export default function MeuPerfil() {
-  const [user, setUser] = useState<any>(null);
+  const { user, artistDetails, upsertArtistDetails } = useDashboardContext();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("dados-pessoais");
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-    });
-  }, []);
+    const state = location.state as { focusTab?: string } | null;
+    if (state?.focusTab) {
+      setActiveTab(state.focusTab);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.pathname, location.state, navigate]);
 
-  const { artistDetails, loading } = useArtistDetails(user?.id);
+  useEffect(() => {
+    if (!user) {
+      setActiveTab("dados-pessoais");
+    }
+  }, [user]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+  if (!user) {
+    return null;
   }
+
+  const details: ArtistDetails | null = artistDetails ?? null;
 
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold font-['League_Spartan']">Meu perfil profissional</h1>
 
-      <Tabs defaultValue="dados-pessoais" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid grid-cols-4 lg:grid-cols-8 w-full">
           <TabsTrigger value="dados-pessoais">Dados pessoais</TabsTrigger>
           <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
@@ -48,35 +56,59 @@ export default function MeuPerfil() {
 
         <div className="mt-6 bg-card p-6 rounded-lg">
           <TabsContent value="dados-pessoais">
-            <DadosPessoais artistDetails={artistDetails} userId={user?.id} />
+            <DadosPessoais
+              artistDetails={details}
+              onUpsert={upsertArtistDetails}
+            />
           </TabsContent>
 
           <TabsContent value="visao-geral">
-            <VisaoGeral artistDetails={artistDetails} userId={user?.id} />
+            <VisaoGeral
+              artistDetails={details}
+              onUpsert={upsertArtistDetails}
+            />
           </TabsContent>
 
           <TabsContent value="trajetoria">
-            <TrajetoriaPessoal artistDetails={artistDetails} userId={user?.id} />
+            <TrajetoriaPessoal
+              artistDetails={details}
+              onUpsert={upsertArtistDetails}
+            />
           </TabsContent>
 
           <TabsContent value="carreira">
-            <Carreira artistDetails={artistDetails} userId={user?.id} />
+            <Carreira
+              artistDetails={details}
+              onUpsert={upsertArtistDetails}
+            />
           </TabsContent>
 
           <TabsContent value="mais">
-            <Mais artistDetails={artistDetails} userId={user?.id} />
+            <Mais
+              artistDetails={details}
+              onUpsert={upsertArtistDetails}
+            />
           </TabsContent>
 
           <TabsContent value="biografia">
-            <BiografiaRedes artistDetails={artistDetails} userId={user?.id} />
+            <BiografiaRedes
+              artistDetails={details}
+              onUpsert={upsertArtistDetails}
+            />
           </TabsContent>
 
           <TabsContent value="videos">
-            <VideosAudios artistDetails={artistDetails} userId={user?.id} />
+            <VideosAudios
+              artistDetails={details}
+              onUpsert={upsertArtistDetails}
+            />
           </TabsContent>
 
           <TabsContent value="fotografias">
-            <Fotografias artistDetails={artistDetails} userId={user?.id} />
+            <Fotografias
+              artistDetails={details}
+              onUpsert={upsertArtistDetails}
+            />
           </TabsContent>
         </div>
       </Tabs>

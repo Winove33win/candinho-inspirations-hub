@@ -1,19 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
+export type ArtistDetails = Database["public"]["Tables"]["new_artist_details"]["Row"];
+
+interface UpsertResponse {
+  data: ArtistDetails | null;
+  error: PostgrestError | Error | null;
+}
+
 export function useArtistDetails(userId: string | undefined) {
-  const [artistDetails, setArtistDetails] = useState<any>(null);
+  const [artistDetails, setArtistDetails] = useState<ArtistDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (!userId) return;
-
-    loadArtistDetails();
-  }, [userId]);
-
-  const loadArtistDetails = async () => {
+  const loadArtistDetails = useCallback(async () => {
     if (!userId) return;
 
     try {
@@ -38,20 +41,36 @@ export function useArtistDetails(userId: string | undefined) {
       } else {
         setArtistDetails(data);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[LOAD::ARTIST_DETAILS]", error);
       toast({
         title: "Erro",
-        description: "Erro ao carregar dados do artista",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Erro ao carregar dados do artista",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast, userId]);
 
-  const upsertArtistDetails = async (payload: any) => {
-    if (!userId) return;
+  useEffect(() => {
+    if (!userId) {
+      setArtistDetails(null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    loadArtistDetails();
+  }, [userId, loadArtistDetails]);
+
+  const upsertArtistDetails = async (payload: Partial<ArtistDetails>): Promise<UpsertResponse> => {
+    if (!userId) {
+      return { data: null, error: null };
+    }
 
     console.log("[SAVE::ARTIST_DETAILS]", payload);
 
@@ -66,9 +85,12 @@ export function useArtistDetails(userId: string | undefined) {
 
       setArtistDetails(data);
       return { data, error: null };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[SAVE::ARTIST_DETAILS]", error);
-      return { data: null, error };
+      return {
+        data: null,
+        error: error instanceof Error ? error : new Error("Erro ao salvar dados"),
+      };
     }
   };
 

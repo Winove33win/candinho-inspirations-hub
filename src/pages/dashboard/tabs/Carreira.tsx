@@ -3,14 +3,15 @@ import { FormSection } from "@/components/dashboard/FormSection";
 import { RichTextEditor } from "@/components/dashboard/RichTextEditor";
 import { ToolbarSave } from "@/components/dashboard/ToolbarSave";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import type { ArtistDetails } from "@/hooks/useArtistDetails";
+import type { DashboardContextValue } from "../context";
 
 interface CarreiraProps {
-  artistDetails: any;
-  userId: string;
+  artistDetails: ArtistDetails | null;
+  onUpsert: DashboardContextValue["upsertArtistDetails"];
 }
 
-export default function Carreira({ artistDetails, userId }: CarreiraProps) {
+export default function Carreira({ artistDetails, onUpsert }: CarreiraProps) {
   const [saving, setSaving] = useState(false);
   const [content, setContent] = useState("");
   const { toast } = useToast();
@@ -26,26 +27,25 @@ export default function Carreira({ artistDetails, userId }: CarreiraProps) {
     console.log("[SAVE::CARREIRA]", { carreira_titulo: content });
 
     try {
-      const { error } = await supabase
-        .from("new_artist_details")
-        .upsert({
-          member_id: userId,
-          carreira_titulo: content,
-        });
-
-      if (error) throw error;
+      const response = await onUpsert({ carreira_titulo: content });
+      if (!response || response.error) {
+        throw response?.error || new Error("Não foi possível salvar a carreira");
+      }
 
       toast({
         title: "Sucesso",
         description: "Carreira publicada com sucesso!",
       });
-    } catch (error: any) {
+      return true;
+    } catch (error: unknown) {
       console.error("[SAVE::CARREIRA]", error);
+      const message = error instanceof Error ? error.message : "Erro ao salvar";
       toast({
         title: "Erro",
-        description: error.message || "Erro ao salvar",
+        description: message,
         variant: "destructive",
       });
+      return false;
     } finally {
       setSaving(false);
     }

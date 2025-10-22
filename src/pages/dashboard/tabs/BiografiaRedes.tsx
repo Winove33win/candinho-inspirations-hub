@@ -5,14 +5,15 @@ import { FormSection } from "@/components/dashboard/FormSection";
 import { Uploader } from "@/components/dashboard/Uploader";
 import { ToolbarSave } from "@/components/dashboard/ToolbarSave";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import type { ArtistDetails } from "@/hooks/useArtistDetails";
+import type { DashboardContextValue } from "../context";
 
 interface BiografiaRedesProps {
-  artistDetails: any;
-  userId: string;
+  artistDetails: ArtistDetails | null;
+  onUpsert: DashboardContextValue["upsertArtistDetails"];
 }
 
-export default function BiografiaRedes({ artistDetails, userId }: BiografiaRedesProps) {
+export default function BiografiaRedes({ artistDetails, onUpsert }: BiografiaRedesProps) {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
@@ -61,32 +62,31 @@ export default function BiografiaRedes({ artistDetails, userId }: BiografiaRedes
   };
 
   const handleSave = async () => {
-    if (!validateUrls()) return;
+    if (!validateUrls()) return false;
 
     setSaving(true);
     console.log("[SAVE::BIOGRAFIA_REDES]", formData);
 
     try {
-      const { error } = await supabase
-        .from("new_artist_details")
-        .upsert({
-          ...formData,
-          member_id: userId,
-        });
-
-      if (error) throw error;
+      const response = await onUpsert(formData);
+      if (!response || response.error) {
+        throw response?.error || new Error("Não foi possível salvar a biografia e redes");
+      }
 
       toast({
         title: "Sucesso",
         description: "Biografia e redes sociais publicadas com sucesso!",
       });
-    } catch (error: any) {
+      return true;
+    } catch (error: unknown) {
       console.error("[SAVE::BIOGRAFIA_REDES]", error);
+      const message = error instanceof Error ? error.message : "Erro ao salvar";
       toast({
         title: "Erro",
-        description: error.message || "Erro ao salvar",
+        description: message,
         variant: "destructive",
       });
+      return false;
     } finally {
       setSaving(false);
     }
@@ -98,7 +98,7 @@ export default function BiografiaRedes({ artistDetails, userId }: BiografiaRedes
         <Uploader
           label="Documento Bio (PDF/DOC)"
           maxBytes={2 * 1024 * 1024}
-          bucket="artist-docs"
+          bucketPath="artist-media/docs"
           accept=".pdf,.doc,.docx"
           currentUrl={formData.biography1}
           onUploaded={(url) => setFormData({ ...formData, biography1: url })}

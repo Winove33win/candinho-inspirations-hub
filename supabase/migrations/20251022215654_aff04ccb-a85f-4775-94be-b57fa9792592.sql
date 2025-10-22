@@ -364,114 +364,31 @@ CREATE TRIGGER on_auth_user_created_artist
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_artist_user();
 
 -- Create storage buckets
-INSERT INTO storage.buckets (id, name, public) 
-VALUES 
-  ('artist-audio', 'artist-audio', true),
-  ('artist-video', 'artist-video', true),
-  ('artist-photos', 'artist-photos', true),
-  ('artist-docs', 'artist-docs', true)
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('artist-media', 'artist-media', true)
 ON CONFLICT (id) DO NOTHING;
 
--- Storage policies for audio bucket
-CREATE POLICY "Users can view audio files"
+CREATE POLICY "Users can view artist media"
   ON storage.objects FOR SELECT
-  USING (bucket_id = 'artist-audio');
+  USING (bucket_id = 'artist-media');
 
-CREATE POLICY "Authenticated users can upload their own audio"
+CREATE POLICY "Authenticated users can upload their artist media"
   ON storage.objects FOR INSERT
   WITH CHECK (
-    bucket_id = 'artist-audio' AND
+    bucket_id = 'artist-media' AND
     auth.uid()::text = (storage.foldername(name))[1]
   );
 
-CREATE POLICY "Users can update their own audio"
+CREATE POLICY "Users can update their artist media"
   ON storage.objects FOR UPDATE
   USING (
-    bucket_id = 'artist-audio' AND
+    bucket_id = 'artist-media' AND
     auth.uid()::text = (storage.foldername(name))[1]
   );
 
-CREATE POLICY "Users can delete their own audio"
+CREATE POLICY "Users can delete their artist media"
   ON storage.objects FOR DELETE
   USING (
-    bucket_id = 'artist-audio' AND
-    auth.uid()::text = (storage.foldername(name))[1]
-  );
-
--- Storage policies for video bucket
-CREATE POLICY "Users can view video files"
-  ON storage.objects FOR SELECT
-  USING (bucket_id = 'artist-video');
-
-CREATE POLICY "Authenticated users can upload their own videos"
-  ON storage.objects FOR INSERT
-  WITH CHECK (
-    bucket_id = 'artist-video' AND
-    auth.uid()::text = (storage.foldername(name))[1]
-  );
-
-CREATE POLICY "Users can update their own videos"
-  ON storage.objects FOR UPDATE
-  USING (
-    bucket_id = 'artist-video' AND
-    auth.uid()::text = (storage.foldername(name))[1]
-  );
-
-CREATE POLICY "Users can delete their own videos"
-  ON storage.objects FOR DELETE
-  USING (
-    bucket_id = 'artist-video' AND
-    auth.uid()::text = (storage.foldername(name))[1]
-  );
-
--- Storage policies for photos bucket
-CREATE POLICY "Users can view photos"
-  ON storage.objects FOR SELECT
-  USING (bucket_id = 'artist-photos');
-
-CREATE POLICY "Authenticated users can upload their own photos"
-  ON storage.objects FOR INSERT
-  WITH CHECK (
-    bucket_id = 'artist-photos' AND
-    auth.uid()::text = (storage.foldername(name))[1]
-  );
-
-CREATE POLICY "Users can update their own photos"
-  ON storage.objects FOR UPDATE
-  USING (
-    bucket_id = 'artist-photos' AND
-    auth.uid()::text = (storage.foldername(name))[1]
-  );
-
-CREATE POLICY "Users can delete their own photos"
-  ON storage.objects FOR DELETE
-  USING (
-    bucket_id = 'artist-photos' AND
-    auth.uid()::text = (storage.foldername(name))[1]
-  );
-
--- Storage policies for docs bucket
-CREATE POLICY "Users can view docs"
-  ON storage.objects FOR SELECT
-  USING (bucket_id = 'artist-docs');
-
-CREATE POLICY "Authenticated users can upload their own docs"
-  ON storage.objects FOR INSERT
-  WITH CHECK (
-    bucket_id = 'artist-docs' AND
-    auth.uid()::text = (storage.foldername(name))[1]
-  );
-
-CREATE POLICY "Users can update their own docs"
-  ON storage.objects FOR UPDATE
-  USING (
-    bucket_id = 'artist-docs' AND
-    auth.uid()::text = (storage.foldername(name))[1]
-  );
-
-CREATE POLICY "Users can delete their own docs"
-  ON storage.objects FOR DELETE
-  USING (
-    bucket_id = 'artist-docs' AND
+    bucket_id = 'artist-media' AND
     auth.uid()::text = (storage.foldername(name))[1]
   );

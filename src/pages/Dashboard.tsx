@@ -1,46 +1,39 @@
-import { useEffect, useState } from "react";
-import { useNavigate, Outlet } from "react-router-dom";
+import { useEffect } from "react";
+import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { 
-  User, 
-  FolderKanban, 
-  Calendar, 
-  FileText, 
-  ClipboardList, 
-  HelpCircle, 
+import {
+  User,
+  FolderKanban,
+  Calendar,
+  FileText,
+  ClipboardList,
+  HelpCircle,
   Settings,
-  LogOut 
+  LogOut
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrentMember } from "@/hooks/useCurrentMember";
+import { useArtistDetails } from "@/hooks/useArtistDetails";
+import type { DashboardContextValue } from "./dashboard/context";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading: userLoading } = useCurrentMember();
+  const {
+    artistDetails,
+    loading: detailsLoading,
+    upsertArtistDetails,
+    reloadDetails,
+  } = useArtistDetails(user?.id);
 
   useEffect(() => {
-    // Check authentication
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        navigate("/auth");
-      } else {
-        setUser(session.user);
-      }
-      setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session) {
-        navigate("/auth");
-      } else {
-        setUser(session.user);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    if (!userLoading && !user) {
+      navigate("/login");
+    }
+  }, [userLoading, user, navigate]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -48,10 +41,10 @@ export default function Dashboard() {
       title: "Logout realizado",
       description: "Até logo!",
     });
-    navigate("/auth");
+    navigate("/login");
   };
 
-  if (loading) {
+  if (userLoading || detailsLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -68,6 +61,13 @@ export default function Dashboard() {
     { icon: HelpCircle, label: "Suporte", path: "/dashboard/suporte" },
     { icon: Settings, label: "Cadastro Personalizado", path: "/dashboard/personalizado" },
   ];
+
+  const contextValue: DashboardContextValue = {
+    user,
+    artistDetails,
+    refreshArtistDetails: reloadDetails,
+    upsertArtistDetails,
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -97,7 +97,7 @@ export default function Dashboard() {
             {menuItems.map((item) => (
               <Button
                 key={item.path}
-                variant="ghost"
+                variant={location.pathname === item.path ? "secondary" : "ghost"}
                 className="w-full justify-start"
                 onClick={() => navigate(item.path)}
               >
@@ -110,7 +110,7 @@ export default function Dashboard() {
 
         {/* Main Content */}
         <main className="flex-1 p-8">
-          <Outlet />
+          <Outlet context={contextValue} />
         </main>
       </div>
     </div>
