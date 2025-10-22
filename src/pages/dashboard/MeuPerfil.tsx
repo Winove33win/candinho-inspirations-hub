@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+// src/pages/dashboard/MeuPerfil.tsx
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ArtistDetails } from "@/hooks/useArtistDetails";
 import { useDashboardContext } from "./context";
+
 import DadosPessoais from "./tabs/DadosPessoais";
 import VisaoGeral from "./tabs/VisaoGeral";
 import TrajetoriaPessoal from "./tabs/TrajetoriaPessoal";
@@ -18,6 +20,7 @@ export default function MeuPerfil() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dados-pessoais");
 
+  // navegação programática para uma aba específica (vinda de outra rota)
   useEffect(() => {
     const state = location.state as { focusTab?: string } | null;
     if (state?.focusTab) {
@@ -26,26 +29,24 @@ export default function MeuPerfil() {
     }
   }, [location.pathname, location.state, navigate]);
 
+  // fallback seguro
   useEffect(() => {
-    if (!user) {
-      setActiveTab("dados-pessoais");
-    }
+    if (!user) setActiveTab("dados-pessoais");
   }, [user]);
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   const details: ArtistDetails | null = artistDetails ?? null;
 
   return (
-    <div className="dashboard-content space-y-6">
+    <div className="dashboard-content space-y-6 pb-12">
       <h1 className="text-3xl font-bold font-['League_Spartan']">Meu perfil profissional</h1>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
+        {/* LISTA DE ABAS — sticky + z-index alto para garantir clique */}
         <TabsList
           aria-label="Navegação do perfil"
-          className="sticky top-0 z-30 flex h-auto w-full flex-wrap gap-2 rounded-md border bg-white/95 p-2 backdrop-blur"
+          className="sticky top-0 z-30 flex h-auto w-full gap-2 overflow-x-auto rounded-md border bg-white/95 p-2 backdrop-blur"
         >
           <TabsTrigger className="flex-1 whitespace-normal text-center" value="dados-pessoais">
             Dados pessoais
@@ -73,61 +74,38 @@ export default function MeuPerfil() {
           </TabsTrigger>
         </TabsList>
 
-        <div className="mt-6 rounded-lg bg-card p-6">
-          <TabsContent value="dados-pessoais">
-            <DadosPessoais
-              artistDetails={details}
-              onUpsert={upsertArtistDetails}
-            />
+        {/* CONTEÚDO */}
+        <div className="rounded-3xl border border-white/60 bg-white/95 p-6 shadow-[var(--shadow-card)] backdrop-blur md:p-8">
+          <TabsContent value="dados-pessoais" className="focus-visible:outline-none">
+            <DadosPessoais artistDetails={details} onUpsert={upsertArtistDetails} />
           </TabsContent>
 
-          <TabsContent value="visao-geral">
-            <VisaoGeral
-              artistDetails={details}
-              onUpsert={upsertArtistDetails}
-            />
+          <TabsContent value="visao-geral" className="focus-visible:outline-none">
+            <VisaoGeral artistDetails={details} onUpsert={upsertArtistDetails} />
           </TabsContent>
 
-          <TabsContent value="trajetoria">
-            <TrajetoriaPessoal
-              artistDetails={details}
-              onUpsert={upsertArtistDetails}
-            />
+          <TabsContent value="trajetoria" className="focus-visible:outline-none">
+            <TrajetoriaPessoal artistDetails={details} onUpsert={upsertArtistDetails} />
           </TabsContent>
 
-          <TabsContent value="carreira">
-            <Carreira
-              artistDetails={details}
-              onUpsert={upsertArtistDetails}
-            />
+          <TabsContent value="carreira" className="focus-visible:outline-none">
+            <Carreira artistDetails={details} onUpsert={upsertArtistDetails} />
           </TabsContent>
 
-          <TabsContent value="mais">
-            <Mais
-              artistDetails={details}
-              onUpsert={upsertArtistDetails}
-            />
+          <TabsContent value="mais" className="focus-visible:outline-none">
+            <Mais artistDetails={details} onUpsert={upsertArtistDetails} />
           </TabsContent>
 
-          <TabsContent value="biografia">
-            <BiografiaRedes
-              artistDetails={details}
-              onUpsert={upsertArtistDetails}
-            />
+          <TabsContent value="biografia" className="focus-visible:outline-none">
+            <BiografiaRedes artistDetails={details} onUpsert={upsertArtistDetails} />
           </TabsContent>
 
-          <TabsContent value="videos">
-            <VideosAudios
-              artistDetails={details}
-              onUpsert={upsertArtistDetails}
-            />
+          <TabsContent value="videos" className="focus-visible:outline-none">
+            <VideosAudios artistDetails={details} onUpsert={upsertArtistDetails} />
           </TabsContent>
 
-          <TabsContent value="fotografias">
-            <Fotografias
-              artistDetails={details}
-              onUpsert={upsertArtistDetails}
-            />
+          <TabsContent value="fotografias" className="focus-visible:outline-none">
+            <Fotografias artistDetails={details} onUpsert={upsertArtistDetails} />
           </TabsContent>
         </div>
       </Tabs>

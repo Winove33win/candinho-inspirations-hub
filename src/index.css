@@ -127,7 +127,10 @@ All colors MUST be HSL.
 .dashboard-content .radix-tabs__list,
 .dashboard-content [role="tablist"] {
   position: sticky;
+codex/implement-row-level-security-and-storage-policies-f9enov
+=======
   top: 0;
+ main
   z-index: 30;
 }
 
