@@ -39,22 +39,41 @@ export default function MeuPerfil() {
   const details: ArtistDetails | null = artistDetails ?? null;
 
   return (
-    <div className="space-y-6">
+    <div className="dashboard-content space-y-6">
       <h1 className="text-3xl font-bold font-['League_Spartan']">Meu perfil profissional</h1>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-4 lg:grid-cols-8 w-full">
-          <TabsTrigger value="dados-pessoais">Dados pessoais</TabsTrigger>
-          <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
-          <TabsTrigger value="trajetoria">Trajetória Pessoal</TabsTrigger>
-          <TabsTrigger value="carreira">Carreira</TabsTrigger>
-          <TabsTrigger value="mais">Mais</TabsTrigger>
-          <TabsTrigger value="biografia">Biografia e redes</TabsTrigger>
-          <TabsTrigger value="videos">Vídeos e Áudios</TabsTrigger>
-          <TabsTrigger value="fotografias">Fotografias</TabsTrigger>
+        <TabsList
+          aria-label="Navegação do perfil"
+          className="sticky top-0 z-30 flex h-auto w-full flex-wrap gap-2 rounded-md border bg-white/95 p-2 backdrop-blur"
+        >
+          <TabsTrigger className="flex-1 whitespace-normal text-center" value="dados-pessoais">
+            Dados pessoais
+          </TabsTrigger>
+          <TabsTrigger className="flex-1 whitespace-normal text-center" value="visao-geral">
+            Visão Geral
+          </TabsTrigger>
+          <TabsTrigger className="flex-1 whitespace-normal text-center" value="trajetoria">
+            Trajetória Pessoal
+          </TabsTrigger>
+          <TabsTrigger className="flex-1 whitespace-normal text-center" value="carreira">
+            Carreira
+          </TabsTrigger>
+          <TabsTrigger className="flex-1 whitespace-normal text-center" value="mais">
+            Mais
+          </TabsTrigger>
+          <TabsTrigger className="flex-1 whitespace-normal text-center" value="biografia">
+            Biografia e redes
+          </TabsTrigger>
+          <TabsTrigger className="flex-1 whitespace-normal text-center" value="videos">
+            Vídeos e Áudios
+          </TabsTrigger>
+          <TabsTrigger className="flex-1 whitespace-normal text-center" value="fotografias">
+            Fotografias
+          </TabsTrigger>
         </TabsList>
 
-        <div className="mt-6 bg-card p-6 rounded-lg">
+        <div className="mt-6 rounded-lg bg-card p-6">
           <TabsContent value="dados-pessoais">
             <DadosPessoais
               artistDetails={details}

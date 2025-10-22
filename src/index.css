@@ -110,3 +110,27 @@ All colors MUST be HSL.
     font-family: "Open Sans", system-ui, sans-serif;
   }
 }
+
+.dashboard-content {
+  position: relative;
+}
+
+[data-overlay],
+.dashboard-overlay,
+.section-mask,
+.hero-fade::before,
+.hero-fade::after {
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+.dashboard-content .radix-tabs__list,
+.dashboard-content [role="tablist"] {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.dashboard-content [role="tab"] {
+  pointer-events: auto;
+}

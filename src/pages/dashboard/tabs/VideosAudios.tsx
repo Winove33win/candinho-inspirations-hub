@@ -115,7 +115,7 @@ export default function VideosAudios({ artistDetails, onUpsert }: VideosAudiosPr
           maxBytes={4 * 1024 * 1024}
           bucketPath="artist-media/audio"
           accept="audio/*"
-          currentUrl={formData.audio}
+          currentPath={formData.audio}
           onUploaded={(url) => setFormData({ ...formData, audio: url })}
         />
       </FormSection>
@@ -127,7 +127,7 @@ export default function VideosAudios({ artistDetails, onUpsert }: VideosAudiosPr
             maxBytes={15 * 1024 * 1024}
             bucketPath="artist-media/video"
             accept="video/*"
-            currentUrl={formData.video_banner_landscape}
+            currentPath={formData.video_banner_landscape}
             onUploaded={(url) => setFormData({ ...formData, video_banner_landscape: url })}
           />
 
@@ -136,7 +136,7 @@ export default function VideosAudios({ artistDetails, onUpsert }: VideosAudiosPr
             maxBytes={15 * 1024 * 1024}
             bucketPath="artist-media/video"
             accept="video/*"
-            currentUrl={formData.video_banner_portrait}
+            currentPath={formData.video_banner_portrait}
             onUploaded={(url) => setFormData({ ...formData, video_banner_portrait: url })}
           />
         </div>
