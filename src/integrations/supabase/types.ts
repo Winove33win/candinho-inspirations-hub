@@ -14,16 +14,443 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      documents: {
+        Row: {
+          created_at: string
+          file_url: string | null
+          id: string
+          kind: Database["public"]["Enums"]["document_kind"] | null
+          member_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["document_kind"] | null
+          member_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["document_kind"] | null
+          member_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          banner: string | null
+          created_at: string
+          cta_link: string | null
+          date: string | null
+          description: string | null
+          end_time: string | null
+          id: string
+          member_id: string
+          name: string | null
+          place: string | null
+          start_time: string | null
+          status: Database["public"]["Enums"]["content_status"] | null
+          updated_at: string
+        }
+        Insert: {
+          banner?: string | null
+          created_at?: string
+          cta_link?: string | null
+          date?: string | null
+          description?: string | null
+          end_time?: string | null
+          id?: string
+          member_id: string
+          name?: string | null
+          place?: string | null
+          start_time?: string | null
+          status?: Database["public"]["Enums"]["content_status"] | null
+          updated_at?: string
+        }
+        Update: {
+          banner?: string | null
+          created_at?: string
+          cta_link?: string | null
+          date?: string | null
+          description?: string | null
+          end_time?: string | null
+          id?: string
+          member_id?: string
+          name?: string | null
+          place?: string | null
+          start_time?: string | null
+          status?: Database["public"]["Enums"]["content_status"] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      new_artist_details: {
+        Row: {
+          accepted_terms1: boolean | null
+          accepted_terms2: boolean | null
+          address1: string | null
+          address2: string | null
+          artistic_name: string | null
+          audio: string | null
+          biography1: string | null
+          carreira_titulo: string | null
+          cell_phone: string | null
+          city: string | null
+          country_of_birth: string | null
+          country_residence: string | null
+          created_at: string
+          date_of_birth: string | null
+          facebook: string | null
+          full_name: string | null
+          historia_titulo: string | null
+          how_is_it_defined: string | null
+          how_is_it_defined1: string | null
+          id: string
+          image1: string | null
+          image1_text: string | null
+          image10: string | null
+          image10_text: string | null
+          image11: string | null
+          image11_text: string | null
+          image12: string | null
+          image12_text: string | null
+          image2: string | null
+          image2_text: string | null
+          image3: string | null
+          image3_text: string | null
+          image4: string | null
+          image4_text: string | null
+          image5: string | null
+          image5_text: string | null
+          image6: string | null
+          image6_text: string | null
+          image7: string | null
+          image7_text: string | null
+          image8: string | null
+          image8_text: string | null
+          image9: string | null
+          image9_text: string | null
+          instagram: string | null
+          link_to_video: string | null
+          link_to_video10: string | null
+          link_to_video2: string | null
+          link_to_video3: string | null
+          link_to_video4: string | null
+          link_to_video5: string | null
+          link_to_video6: string | null
+          link_to_video7: string | null
+          link_to_video8: string | null
+          link_to_video9: string | null
+          mais_titulo: string | null
+          member_id: string
+          music_spotify_apple: string | null
+          perfil_completo: boolean | null
+          postal_code: string | null
+          profile_image: string | null
+          profile_text2: string | null
+          updated_at: string
+          video_banner_landscape: string | null
+          video_banner_portrait: string | null
+          visao_geral_titulo: string | null
+          website: string | null
+          youtube_channel: string | null
+        }
+        Insert: {
+          accepted_terms1?: boolean | null
+          accepted_terms2?: boolean | null
+          address1?: string | null
+          address2?: string | null
+          artistic_name?: string | null
+          audio?: string | null
+          biography1?: string | null
+          carreira_titulo?: string | null
+          cell_phone?: string | null
+          city?: string | null
+          country_of_birth?: string | null
+          country_residence?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          facebook?: string | null
+          full_name?: string | null
+          historia_titulo?: string | null
+          how_is_it_defined?: string | null
+          how_is_it_defined1?: string | null
+          id?: string
+          image1?: string | null
+          image1_text?: string | null
+          image10?: string | null
+          image10_text?: string | null
+          image11?: string | null
+          image11_text?: string | null
+          image12?: string | null
+          image12_text?: string | null
+          image2?: string | null
+          image2_text?: string | null
+          image3?: string | null
+          image3_text?: string | null
+          image4?: string | null
+          image4_text?: string | null
+          image5?: string | null
+          image5_text?: string | null
+          image6?: string | null
+          image6_text?: string | null
+          image7?: string | null
+          image7_text?: string | null
+          image8?: string | null
+          image8_text?: string | null
+          image9?: string | null
+          image9_text?: string | null
+          instagram?: string | null
+          link_to_video?: string | null
+          link_to_video10?: string | null
+          link_to_video2?: string | null
+          link_to_video3?: string | null
+          link_to_video4?: string | null
+          link_to_video5?: string | null
+          link_to_video6?: string | null
+          link_to_video7?: string | null
+          link_to_video8?: string | null
+          link_to_video9?: string | null
+          mais_titulo?: string | null
+          member_id: string
+          music_spotify_apple?: string | null
+          perfil_completo?: boolean | null
+          postal_code?: string | null
+          profile_image?: string | null
+          profile_text2?: string | null
+          updated_at?: string
+          video_banner_landscape?: string | null
+          video_banner_portrait?: string | null
+          visao_geral_titulo?: string | null
+          website?: string | null
+          youtube_channel?: string | null
+        }
+        Update: {
+          accepted_terms1?: boolean | null
+          accepted_terms2?: boolean | null
+          address1?: string | null
+          address2?: string | null
+          artistic_name?: string | null
+          audio?: string | null
+          biography1?: string | null
+          carreira_titulo?: string | null
+          cell_phone?: string | null
+          city?: string | null
+          country_of_birth?: string | null
+          country_residence?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          facebook?: string | null
+          full_name?: string | null
+          historia_titulo?: string | null
+          how_is_it_defined?: string | null
+          how_is_it_defined1?: string | null
+          id?: string
+          image1?: string | null
+          image1_text?: string | null
+          image10?: string | null
+          image10_text?: string | null
+          image11?: string | null
+          image11_text?: string | null
+          image12?: string | null
+          image12_text?: string | null
+          image2?: string | null
+          image2_text?: string | null
+          image3?: string | null
+          image3_text?: string | null
+          image4?: string | null
+          image4_text?: string | null
+          image5?: string | null
+          image5_text?: string | null
+          image6?: string | null
+          image6_text?: string | null
+          image7?: string | null
+          image7_text?: string | null
+          image8?: string | null
+          image8_text?: string | null
+          image9?: string | null
+          image9_text?: string | null
+          instagram?: string | null
+          link_to_video?: string | null
+          link_to_video10?: string | null
+          link_to_video2?: string | null
+          link_to_video3?: string | null
+          link_to_video4?: string | null
+          link_to_video5?: string | null
+          link_to_video6?: string | null
+          link_to_video7?: string | null
+          link_to_video8?: string | null
+          link_to_video9?: string | null
+          mais_titulo?: string | null
+          member_id?: string
+          music_spotify_apple?: string | null
+          perfil_completo?: boolean | null
+          postal_code?: string | null
+          profile_image?: string | null
+          profile_text2?: string | null
+          updated_at?: string
+          video_banner_landscape?: string | null
+          video_banner_portrait?: string | null
+          visao_geral_titulo?: string | null
+          website?: string | null
+          youtube_channel?: string | null
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          about: string | null
+          banner_image: string | null
+          block1_image: string | null
+          block1_title: string | null
+          block2_image: string | null
+          block2_title: string | null
+          block3_image: string | null
+          block3_title: string | null
+          block4_image: string | null
+          block4_title: string | null
+          block5_image: string | null
+          block5_title: string | null
+          cover_image: string | null
+          created_at: string
+          id: string
+          member_id: string
+          partners: string | null
+          project_sheet: string | null
+          status: Database["public"]["Enums"]["content_status"] | null
+          team_art: string | null
+          team_tech: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          about?: string | null
+          banner_image?: string | null
+          block1_image?: string | null
+          block1_title?: string | null
+          block2_image?: string | null
+          block2_title?: string | null
+          block3_image?: string | null
+          block3_title?: string | null
+          block4_image?: string | null
+          block4_title?: string | null
+          block5_image?: string | null
+          block5_title?: string | null
+          cover_image?: string | null
+          created_at?: string
+          id?: string
+          member_id: string
+          partners?: string | null
+          project_sheet?: string | null
+          status?: Database["public"]["Enums"]["content_status"] | null
+          team_art?: string | null
+          team_tech?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          about?: string | null
+          banner_image?: string | null
+          block1_image?: string | null
+          block1_title?: string | null
+          block2_image?: string | null
+          block2_title?: string | null
+          block3_image?: string | null
+          block3_title?: string | null
+          block4_image?: string | null
+          block4_title?: string | null
+          block5_image?: string | null
+          block5_title?: string | null
+          cover_image?: string | null
+          created_at?: string
+          id?: string
+          member_id?: string
+          partners?: string | null
+          project_sheet?: string | null
+          status?: Database["public"]["Enums"]["content_status"] | null
+          team_art?: string | null
+          team_tech?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      support_tickets: {
+        Row: {
+          created_at: string
+          id: string
+          member_id: string
+          message: string
+          status: string | null
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_id: string
+          message: string
+          status?: string | null
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_id?: string
+          message?: string
+          status?: string | null
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "member"
+      content_status: "draft" | "published"
+      document_kind: "contrato" | "termo" | "outro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +577,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "member"],
+      content_status: ["draft", "published"],
+      document_kind: ["contrato", "termo", "outro"],
+    },
   },
 } as const
