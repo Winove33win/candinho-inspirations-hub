@@ -194,7 +194,7 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
                 maxBytes={1024 * 1024}
                 bucketPath="artist-media/photos"
                 accept="image/*"
-                currentUrl={formData.profile_image}
+                currentPath={formData.profile_image}
                 onUploaded={(url) => setFormData({ ...formData, profile_image: url })}
                 previewClassName="rounded-full w-32 h-32 object-cover border"
               />

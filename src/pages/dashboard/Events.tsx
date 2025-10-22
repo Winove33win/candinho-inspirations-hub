@@ -244,7 +244,7 @@ export default function Events() {
             maxBytes={2 * 1024 * 1024}
             bucketPath="artist-media/photos"
             accept="image/*"
-            currentUrl={form.banner ?? ""}
+            currentPath={form.banner ?? ""}
             onUploaded={(url) => setForm((prev) => ({ ...prev, banner: url }))}
           />
           <div>

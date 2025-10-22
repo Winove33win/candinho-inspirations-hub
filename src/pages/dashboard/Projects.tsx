@@ -252,7 +252,7 @@ export default function Projects() {
             maxBytes={1024 * 1024}
             bucketPath="artist-media/photos"
             accept="image/*"
-            currentUrl={form.cover_image ?? ""}
+            currentPath={form.cover_image ?? ""}
             onUploaded={(url) => setForm((prev) => ({ ...prev, cover_image: url }))}
           />
           <Uploader
@@ -260,7 +260,7 @@ export default function Projects() {
             maxBytes={2 * 1024 * 1024}
             bucketPath="artist-media/photos"
             accept="image/*"
-            currentUrl={form.banner_image ?? ""}
+            currentPath={form.banner_image ?? ""}
             onUploaded={(url) => setForm((prev) => ({ ...prev, banner_image: url }))}
           />
         </div>
@@ -301,7 +301,7 @@ export default function Projects() {
                 maxBytes={1024 * 1024}
                 bucketPath="artist-media/photos"
                 accept="image/*"
-                currentUrl={(form[imageKey] as string | null) ?? ""}
+                currentPath={(form[imageKey] as string | null) ?? ""}
                 onUploaded={(url) =>
                   setForm((prev) => ({
                     ...prev,
