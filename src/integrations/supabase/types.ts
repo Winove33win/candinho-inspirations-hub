@@ -14,6 +14,18 @@ export type Database = {
   }
   public: {
     Tables: {
+      admins: {
+        Row: {
+          user_id: string
+        }
+        Insert: {
+          user_id: string
+        }
+        Update: {
+          user_id?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           created_at: string
@@ -389,7 +401,7 @@ export type Database = {
           id: string
           member_id: string
           message: string
-          status: string | null
+          status: "open" | "in_progress" | "closed"
           subject: string
           updated_at: string
         }
@@ -398,7 +410,7 @@ export type Database = {
           id?: string
           member_id: string
           message: string
-          status?: string | null
+          status?: "open" | "in_progress" | "closed"
           subject: string
           updated_at?: string
         }
@@ -407,7 +419,7 @@ export type Database = {
           id?: string
           member_id?: string
           message?: string
-          status?: string | null
+          status?: "open" | "in_progress" | "closed"
           subject?: string
           updated_at?: string
         }
@@ -436,7 +448,13 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_is_admin: {
+        Row: {
+          is_admin: boolean | null
+          uid: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
