@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useLocation, useNavigate, Outlet } from "react-router-dom";
+import { useEffect, type ReactNode } from "react";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,16 +10,18 @@ import {
   ClipboardList,
   HelpCircle,
   Settings,
-  LogOut
+  LogOut,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCurrentMember } from "@/hooks/useCurrentMember";
 import { useArtistDetails } from "@/hooks/useArtistDetails";
 import type { DashboardContextValue } from "./dashboard/context";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
   const { user, loading: userLoading } = useCurrentMember();
   const {
@@ -52,7 +54,7 @@ export default function Dashboard() {
     );
   }
 
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     { icon: User, label: "Meu perfil profissional", path: "/dashboard" },
     { icon: FolderKanban, label: "Projetos", path: "/dashboard/projetos" },
     { icon: Calendar, label: "Eventos", path: "/dashboard/eventos" },
@@ -70,49 +72,72 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-[#90080b] text-white p-4">
-        <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold font-['League_Spartan']">SMARTx</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm">{user?.email}</span>
+    <div className="min-h-screen flex flex-col bg-white text-neutral-900">
+      <Header />
+
+      <div className="flex flex-1">
+        <aside className="w-[260px] shrink-0 border-r bg-neutral-50/70">
+          <div className="border-b p-4">
+            <p className="text-sm font-medium text-neutral-600">{user.email}</p>
             <Button
               variant="ghost"
               size="sm"
+              className="mt-3 justify-start gap-2 text-neutral-700 hover:bg-neutral-200"
               onClick={handleLogout}
-              className="text-white hover:bg-white/20"
             >
-              <LogOut className="h-4 w-4 mr-2" />
+              <LogOut className="h-4 w-4" />
               Sair
             </Button>
           </div>
-        </div>
-      </header>
-
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-64 bg-card min-h-[calc(100vh-64px)] p-4 border-r">
-          <nav className="space-y-2">
+          <nav className="p-4 space-y-1">
             {menuItems.map((item) => (
-              <Button
-                key={item.path}
-                variant={location.pathname === item.path ? "secondary" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => navigate(item.path)}
-              >
-                <item.icon className="mr-2 h-4 w-4" />
+              <Item key={item.path} to={item.path} icon={item.icon}>
                 {item.label}
-              </Button>
+              </Item>
             ))}
           </nav>
         </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 p-8">
-          <Outlet context={contextValue} />
+        <main className="flex-1">
+          <div className="container mx-auto flex max-w-6xl flex-1 flex-col px-6 pb-16 pt-24 md:px-8">
+            <Outlet context={contextValue} />
+          </div>
         </main>
       </div>
+
+      <Footer />
     </div>
+  );
+}
+
+type MenuItem = {
+  icon: LucideIcon;
+  label: string;
+  path: string;
+};
+
+function Item({
+  to,
+  children,
+  icon: Icon,
+}: {
+  to: string;
+  children: ReactNode;
+  icon: LucideIcon;
+}) {
+  return (
+    <NavLink
+      to={to}
+      end
+      className={({ isActive }) =>
+        "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium " +
+        (isActive
+          ? "bg-neutral-200 text-neutral-900"
+          : "text-neutral-700 hover:bg-neutral-100")
+      }
+    >
+      <Icon className="h-4 w-4" />
+      {children}
+    </NavLink>
   );
 }
