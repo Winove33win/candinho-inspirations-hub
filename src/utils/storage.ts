@@ -15,18 +15,18 @@ export async function uploadToArtistBucket(opts: {
   const baseName = safeName.replace(/\.[a-z0-9]+$/i, "");
   const normalizedName = baseName.length > 0 ? baseName : "arquivo";
   const filename = `${Date.now()}-${normalizedName}.${ext}`.toLowerCase();
-  const path = `artist-media/${userId}/${folder}/${filename}`;
+  const objectPath = `${userId}/${folder}/${filename}`;
 
   const { error } = await supabase.storage
     .from("artist-media")
-    .upload(path, file, {
+    .upload(objectPath, file, {
       upsert,
       contentType: file.type || `image/${ext}`,
       cacheControl: "3600",
     });
 
   if (error) throw error;
-  return { path };
+  return { path: `artist-media/${objectPath}` };
 }
 
 export async function getSignedUrl(path: string, expiresSec = 3600) {
