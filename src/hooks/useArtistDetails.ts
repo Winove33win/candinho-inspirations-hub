@@ -32,7 +32,11 @@ export function useArtistDetails(userId: string | undefined) {
         // Create skeleton if doesn't exist
         const { data: newData, error: insertError } = await supabase
           .from("new_artist_details")
-          .insert({ member_id: userId, perfil_completo: false })
+          .insert({
+            member_id: userId,
+            perfil_completo: false,
+            updated_at: new Date().toISOString(),
+          })
           .select()
           .single();
 
@@ -67,17 +71,42 @@ export function useArtistDetails(userId: string | undefined) {
     loadArtistDetails();
   }, [userId, loadArtistDetails]);
 
+  const normalizePayload = (payload: Partial<ArtistDetails>) => {
+    return Object.entries(payload).reduce<Partial<ArtistDetails>>((acc, [key, value]) => {
+      if (typeof value === "string") {
+        const trimmed = value.trim();
+        acc[key as keyof ArtistDetails] = trimmed.length > 0 ? trimmed : null;
+        return acc;
+      }
+
+      if (typeof value === "boolean" || value === null || value === undefined) {
+        acc[key as keyof ArtistDetails] = value ?? null;
+        return acc;
+      }
+
+      acc[key as keyof ArtistDetails] = value as ArtistDetails[keyof ArtistDetails];
+      return acc;
+    }, {});
+  };
+
   const upsertArtistDetails = async (payload: Partial<ArtistDetails>): Promise<UpsertResponse> => {
     if (!userId) {
       return { data: null, error: null };
     }
 
-    console.log("[SAVE::ARTIST_DETAILS]", payload);
+    const sanitizedPayload = normalizePayload(payload);
+    const updates = {
+      ...sanitizedPayload,
+      member_id: userId,
+      updated_at: new Date().toISOString(),
+    } satisfies Partial<ArtistDetails> & { member_id: string; updated_at: string };
+
+    console.log("[SAVE::ARTIST_DETAILS]", updates);
 
     try {
       const { data, error } = await supabase
         .from("new_artist_details")
-        .upsert({ ...payload, member_id: userId })
+        .upsert(updates, { onConflict: "member_id" })
         .select()
         .single();
 
