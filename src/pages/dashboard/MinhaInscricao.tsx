@@ -3,7 +3,6 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardContext } from "./context";
 import { useNavigate } from "react-router-dom";
 
@@ -46,48 +45,57 @@ export default function MinhaInscricao() {
     : null;
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardContent className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            {isComplete ? (
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            ) : (
-              <AlertCircle className="h-8 w-8 text-yellow-600" />
-            )}
-            <div>
-              <h2 className="text-2xl font-semibold">Status do cadastro</h2>
-              <p className="text-muted-foreground">
-                {isComplete ? "Seu perfil está completo." : "Ainda há etapas pendentes para concluir seu perfil."}
-              </p>
-              {lastUpdate && (
-                <p className="text-sm text-muted-foreground">Última atualização: {lastUpdate}</p>
-              )}
-            </div>
+    <div className="mx-auto max-w-6xl px-6 md:px-8">
+      <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] md:p-8">
+        <div className="space-y-8">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-['League_Spartan'] font-bold text-[var(--ink)] md:text-3xl">Minha inscrição</h1>
+            <p className="text-sm text-[var(--muted)] md:text-base">
+              Acompanhe o status do seu cadastro e finalize as etapas pendentes para liberar todo o potencial do seu perfil.
+            </p>
           </div>
-          <Button onClick={handleNavigate} className="self-start md:self-auto">
-            Concluir configuração
-          </Button>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardContent className="p-6 space-y-4">
-          <h3 className="text-xl font-semibold">Checklist</h3>
-          {missingItems.length === 0 ? (
-            <p className="text-muted-foreground">Tudo pronto! Seu perfil está completo.</p>
-          ) : (
-            <ul className="space-y-2">
-              {missingItems.map((item) => (
-                <li key={item.field} className="flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 mt-1 text-yellow-600" />
-                  <span>{item.label}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+          <div className="flex flex-col gap-4 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-3">
+              {isComplete ? (
+                <CheckCircle className="h-8 w-8 text-emerald-600" />
+              ) : (
+                <AlertCircle className="h-8 w-8 text-amber-500" />
+              )}
+              <div className="space-y-1">
+                <h2 className="text-xl font-semibold text-[var(--ink)]">Status do cadastro</h2>
+                <p className="text-sm text-[var(--muted)]">
+                  {isComplete ? 'Seu perfil está completo.' : 'Ainda há etapas pendentes para concluir seu perfil.'}
+                </p>
+                {lastUpdate && (
+                  <p className="text-xs text-[var(--muted)]">Última atualização: {lastUpdate}</p>
+                )}
+              </div>
+            </div>
+            <Button onClick={handleNavigate} className="self-start md:self-auto">
+              Concluir configuração
+            </Button>
+          </div>
+
+          <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)]">
+            <h3 className="text-lg font-semibold text-[var(--ink)] md:text-xl">Checklist</h3>
+            {missingItems.length === 0 ? (
+              <p className="mt-2 text-sm text-[var(--muted)]">Tudo pronto! Seu perfil está completo.</p>
+            ) : (
+              <ul className="mt-4 space-y-3">
+                {missingItems.map((item) => (
+                  <li key={item.field} className="flex items-start gap-3 text-sm text-[var(--ink)]">
+                    <AlertCircle className="mt-0.5 h-4 w-4 text-amber-500" />
+                    <span>{item.label}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
+
 }
+

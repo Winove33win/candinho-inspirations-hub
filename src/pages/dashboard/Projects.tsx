@@ -197,170 +197,184 @@ export default function Projects() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      <div className="flex min-h-screen items-center justify-center bg-[var(--surface-alt)]">
+        <div className="h-16 w-16 animate-spin rounded-full border-b-2 border-[var(--brand)]" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col lg:flex-row lg:items-end gap-4">
-        <div className="flex-1">
-          <Label htmlFor="selectProjeto">Selecionar seu projeto</Label>
-          <Select
-            value={selectedProjectId ?? "novo"}
-            onValueChange={handleSelectProject}
-          >
-            <SelectTrigger id="selectProjeto">
-              <SelectValue placeholder="Escolha um projeto" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="novo">Novo projeto</SelectItem>
-              {projects.map((project) => (
-                <SelectItem key={project.id} value={project.id}>
-                  {project.title || "Sem título"}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleNewProject}>
-            Novo projeto
-          </Button>
-          <Button variant="outline" onClick={handleStatusToggle}>
-            Alterar status ({currentStatusLabel})
-          </Button>
-        </div>
-      </div>
-
-      <FormSection title="Informações principais">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="projectTitle">Título *</Label>
-            <Input
-              id="projectTitle"
-              value={form.title ?? ""}
-              onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-              placeholder="Nome do projeto"
-            />
+    <div className="mx-auto max-w-6xl px-6 md:px-8">
+      <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] md:p-8">
+        <div className="space-y-8">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-['League_Spartan'] font-bold text-[var(--ink)] md:text-3xl">Projetos</h1>
+            <p className="text-sm text-[var(--muted)] md:text-base">
+              Gerencie e apresente seus projetos com materiais atualizados para a curadoria SMARTx.
+            </p>
           </div>
-          <Uploader
-            label="Imagem de capa"
-            maxBytes={1024 * 1024}
-            bucketPath="artist-media/photos"
-            accept="image/*"
-            currentPath={form.cover_image ?? ""}
-            onUploaded={(url) => setForm((prev) => ({ ...prev, cover_image: url }))}
-          />
-          <Uploader
-            label="Banner"
-            maxBytes={2 * 1024 * 1024}
-            bucketPath="artist-media/photos"
-            accept="image/*"
-            currentPath={form.banner_image ?? ""}
-            onUploaded={(url) => setForm((prev) => ({ ...prev, banner_image: url }))}
-          />
-        </div>
 
-        <div>
-          <Label>Sobre o projeto</Label>
-          <RichTextEditor
-            id="projectAbout"
-            value={form.about ?? ""}
-            onChange={(value) => setForm((prev) => ({ ...prev, about: value }))}
-            placeholder="Descreva o projeto"
-          />
-        </div>
-      </FormSection>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
+            <div className="flex-1 space-y-2">
+              <Label htmlFor="selectProjeto">Selecionar seu projeto</Label>
+              <Select value={selectedProjectId ?? 'novo'} onValueChange={handleSelectProject}>
+                <SelectTrigger id="selectProjeto">
+                  <SelectValue placeholder="Escolha um projeto" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="novo">Novo projeto</SelectItem>
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.title || 'Sem título'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-      <FormSection title="Blocos de destaque">
-        {[1, 2, 3, 4, 5].map((block) => {
-          const titleKey = `block${block}_title` as keyof EditableProject;
-          const imageKey = `block${block}_image` as keyof EditableProject;
-          return (
-            <div key={block} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button variant="secondary" onClick={handleNewProject}>
+                Novo projeto
+              </Button>
+              <Button variant="secondary" onClick={handleStatusToggle}>
+                Alterar status ({currentStatusLabel})
+              </Button>
+            </div>
+          </div>
+
+          <FormSection title="Informações principais">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
               <div>
-                <Label htmlFor={`blockTitle${block}`}>Título bloco {block}</Label>
+                <Label htmlFor="projectTitle">Título *</Label>
                 <Input
-                  id={`blockTitle${block}`}
-                  value={(form[titleKey] as string | null) ?? ""}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      [titleKey]: e.target.value,
-                    }))
-                  }
-                  placeholder={`Título do bloco ${block}`}
+                  id="projectTitle"
+                  value={form.title ?? ''}
+                  onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+                  placeholder="Nome do projeto"
                 />
               </div>
-              <Uploader
-                label={`Imagem bloco ${block}`}
-                maxBytes={1024 * 1024}
-                bucketPath="artist-media/photos"
-                accept="image/*"
-                currentPath={(form[imageKey] as string | null) ?? ""}
-                onUploaded={(url) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    [imageKey]: url,
-                  }))
-                }
-              />
+              <div>
+                <Uploader
+                  label="Imagem de capa"
+                  maxBytes={1024 * 1024}
+                  bucketPath="artist-media/photos"
+                  accept="image/*"
+                  currentPath={form.cover_image ?? ''}
+                  onUploaded={(url) => setForm((prev) => ({ ...prev, cover_image: url }))}
+                />
+              </div>
+              <div>
+                <Uploader
+                  label="Banner"
+                  maxBytes={2 * 1024 * 1024}
+                  bucketPath="artist-media/photos"
+                  accept="image/*"
+                  currentPath={form.banner_image ?? ''}
+                  onUploaded={(url) => setForm((prev) => ({ ...prev, banner_image: url }))}
+                />
+              </div>
+              <div className="md:col-span-2 space-y-2">
+                <Label htmlFor="projectAbout">Sobre o projeto</Label>
+                <RichTextEditor
+                  id="projectAbout"
+                  value={form.about ?? ''}
+                  onChange={(value) => setForm((prev) => ({ ...prev, about: value }))}
+                  placeholder="Descreva o projeto"
+                />
+              </div>
             </div>
-          );
-        })}
-      </FormSection>
+          </FormSection>
 
-      <FormSection title="Equipe e ficha técnica">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label>Equipe técnica</Label>
-            <RichTextEditor
-              id="teamTech"
-              value={form.team_tech ?? ""}
-              onChange={(value) => setForm((prev) => ({ ...prev, team_tech: value }))}
-              placeholder="Descreva a equipe técnica"
-            />
-          </div>
-          <div>
-            <Label>Equipe artística</Label>
-            <RichTextEditor
-              id="teamArt"
-              value={form.team_art ?? ""}
-              onChange={(value) => setForm((prev) => ({ ...prev, team_art: value }))}
-              placeholder="Descreva a equipe artística"
-            />
+          <FormSection title="Blocos de destaque">
+            <div className="space-y-6">
+              {[1, 2, 3, 4, 5].map((block) => {
+                const titleKey = `block${block}_title` as keyof EditableProject;
+                const imageKey = `block${block}_image` as keyof EditableProject;
+                return (
+                  <div key={block} className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+                    <div>
+                      <Label htmlFor={`blockTitle${block}`}>Título bloco {block}</Label>
+                      <Input
+                        id={`blockTitle${block}`}
+                        value={(form[titleKey] as string | null) ?? ''}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            [titleKey]: e.target.value,
+                          }))
+                        }
+                        placeholder={`Título do bloco ${block}`}
+                      />
+                    </div>
+                    <div>
+                      <Uploader
+                        label={`Imagem bloco ${block}`}
+                        maxBytes={1024 * 1024}
+                        bucketPath="artist-media/photos"
+                        accept="image/*"
+                        currentPath={(form[imageKey] as string | null) ?? ''}
+                        onUploaded={(url) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            [imageKey]: url,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </FormSection>
+
+          <FormSection title="Equipe e ficha técnica">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="teamTech">Equipe técnica</Label>
+                <RichTextEditor
+                  id="teamTech"
+                  value={form.team_tech ?? ''}
+                  onChange={(value) => setForm((prev) => ({ ...prev, team_tech: value }))}
+                  placeholder="Descreva a equipe técnica"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="teamArt">Equipe artística</Label>
+                <RichTextEditor
+                  id="teamArt"
+                  value={form.team_art ?? ''}
+                  onChange={(value) => setForm((prev) => ({ ...prev, team_art: value }))}
+                  placeholder="Descreva a equipe artística"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="projectSheet">Ficha técnica</Label>
+                <RichTextEditor
+                  id="projectSheet"
+                  value={form.project_sheet ?? ''}
+                  onChange={(value) => setForm((prev) => ({ ...prev, project_sheet: value }))}
+                  placeholder="Detalhes da ficha técnica"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="projectPartners">Parceiros</Label>
+                <RichTextEditor
+                  id="projectPartners"
+                  value={form.partners ?? ''}
+                  onChange={(value) => setForm((prev) => ({ ...prev, partners: value }))}
+                  placeholder="Liste parceiros e apoiadores"
+                />
+              </div>
+            </div>
+          </FormSection>
+
+          <div className="flex justify-end">
+            <ToolbarSave onSave={handleSave} saving={saving} />
           </div>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label>Ficha técnica</Label>
-            <RichTextEditor
-              id="projectSheet"
-              value={form.project_sheet ?? ""}
-              onChange={(value) => setForm((prev) => ({ ...prev, project_sheet: value }))}
-              placeholder="Detalhes da ficha técnica"
-            />
-          </div>
-          <div>
-            <Label>Parceiros</Label>
-            <RichTextEditor
-              id="projectPartners"
-              value={form.partners ?? ""}
-              onChange={(value) => setForm((prev) => ({ ...prev, partners: value }))}
-              placeholder="Liste parceiros e apoiadores"
-            />
-          </div>
-        </div>
-      </FormSection>
-
-      <div className="flex justify-end">
-        <ToolbarSave onSave={handleSave} saving={saving} />
       </div>
     </div>
   );
+
 }
+

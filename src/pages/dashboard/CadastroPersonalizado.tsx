@@ -1,14 +1,17 @@
-import { Card, CardContent } from "@/components/ui/card";
-
 export default function CadastroPersonalizado() {
   return (
-    <Card>
-      <CardContent className="p-8 space-y-4">
-        <h2 className="text-2xl font-semibold">Cadastro personalizado</h2>
-        <p className="text-muted-foreground">
-          Em breve você poderá configurar campos personalizados para o seu perfil do SMARTx.
-        </p>
-      </CardContent>
-    </Card>
+    <div className="mx-auto max-w-6xl px-6 md:px-8">
+      <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] md:p-8">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-['League_Spartan'] font-bold text-[var(--ink)] md:text-3xl">
+            Cadastro personalizado
+          </h1>
+          <p className="text-sm text-[var(--muted)] md:text-base">
+            Em breve você poderá configurar campos personalizados para o seu perfil do SMARTx.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
+

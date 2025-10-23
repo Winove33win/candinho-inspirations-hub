@@ -1,87 +1,19 @@
+@import "./styles/tokens.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 14%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 14%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 14%;
-
-    --primary: 359 89% 30%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 0 0% 14%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 40%;
-
-    --accent: 0 0% 24%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 86%;
-    --input: 0 0% 86%;
-    --ring: 359 89% 30%;
-
-    --radius: 0.875rem;
-
-    --shadow-elegant: 0 20px 40px -18px hsl(0 0% 0% / 0.12);
-    --shadow-card: 0 12px 30px hsl(0 0% 0% / 0.08);
-    --transition-smooth: all 0.25s ease;
-  }
-
-  .dark {
-    --background: 0 0% 8%;
-    --foreground: 0 0% 96%;
-
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 96%;
-
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 96%;
-
-    --primary: 359 75% 44%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 0 0% 20%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 70%;
-
-    --accent: 359 75% 44%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 26%;
-    --input: 0 0% 26%;
-    --ring: 359 75% 44%;
-  }
-}
-
 @layer base {
   * {
-    @apply border-border;
+    border-color: var(--border);
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: "Open Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background-color: var(--surface-alt);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
   }
 
   h1,
@@ -90,50 +22,24 @@ All colors MUST be HSL.
   h4,
   h5,
   h6 {
-    font-family: "League Spartan", "Open Sans", system-ui, sans-serif;
+    font-family: var(--font-heading);
+    color: var(--ink);
   }
 
   .ql-toolbar.ql-snow {
     border-radius: var(--radius) var(--radius) 0 0;
-    border-color: hsl(var(--border));
-    background-color: hsl(var(--card));
+    border-color: var(--border);
+    background-color: var(--surface);
   }
 
   .ql-container.ql-snow {
     border-radius: 0 0 var(--radius) var(--radius);
-    border-color: hsl(var(--border));
-    background-color: hsl(var(--card));
+    border-color: var(--border);
+    background-color: var(--surface);
   }
 
   .ql-editor {
     min-height: 200px;
-    font-family: "Open Sans", system-ui, sans-serif;
+    font-family: var(--font-body);
   }
-}
-
-.dashboard-content {
-  position: relative;
-}
-
-[data-overlay],
-.dashboard-overlay,
-.section-mask,
-.hero-fade::before,
-.hero-fade::after {
-  pointer-events: none !important;
-  z-index: 0 !important;
-}
-
-.dashboard-content .radix-tabs__list,
-.dashboard-content [role="tablist"] {
-  position: sticky;
-codex/implement-row-level-security-and-storage-policies-f9enov
-=======
-  top: 0;
- main
-  z-index: 30;
-}
-
-.dashboard-content [role="tab"] {
-  pointer-events: auto;
 }

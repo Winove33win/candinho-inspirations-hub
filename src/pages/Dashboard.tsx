@@ -61,20 +61,20 @@ export default function Dashboard() {
   // Loading geral
   if (userLoading || detailsLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />
+      <div className="flex min-h-screen items-center justify-center bg-[var(--surface-alt)]">
+        <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-[var(--brand)]" />
       </div>
     );
   }
 
   const menuItems: MenuItem[] = [
-    { icon: User,          label: "Meu perfil profissional", path: "/dashboard" },
-    { icon: FolderKanban,  label: "Projetos",                path: "/dashboard/projetos" },
-    { icon: Calendar,      label: "Eventos",                 path: "/dashboard/eventos" },
-    { icon: FileText,      label: "Documentos",              path: "/dashboard/documentos" },
-    { icon: ClipboardList, label: "Minha Inscrição",         path: "/dashboard/inscricao" },
-    { icon: HelpCircle,    label: "Suporte",                 path: "/dashboard/suporte" },
-    { icon: Settings,      label: "Cadastro Personalizado",  path: "/dashboard/personalizado" },
+    { icon: User, label: "Meu perfil profissional", path: "/dashboard" },
+    { icon: FolderKanban, label: "Projetos", path: "/dashboard/projetos" },
+    { icon: Calendar, label: "Eventos", path: "/dashboard/eventos" },
+    { icon: FileText, label: "Documentos", path: "/dashboard/documentos" },
+    { icon: ClipboardList, label: "Minha Inscrição", path: "/dashboard/inscricao" },
+    { icon: HelpCircle, label: "Suporte", path: "/dashboard/suporte" },
+    { icon: Settings, label: "Cadastro Personalizado", path: "/dashboard/personalizado" },
   ];
 
   const contextValue: DashboardContextValue = {
@@ -147,49 +147,41 @@ export default function Dashboard() {
     },
   ];
 
-  return (
-    <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-b from-neutral-50 via-white to-white text-neutral-900">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.18),transparent_55%),radial-gradient(circle_at_top_right,hsl(var(--accent)/0.12),transparent_55%)]" />
-      <Header />
 
-      <div className="relative flex min-h-screen flex-col pt-20">
-        <div className="flex flex-1">
-          {/* Sidebar desktop */}
-          <aside className="relative hidden w-[280px] shrink-0 border-r border-transparent bg-white/70 px-6 pb-12 pt-12 shadow-[inset_-1px_0_0_rgba(255,255,255,0.4)] backdrop-blur xl:block">
-            <div className="sticky top-28 space-y-8">
-              {/* Card do usuário */}
-              <div className="rounded-3xl border border-white/60 bg-white/90 p-6 shadow-[var(--shadow-card)] backdrop-blur">
+  return (
+    <div className="min-h-screen bg-[var(--surface-alt)] text-[var(--ink)]">
+      <Header />
+      <main className="pt-20">
+        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 md:px-8 lg:flex-row">
+          <aside className="hidden w-[260px] shrink-0 border-r border-[var(--border)] bg-[var(--surface-alt)]/70 lg:block">
+            <div className="sticky top-28 space-y-6">
+              <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)]">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-lg font-semibold text-primary">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-[var(--radius)] bg-[var(--brand-soft)] text-lg font-semibold text-[var(--brand)]">
                     {initials}
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-neutral-900">{displayName}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  <div className="space-y-1">
+                    <p className="text-base font-semibold text-[var(--ink)]">{displayName}</p>
+                    <p className="text-sm text-[var(--muted)]">{user.email}</p>
                   </div>
                 </div>
 
-                <div className="mt-6 rounded-2xl bg-neutral-900 px-4 py-3 text-white">
-                  <p className="text-[11px] uppercase tracking-[0.32em] text-white/60">Progresso</p>
-                  <div className="mt-2 flex items-baseline gap-2">
-                    <span className="text-2xl font-semibold leading-none">{completion}%</span>
-                    <span className="text-xs font-medium uppercase tracking-widest text-white/70">
-                      {completionLabel}
-                    </span>
+                <div className="mt-6 rounded-[var(--radius)] bg-[var(--brand)] p-5 text-white shadow-[var(--shadow-card)]">
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-white/70">Progresso</p>
+                  <div className="mt-3 flex items-baseline gap-2">
+                    <span className="text-3xl font-semibold leading-none">{completion}%</span>
+                    <span className="text-xs font-medium uppercase tracking-[0.24em] text-white/80">{completionLabel}</span>
                   </div>
-                  <Progress value={completion} className="mt-3 h-2 bg-white/20" />
-                  <Button
-                    asChild
-                    size="sm"
-                    variant="secondary"
-                    className="mt-4 w-full bg-white/10 text-white hover:bg-white/20"
-                  >
+                  <Progress value={completion} className="mt-4 h-2 bg-white/30" />
+                  <p className="mt-4 text-xs text-white/80">
+                    Mantenha seus dados completos para se destacar nas oportunidades SMARTx.
+                  </p>
+                  <Button asChild size="sm" variant="secondary" className="mt-4 w-full">
                     <NavLink to="/dashboard">Atualizar perfil</NavLink>
                   </Button>
                 </div>
               </div>
 
-              {/* Menu */}
               <nav className="space-y-1">
                 {menuItems.map((item) => (
                   <Item key={item.path} to={item.path} icon={item.icon}>
@@ -200,124 +192,108 @@ export default function Dashboard() {
 
               <Button
                 variant="ghost"
-                size="sm"
-                className="group mt-6 w-full justify-start gap-2 rounded-xl border border-transparent bg-white/70 text-neutral-700 transition hover:border-neutral-200 hover:bg-white"
+                className="w-full justify-start gap-2 text-sm text-[var(--muted)] transition-all duration-200 hover:text-[var(--ink)]"
                 onClick={handleLogout}
               >
-                <LogOut className="h-4 w-4 transition group-hover:text-primary" />
+                <LogOut className="h-4 w-4" />
                 Sair da conta
               </Button>
             </div>
           </aside>
 
-          {/* Conteúdo */}
-          <main className="flex-1">
-            <div className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 pb-16 pt-10 md:px-8">
-              {/* Hero do dashboard */}
-              <section className="relative overflow-hidden rounded-3xl border border-white/60 bg-white/90 p-8 shadow-[var(--shadow-card)] backdrop-blur md:p-10">
-                <div className="absolute -right-16 -top-24 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
-                <div className="absolute -bottom-28 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-neutral-900/5 blur-3xl" />
-                <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="max-w-2xl space-y-4">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.32em] text-primary">
-                      Portal do artista
-                    </span>
-                    <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
-                      Bem-vindo de volta, {displayName.split(" ")[0] || displayName}
-                    </h1>
-                    <p className="text-sm text-muted-foreground md:text-base">
-                      Centralize seu posicionamento profissional, divulgue eventos, organize documentos estratégicos e acompanhe o relacionamento com a curadoria SMARTx em um ambiente premium.
-                    </p>
-                  </div>
-
-                  <div className="relative w-full max-w-sm rounded-3xl border border-white/70 bg-neutral-900 p-6 text-white shadow-2xl">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[11px] uppercase tracking-[0.32em] text-white/60">Status do perfil</p>
-                      <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/80">
-                        {artistDetails?.perfil_completo ? "Completo" : "Em progresso"}
-                      </span>
-                    </div>
-                    <div className="mt-4 flex items-baseline gap-2">
-                      <span className="text-4xl font-semibold leading-none">{completion}%</span>
-                      <span className="text-sm text-white/70">concluído</span>
-                    </div>
-                    <Progress value={completion} className="mt-5 h-2 bg-white/20" />
-                    <p className="mt-4 text-xs leading-relaxed text-white/70">
-                      Preencha seus dados pessoais, atualize mídias e mantenha seu perfil sempre alinhado com a identidade SMARTx.
-                    </p>
-                    <Button
-                      asChild
-                      size="sm"
-                      variant="secondary"
-                      className="mt-5 w-full bg-white text-neutral-900 hover:bg-white/90"
-                    >
-                      <NavLink to="/dashboard">Continuar edição</NavLink>
-                    </Button>
-                  </div>
+          <section className="flex-1 space-y-8 pb-16">
+            <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] md:p-8">
+              <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+                <div className="max-w-2xl space-y-4">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-soft)] px-4 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-[var(--brand)]">
+                    Portal do artista
+                  </span>
+                  <h1 className="text-3xl font-['League_Spartan'] font-bold md:text-4xl">
+                    Bem-vindo de volta, {displayName.split(" ")[0] || displayName}
+                  </h1>
+                  <p className="text-sm text-[var(--muted)] md:text-base">
+                    Centralize sua presença profissional, divulgue eventos e organize documentos estratégicos em um ambiente alinhado à identidade SMARTx.
+                  </p>
                 </div>
-              </section>
 
-              {/* Menu compacto no mobile */}
-              <div className="lg:hidden">
-                <nav className="flex gap-2 overflow-x-auto rounded-full border border-white/60 bg-white/90 p-2 shadow-[var(--shadow-card)] backdrop-blur">
-                  {menuItems.map((item) => (
-                    <NavLink
-                      key={item.path}
-                      to={item.path}
-                      className={({ isActive }) =>
-                        cn(
-                          "flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition",
-                          isActive
-                            ? "bg-primary text-primary-foreground shadow-lg"
-                            : "text-muted-foreground hover:text-foreground"
-                        )
-                      }
-                    >
-                      <item.icon className="h-3.5 w-3.5" />
-                      {item.label}
-                    </NavLink>
-                  ))}
-                </nav>
+                <div className="w-full max-w-sm rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-alt)] p-6 shadow-[var(--shadow-card)]">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Status do perfil</p>
+                    <span className="rounded-full bg-[var(--brand-soft)] px-3 py-1 text-xs font-semibold text-[var(--brand)]">
+                      {artistDetails?.perfil_completo ? "Completo" : "Em progresso"}
+                    </span>
+                  </div>
+                  <div className="mt-4 flex items-baseline gap-2">
+                    <span className="text-4xl font-bold">{completion}%</span>
+                    <span className="text-sm text-[var(--muted)]">concluído</span>
+                  </div>
+                  <Progress value={completion} className="mt-5 h-2" />
+                  <p className="mt-4 text-sm text-[var(--muted)]">
+                    Atualize seu perfil para destravar novas conexões e oportunidades com a curadoria SMARTx.
+                  </p>
+                  <Button asChild size="sm" className="mt-5 w-full">
+                    <NavLink to="/dashboard">Continuar edição</NavLink>
+                  </Button>
+                </div>
               </div>
+            </div>
 
-              {/* Quick actions */}
-              <div className="grid gap-4 md:grid-cols-3">
-                {quickActions.map((action) => (
+            <div className="lg:hidden">
+              <nav className="flex gap-2 overflow-x-auto rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-2 shadow-[var(--shadow-card)]">
+                {menuItems.map((item) => (
                   <NavLink
-                    key={action.path}
-                    to={action.path}
+                    key={item.path}
+                    to={item.path}
                     className={({ isActive }) =>
                       cn(
-                        "group relative overflow-hidden rounded-3xl border border-white/60 bg-white/90 p-6 shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl",
-                        isActive && "border-primary/40 shadow-xl"
+                        "flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200",
+                        isActive ? "bg-[var(--brand)] text-white shadow" : "text-[var(--muted)] hover:text-[var(--ink)]",
                       )
                     }
                   >
-                    <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-primary/10 transition-opacity duration-300 group-hover:opacity-100" />
-                    <div className="relative flex items-start gap-4">
-                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                        <action.icon className="h-5 w-5" />
-                      </span>
-                      <div className="space-y-2">
-                        <p className="text-sm font-semibold text-neutral-900">{action.label}</p>
-                        <p className="text-sm text-muted-foreground">{action.description}</p>
-                      </div>
-                    </div>
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
                   </NavLink>
                 ))}
-              </div>
-
-              {/* Páginas internas */}
-              <Outlet context={contextValue} />
+              </nav>
             </div>
-          </main>
-        </div>
 
-        <Footer />
-      </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              {quickActions.map((action) => (
+                <NavLink
+                  key={action.path}
+                  to={action.path}
+                  className={({ isActive }) =>
+                    cn(
+                      "group rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-[1px] hover:shadow-md",
+                      isActive && "border-[var(--brand)]",
+                    )
+                  }
+                >
+                  <div className="flex items-start gap-4">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-[var(--radius)] bg-[var(--brand-soft)] text-[var(--brand)]">
+                      <action.icon className="h-5 w-5" />
+                    </span>
+                    <div className="space-y-2">
+                      <p className="text-base font-semibold">{action.label}</p>
+                      <p className="text-sm text-[var(--muted)]">{action.description}</p>
+                    </div>
+                  </div>
+                </NavLink>
+              ))}
+            </div>
+
+            <Outlet context={contextValue} />
+          </section>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
+
+
 }
+
 
 function Item({
   to,
@@ -336,11 +312,9 @@ function Item({
       end
       className={({ isActive }) =>
         cn(
-          "flex items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-medium transition",
+          "flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-[var(--muted)] transition-all duration-200 hover:bg-[var(--surface)] hover:text-[var(--ink)]",
+          isActive && "bg-[var(--brand-soft)] text-[var(--brand)]",
           className,
-          isActive
-            ? "bg-primary/15 text-primary shadow-[var(--shadow-card)]"
-            : "text-muted-foreground hover:bg-white hover:text-neutral-900"
         )
       }
     >
@@ -349,3 +323,4 @@ function Item({
     </NavLink>
   );
 }
+

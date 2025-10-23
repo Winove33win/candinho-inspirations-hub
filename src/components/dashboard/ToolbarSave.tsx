@@ -7,7 +7,7 @@ interface ToolbarSaveProps {
   saving?: boolean;
   successLabel?: string;
   defaultLabel?: string;
-  variant?: "default" | "outline";
+  variant?: "primary" | "secondary" | "outline";
   disabled?: boolean;
 }
 
@@ -16,7 +16,7 @@ export function ToolbarSave({
   saving = false,
   successLabel = "Conteúdo enviado ✔️",
   defaultLabel = "Publicar",
-  variant = "default",
+  variant = "primary",
   disabled = false,
 }: ToolbarSaveProps) {
   const [showSuccess, setShowSuccess] = useState(false);
@@ -38,13 +38,7 @@ export function ToolbarSave({
   };
 
   return (
-    <Button
-      type="button"
-      onClick={handleClick}
-      disabled={saving || disabled}
-      variant={variant}
-      className="bg-[#90080b] hover:bg-[#7b0509] text-white"
-    >
+    <Button type="button" onClick={handleClick} disabled={saving || disabled} variant={variant}>
       {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
       {!saving && showSuccess && <Check className="mr-2 h-4 w-4" />}
       {showSuccess ? successLabel : defaultLabel}
