@@ -85,10 +85,13 @@ export default function Fotografias({ artistDetails, onUpsert }: FotografiasProp
         title="Galeria de Fotografias"
         description="Adicione até 12 fotografias com legendas (máximo 1 MB cada)"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {photos.map((photo, index) => (
-            <div key={index} className="space-y-2 p-4 border rounded-lg">
-              <h4 className="font-semibold">Foto {index + 1}</h4>
+            <div
+              key={index}
+              className="space-y-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-4 shadow-sm"
+            >
+              <h4 className="text-sm font-semibold text-[var(--ink)]">Foto {index + 1}</h4>
 
               <Uploader
                 id={`uploaderFoto${index + 1}`}
@@ -100,7 +103,7 @@ export default function Fotografias({ artistDetails, onUpsert }: FotografiasProp
                 onUploaded={(url) => updatePhoto(index, "image", url)}
               />
 
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor={`legenda${index + 1}`}>Legenda</Label>
                 <Input
                   id={`legenda${index + 1}`}
