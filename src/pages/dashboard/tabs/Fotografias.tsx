@@ -97,12 +97,13 @@ export default function Fotografias({ artistDetails, onUpsert }: FotografiasProp
                 id={`uploaderFoto${index + 1}`}
                 label={`Enviar Foto ${index + 1}`}
                 maxBytes={1024 * 1024}
-                bucketPath="artist-media/photos"
+                storageFolder="photos"
                 accept="image/*"
                 currentPath={photo.image}
                 onUploaded={(url) => updatePhoto(index, "image", url)}
                 buttonClassName="w-full"
                 actionsClassName="w-full"
+                nameHint={`foto-${index + 1}`}
               />
 
               <div className="space-y-2">

@@ -5,8 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Candinho from "./pages/Candinho";
-import Artists from "./pages/Artists";
-import ArtistDetail from "./pages/ArtistDetail";
+import ArtistsIndex from "./pages/public/ArtistsIndex";
+import ArtistDetail from "./pages/public/ArtistDetail";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import MeuPerfil from "./pages/dashboard/MeuPerfil";
@@ -29,8 +29,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/candinho" element={<Candinho />} />
-          <Route path="/artistas" element={<Artists />} />
-          <Route path="/artistas/:id" element={<ArtistDetail />} />
+          <Route path="/artistas" element={<ArtistsIndex />} />
+          <Route path="/artista/:slug" element={<ArtistDetail />} />
           <Route path="/login" element={<Auth />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />}>

@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getSignedUrl } from "@/utils/storage";
 
 type Document = Database["public"]["Tables"]["documents"]["Row"];
 type DocumentKind = Database["public"]["Enums"]["document_kind"];
@@ -27,10 +28,37 @@ export default function Documents() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [downloadUrls, setDownloadUrls] = useState<Record<string, string>>({});
 
   useEffect(() => {
     loadDocuments();
   }, [user?.id]);
+
+  useEffect(() => {
+    let active = true;
+
+    (async () => {
+      const next: Record<string, string> = {};
+
+      for (const doc of documents) {
+        if (!doc.file_url) continue;
+        try {
+          const url = await getSignedUrl(doc.file_url);
+          next[doc.id] = url;
+        } catch (error) {
+          console.error("[DOCUMENT::SIGNED_URL]", error);
+        }
+      }
+
+      if (active) {
+        setDownloadUrls(next);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [documents]);
 
   async function loadDocuments() {
     if (!user?.id) return;
@@ -139,9 +167,9 @@ export default function Documents() {
                 </div>
 
                 <div className="flex gap-2">
-                  {doc.file_url && (
+                  {doc.file_url && downloadUrls[doc.id] && (
                     <Button variant="outline" size="sm" asChild className="flex-1">
-                      <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
+                      <a href={downloadUrls[doc.id]} target="_blank" rel="noopener noreferrer">
                         <Download className="mr-2 h-4 w-4" />
                         Baixar
                       </a>
@@ -278,13 +306,14 @@ function DocumentForm({
 
           <Uploader
             label="Arquivo"
-            bucket="artist-docs"
+            storageFolder="docs"
             maxBytes={10 * 1024 * 1024}
             currentPath={formData.file_url || ""}
             onUploaded={(url) =>
               setFormData((prev) => ({ ...prev, file_url: url }))
             }
             accept=".pdf,.doc,.docx,.txt"
+            nameHint="documento"
           />
 
           <div className="flex gap-2 pt-4">
