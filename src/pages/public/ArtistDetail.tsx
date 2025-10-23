@@ -59,15 +59,13 @@ export default function ArtistDetail() {
       try {
         let data: ArtistRow | null = null;
 
-        if (slug.includes("-")) {
-          const { data: bySlug, error: slugError } = await supabase
-            .from("artist_details_public")
-            .select("*")
-            .eq("slug", slug)
-            .maybeSingle();
-          if (slugError && slugError.code !== "PGRST116") throw slugError;
-          if (bySlug) data = bySlug;
-        }
+        const { data: bySlug, error: slugError } = await supabase
+          .from("artist_details_public")
+          .select("*")
+          .eq("slug", slug)
+          .maybeSingle();
+        if (slugError && slugError.code !== "PGRST116") throw slugError;
+        if (bySlug) data = bySlug;
 
         if (!data) {
           const { data: byId, error: idError } = await supabase
