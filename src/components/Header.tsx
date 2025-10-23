@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, User } from "lucide-react";
 
 import GlobalSearch from "@/components/GlobalSearch";
@@ -20,6 +20,7 @@ const AUTH_STORAGE_KEY = "smartx-demo-auth";
 const Header = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLogged, setIsLogged] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
@@ -58,6 +59,30 @@ const Header = () => {
     });
   };
 
+  const navigateToSection = (sectionId: string, options?: { chip?: DiscoveryChip }) => {
+    if (typeof window === "undefined") {
+      navigate("/", { state: { scrollTo: sectionId, chip: options?.chip } });
+      return;
+    }
+
+    const scroll = () => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      if (options?.chip) {
+        window.dispatchEvent(new CustomEvent<DiscoveryChip>("smartx-chip-select", { detail: options.chip }));
+      }
+    };
+
+    if (location.pathname === "/") {
+      requestAnimationFrame(scroll);
+      return;
+    }
+
+    navigate("/", { state: { scrollTo: sectionId, chip: options?.chip } });
+  };
+
   return (
     <header
       id="siteHeader"
@@ -73,24 +98,36 @@ const Header = () => {
             SMART<span className="text-[var(--brand)]">x</span>
           </Link>
           <nav aria-label="Navegação principal" className="hidden items-center gap-6 text-sm font-semibold uppercase tracking-[0.24em] text-[rgba(250,250,252,0.75)] lg:flex">
-            <a href="#hero" className="transition hover:text-[var(--brand)]">
+            <button
+              type="button"
+              className="border-none bg-transparent transition hover:text-[var(--brand)]"
+              onClick={() => navigateToSection("hero")}
+            >
               Home
-            </a>
-            <a href="#carouselClassicos" className="transition hover:text-[var(--brand)]">
+            </button>
+            <Link to="/artistas" className="transition hover:text-[var(--brand)]">
               Artistas
-            </a>
-            <a href="#carouselWorldJazz" className="transition hover:text-[var(--brand)]">
+            </Link>
+            <button
+              type="button"
+              className="border-none bg-transparent transition hover:text-[var(--brand)]"
+              onClick={() => navigateToSection("chipsDiscover", { chip: "Em Destaque" })}
+            >
               Categorias
-            </a>
+            </button>
             <Link to="/auth?mode=signup" className="transition hover:text-[var(--brand)]">
               Cadastro
             </Link>
             <Link to="/dashboard" className="transition hover:text-[var(--brand)]">
               Portal do Artista
             </Link>
-            <a href="#siteFooter" className="transition hover:text-[var(--brand)]">
+            <button
+              type="button"
+              className="border-none bg-transparent transition hover:text-[var(--brand)]"
+              onClick={() => navigateToSection("siteFooter")}
+            >
               Contato
-            </a>
+            </button>
           </nav>
         </div>
 

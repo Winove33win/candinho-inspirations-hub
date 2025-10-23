@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
@@ -26,10 +26,30 @@ const AUTH_STORAGE_KEY = "smartx-demo-auth";
 const Index = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toggleFollow, isFollowed } = useFollowedArtists();
 
   const [selectedChip, setSelectedChip] = useState<DiscoveryChip>(discoveryChips[0]);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const state = location.state as { scrollTo?: string; chip?: DiscoveryChip } | null;
+    if (!state) return;
+
+    const { scrollTo, chip } = state;
+
+    if (chip && discoveryChips.includes(chip)) {
+      setSelectedChip(chip);
+    }
+
+    if (scrollTo && typeof window !== "undefined") {
+      window.requestAnimationFrame(() => {
+        document.getElementById(scrollTo)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+
+    navigate(location.pathname, { replace: true });
+  }, [location, navigate]);
 
   useEffect(() => {
     setIsLoading(true);
