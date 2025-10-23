@@ -11,6 +11,7 @@ import { FormSection } from "@/components/dashboard/FormSection";
 import { Uploader } from "@/components/dashboard/Uploader";
 import { RichTextEditor } from "@/components/dashboard/RichTextEditor";
 import type { Database } from "@/integrations/supabase/types";
+import { getSignedUrl } from "@/utils/storage";
 
 type Event = Database["public"]["Tables"]["events"]["Row"];
 
@@ -298,11 +299,12 @@ function EventForm({
           <div className="col-span-12">
             <Uploader
               label="Banner do evento"
-              bucketPath="artist-media/photos"
+              storageFolder="photos"
               maxBytes={5 * 1024 * 1024}
               currentPath={formData.banner || ""}
               onUploaded={(url) => setFormData((prev) => ({ ...prev, banner: url }))}
               accept="image/*"
+              nameHint="evento-banner"
             />
           </div>
         </div>
@@ -347,6 +349,33 @@ function EventPreview({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!event.banner) {
+      setBannerUrl(null);
+      return () => {
+        active = false;
+      };
+    }
+
+    (async () => {
+      try {
+        const url = await getSignedUrl(event.banner as string);
+        if (active) setBannerUrl(url);
+      } catch (error) {
+        console.error("[EVENT::SIGNED_URL]", error);
+        if (active) setBannerUrl(null);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [event.banner]);
+
   const eventDate = event.date ? new Date(`${event.date}T00:00:00`) : null;
   const formattedDate = eventDate
     ? eventDate.toLocaleDateString("pt-BR", {
@@ -360,10 +389,10 @@ function EventPreview({
 
   return (
     <Card className="group overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-      {event.banner && (
+      {bannerUrl && (
         <div className="relative h-48 w-full overflow-hidden">
           <img
-            src={event.banner}
+            src={bannerUrl}
             alt={event.name || "Banner do evento"}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />

@@ -3,14 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Upload, Check, Loader2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { getSignedUrl } from "@/integrations/supabase/storage";
+import { getSignedUrl, uploadToArtistBucket } from "@/utils/storage";
 import { cn } from "@/lib/utils";
 
 interface UploaderProps {
   label: string;
   maxBytes: number;
-  bucket?: string;
-  bucketPath?: string;
+  storageFolder: "profile" | "photos" | "videos" | "docs";
   accept?: string;
   onUploaded: (path: string) => void;
   currentPath?: string;
@@ -20,13 +19,14 @@ interface UploaderProps {
   buttonClassName?: string;
   actionsClassName?: string;
   removeButtonClassName?: string;
+  nameHint?: string;
+  upsert?: boolean;
 }
 
 export function Uploader({
   label,
   maxBytes,
-  bucket,
-  bucketPath,
+  storageFolder,
   accept = "*/*",
   onUploaded,
   currentPath,
@@ -36,6 +36,8 @@ export function Uploader({
   buttonClassName,
   actionsClassName,
   removeButtonClassName,
+  nameHint,
+  upsert,
 }: UploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState("");
@@ -66,18 +68,6 @@ export function Uploader({
     void loadPreview(currentPath);
   }, [currentPath, loadPreview]);
 
-  const resolveBucket = () => {
-    const target = bucketPath ?? bucket;
-    if (!target) {
-      throw new Error("Bucket não configurado para o uploader");
-    }
-
-    const segments = target.split("/").filter(Boolean);
-    const resolvedBucket = segments.shift() ?? target;
-    const folderPath = segments.join("/");
-    return { resolvedBucket, folderPath };
-  };
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -94,23 +84,18 @@ export function Uploader({
     setUploading(true);
 
     try {
-      const { resolvedBucket, folderPath } = resolveBucket();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
+      const { path } = await uploadToArtistBucket({
+        file,
+        userId: user.id,
+        folder: storageFolder,
+        nameHint,
+        upsert,
+      });
 
-      const fileExt = file.name.split(".").pop() || "bin";
-      const pathPrefix = [user.id, folderPath].filter(Boolean).join("/");
-      const fileName = pathPrefix ? `${pathPrefix}/${Date.now()}.${fileExt}` : `${user.id}/${Date.now()}.${fileExt}`;
-
-      const { data, error } = await supabase.storage
-        .from(resolvedBucket)
-        .upload(fileName, file);
-
-      if (error) throw error;
-
-      const storagePath = `${resolvedBucket}/${data.path}`;
-      onUploaded(storagePath);
-      await loadPreview(storagePath);
+      onUploaded(path);
+      await loadPreview(path);
 
       toast({
         title: "Sucesso",

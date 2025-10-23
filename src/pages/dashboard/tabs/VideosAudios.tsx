@@ -113,10 +113,11 @@ export default function VideosAudios({ artistDetails, onUpsert }: VideosAudiosPr
           id="uploadButton6"
           label="Ouça-me"
           maxBytes={4 * 1024 * 1024}
-          bucketPath="artist-media/audio"
+          storageFolder="videos"
           accept="audio/*"
           currentPath={formData.audio}
           onUploaded={(url) => setFormData({ ...formData, audio: url })}
+          nameHint="audio"
         />
       </FormSection>
 
@@ -126,10 +127,11 @@ export default function VideosAudios({ artistDetails, onUpsert }: VideosAudiosPr
             <Uploader
               label="Vídeo Banner Landscape (Desktop 16:9)"
               maxBytes={15 * 1024 * 1024}
-              bucketPath="artist-media/video"
+              storageFolder="videos"
               accept="video/*"
               currentPath={formData.video_banner_landscape}
               onUploaded={(url) => setFormData({ ...formData, video_banner_landscape: url })}
+              nameHint="video-landscape"
             />
           </div>
 
@@ -137,10 +139,11 @@ export default function VideosAudios({ artistDetails, onUpsert }: VideosAudiosPr
             <Uploader
               label="Vídeo Banner Portrait (Mobile 9:16)"
               maxBytes={15 * 1024 * 1024}
-              bucketPath="artist-media/video"
+              storageFolder="videos"
               accept="video/*"
               currentPath={formData.video_banner_portrait}
               onUploaded={(url) => setFormData({ ...formData, video_banner_portrait: url })}
+              nameHint="video-portrait"
             />
           </div>
         </div>

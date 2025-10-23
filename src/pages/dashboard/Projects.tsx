@@ -11,6 +11,7 @@ import { FormSection } from "@/components/dashboard/FormSection";
 import { Uploader } from "@/components/dashboard/Uploader";
 import { RichTextEditor } from "@/components/dashboard/RichTextEditor";
 import type { Database } from "@/integrations/supabase/types";
+import { getSignedUrl } from "@/utils/storage";
 
 type Project = Database["public"]["Tables"]["projects"]["Row"];
 
@@ -267,22 +268,24 @@ function ProjectForm({
           <div className="col-span-12">
             <Uploader
               label="Banner do projeto"
-              bucketPath="artist-media/photos"
+              storageFolder="photos"
               maxBytes={5 * 1024 * 1024}
               currentPath={formData.banner_image || ""}
               onUploaded={(url) => setFormData((prev) => ({ ...prev, banner_image: url }))}
               accept="image/*"
+              nameHint="projeto-banner"
             />
           </div>
 
           <div className="col-span-12">
             <Uploader
               label="Imagem/Seção do projeto"
-              bucketPath="artist-media/photos"
+              storageFolder="photos"
               maxBytes={5 * 1024 * 1024}
               currentPath={formData.cover_image || ""}
               onUploaded={(url) => setFormData((prev) => ({ ...prev, cover_image: url }))}
               accept="image/*"
+              nameHint="projeto-capa"
             />
           </div>
         </div>
@@ -335,13 +338,14 @@ function ProjectForm({
                   <div className="col-span-12 md:col-span-6">
                     <Uploader
                       label={`Imagem do bloco ${index}`}
-                      bucketPath="artist-media/photos"
+                      storageFolder="photos"
                       maxBytes={5 * 1024 * 1024}
                       currentPath={(formData[imageKey] as string | null) || ""}
                       onUploaded={(url) =>
                         setFormData((prev) => ({ ...prev, [imageKey]: url }))
                       }
                       accept="image/*"
+                      nameHint={`projeto-bloco-${index}`}
                     />
                   </div>
                 </div>
@@ -426,6 +430,32 @@ function ProjectPreview({
   onDelete: () => void;
 }) {
   const coverImage = project.banner_image || project.cover_image;
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!coverImage) {
+      setCoverUrl(null);
+      return () => {
+        active = false;
+      };
+    }
+
+    (async () => {
+      try {
+        const url = await getSignedUrl(coverImage);
+        if (active) setCoverUrl(url);
+      } catch (error) {
+        console.error("[PROJECT::SIGNED_URL]", error);
+        if (active) setCoverUrl(null);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [coverImage]);
   const chips = blockIndexes
     .map((index) => {
       const value = project[`block${index}_title` as keyof Project] as string | null;
@@ -438,10 +468,10 @@ function ProjectPreview({
 
   return (
     <Card className="group overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-      {coverImage && (
+      {coverUrl && (
         <div className="relative h-48 w-full overflow-hidden">
           <img
-            src={coverImage}
+            src={coverUrl}
             alt={project.title || "Capa do projeto"}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />

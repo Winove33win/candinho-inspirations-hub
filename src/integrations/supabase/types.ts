@@ -168,6 +168,7 @@ export type Database = {
           postal_code: string | null
           profile_image: string | null
           profile_text2: string | null
+          slug: string | null
           updated_at: string
           video_banner_landscape: string | null
           video_banner_portrait: string | null
@@ -238,6 +239,7 @@ export type Database = {
           postal_code?: string | null
           profile_image?: string | null
           profile_text2?: string | null
+          slug?: string | null
           updated_at?: string
           video_banner_landscape?: string | null
           video_banner_portrait?: string | null
@@ -308,6 +310,7 @@ export type Database = {
           postal_code?: string | null
           profile_image?: string | null
           profile_text2?: string | null
+          slug?: string | null
           updated_at?: string
           video_banner_landscape?: string | null
           video_banner_portrait?: string | null
@@ -448,6 +451,21 @@ export type Database = {
       }
     }
     Views: {
+      artists_public: {
+        Row: {
+          artistic_name: string | null
+          country_residence: string | null
+          created_at: string
+          display_name: string | null
+          frase_de_impacto: string | null
+          full_name: string | null
+          id: string
+          member_id: string
+          profile_image: string | null
+          slug: string | null
+        }
+        Relationships: []
+      }
       v_is_admin: {
         Row: {
           is_admin: boolean | null
