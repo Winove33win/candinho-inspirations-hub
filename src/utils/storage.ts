@@ -1,3 +1,4 @@
+import { ARTIST_BUCKET } from "@/config/storage";
 import { supabase } from "@/integrations/supabase/client";
 
 export async function uploadToArtistBucket(opts: {
@@ -18,7 +19,7 @@ export async function uploadToArtistBucket(opts: {
   const objectPath = `${userId}/${folder}/${filename}`;
 
   const { error } = await supabase.storage
-    .from("artist-media")
+    .from(ARTIST_BUCKET)
     .upload(objectPath, file, {
       upsert,
       contentType: file.type || `image/${ext}`,
@@ -26,7 +27,7 @@ export async function uploadToArtistBucket(opts: {
     });
 
   if (error) throw error;
-  return { path: `artist-media/${objectPath}` };
+  return { path: `${ARTIST_BUCKET}/${objectPath}` };
 }
 
 export async function getSignedUrl(path: string, expiresSec = 3600) {
@@ -46,8 +47,8 @@ export async function getSignedUrl(path: string, expiresSec = 3600) {
   let bucket = segments[0];
   let objectPathSegments = segments.slice(1);
 
-  if (bucket !== "artist-media" || objectPathSegments.length === 0) {
-    bucket = "artist-media";
+  if (bucket !== ARTIST_BUCKET || objectPathSegments.length === 0) {
+    bucket = ARTIST_BUCKET;
     objectPathSegments = segments;
   }
 
