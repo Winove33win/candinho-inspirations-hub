@@ -62,22 +62,22 @@ export default function MinhaInscricao() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-2">
-        <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">
-          Minha Inscrição
-        </h2>
-        <p className="text-sm text-[var(--muted)] md:text-base">
-          Acompanhe o status da sua inscrição no programa SMARTx.
-        </p>
+    <div className="site-container space-y-6 pb-16">
+      <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+        <div className="space-y-2">
+          <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">
+            Minha Inscrição
+          </h2>
+          <p className="text-sm text-[var(--muted)] md:text-base">
+            Acompanhe o status da sua inscrição no programa SMARTx.
+          </p>
+        </div>
       </div>
 
       <Card className="space-y-8 p-6 md:p-8">
         <div className="space-y-3">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <span className="text-sm font-semibold text-[var(--ink)]">
-              Progresso geral
-            </span>
+            <span className="text-sm font-semibold text-[var(--ink)]">Progresso geral</span>
             <span className="text-sm font-semibold text-[var(--brand)]">
               {completedSteps}/{steps.length} etapas
             </span>
@@ -90,17 +90,17 @@ export default function MinhaInscricao() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
           {steps.map((step, index) => (
-            <Card
+            <div
               key={step.id}
-              className="flex gap-4 border border-[var(--border)] bg-[var(--surface)] p-4 shadow-none transition-all duration-200 hover:-translate-y-[1px] hover:shadow-md"
+              className="flex gap-4 rounded-[var(--radius)] border border-[var(--border)] bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-[1px] hover:shadow-md md:p-6"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-alt)]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--surface-alt)]">
                 {step.completed ? (
-                  <CheckCircle2 className="h-5 w-5 text-[var(--brand)]" />
+                  <CheckCircle2 className="h-6 w-6 text-[var(--brand)]" />
                 ) : (
-                  <Circle className="h-5 w-5 text-[var(--muted)]" />
+                  <Circle className="h-6 w-6 text-[var(--muted)]" />
                 )}
               </div>
               <div className="space-y-2">
@@ -114,30 +114,34 @@ export default function MinhaInscricao() {
                     </span>
                   )}
                 </div>
-                <h3 className="text-base font-semibold text-[var(--ink)]">{step.title}</h3>
-                <p className="text-sm text-[var(--muted)]">{step.description}</p>
+                <h3 className="text-sm font-semibold text-[var(--ink)] md:text-base">{step.title}</h3>
+                <p className="text-sm text-[var(--muted)] md:text-base/relaxed">{step.description}</p>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
 
         {progress === 100 ? (
-          <div className="rounded-[var(--radius)] bg-[var(--brand-soft)] p-6 text-center">
+          <div className="rounded-[var(--radius)] bg-[var(--brand-soft)] p-6 text-center md:p-8">
             <CheckCircle2 className="mx-auto mb-4 h-12 w-12 text-[var(--brand)]" />
             <h3 className="text-lg font-semibold text-[var(--ink)]">Inscrição completa!</h3>
-            <p className="mt-2 text-sm text-[var(--muted)]">
+            <p className="mt-2 text-sm text-[var(--muted)] md:text-base">
               Seu perfil está completo e pronto para ser revisado pela equipe SMARTx. Você receberá um e-mail com próximos passos em breve.
             </p>
           </div>
         ) : (
-          <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-alt)] p-6">
+          <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-alt)] p-6 md:p-8">
             <h3 className="text-base font-semibold text-[var(--ink)]">Próximo passo sugerido</h3>
-            <p className="mt-2 text-sm text-[var(--muted)]">
+            <p className="mt-2 text-sm text-[var(--muted)] md:text-base">
               {nextStep
                 ? `Avance para a etapa "${nextStep.title}" para continuar sua inscrição.`
                 : "Conclua as seções pendentes para finalizar sua inscrição."}
             </p>
-            <Button onClick={handleCompleteProfile} className="mt-4">
+            <Button
+              onClick={handleCompleteProfile}
+              className="mt-4"
+              aria-label="Concluir configuração do perfil"
+            >
               Concluir configuração
             </Button>
           </div>

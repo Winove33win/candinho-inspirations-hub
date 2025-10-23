@@ -91,83 +91,80 @@ export default function Documents() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-['League_Spartan'] font-bold">Documentos</h2>
-          <p className="text-sm text-[var(--muted)] mt-1">
-            Envie materiais oficiais, press kits e arquivos exclusivos
-          </p>
+    <div className="site-container space-y-6 pb-16">
+      <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">Documentos</h2>
+            <p className="mt-1 text-sm text-[var(--muted)] md:text-base">
+              Envie materiais oficiais, press kits e arquivos exclusivos
+            </p>
+          </div>
+          <Button onClick={() => setEditingId("new")} className="gap-2 self-start md:self-auto">
+            <Plus className="h-4 w-4" />
+            Novo documento
+          </Button>
         </div>
-        <Button onClick={() => setEditingId("new")} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Novo documento
-        </Button>
       </div>
 
       {editingId && (
-        <DocumentForm
-          documentId={editingId === "new" ? null : editingId}
-          onClose={() => {
-            setEditingId(null);
-            loadDocuments();
-          }}
-        />
-      )}
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {documents.map((doc) => (
-          <Card key={doc.id} className="p-6">
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--brand-soft)] text-[var(--brand)]">
-                  <FileText className="h-6 w-6" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-semibold truncate">
-                    {doc.title || "Sem título"}
-                  </h3>
-                  <p className="text-sm text-[var(--muted)]">
-                    {kindLabels[doc.kind || "outro"]}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                {doc.file_url && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    asChild
-                    className="flex-1"
-                  >
-                    <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
-                      <Download className="h-4 w-4 mr-2" />
-                      Baixar
-                    </a>
-                  </Button>
-                )}
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDelete(doc.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      {documents.length === 0 && !editingId && (
-        <div className="rounded-[var(--radius)] border-2 border-dashed border-[var(--border)] p-12 text-center">
-          <FileText className="mx-auto h-12 w-12 text-[var(--muted)]" />
-          <p className="mt-4 text-[var(--muted)]">
-            Nenhum documento cadastrado ainda. Adicione seu primeiro documento!
-          </p>
+        <div className="space-y-6">
+          <DocumentForm
+            documentId={editingId === "new" ? null : editingId}
+            onClose={() => {
+              setEditingId(null);
+              loadDocuments();
+            }}
+          />
         </div>
       )}
+
+      <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+        <div className="grid gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
+          {documents.map((doc) => (
+            <Card key={doc.id} className="p-6">
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--brand-soft)] text-[var(--brand)]">
+                    <FileText className="h-6 w-6" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-base font-semibold">
+                      {doc.title || "Sem título"}
+                    </h3>
+                    <p className="text-sm text-[var(--muted)]">
+                      {kindLabels[doc.kind || "outro"]}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  {doc.file_url && (
+                    <Button variant="outline" size="sm" asChild className="flex-1">
+                      <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
+                        <Download className="mr-2 h-4 w-4" />
+                        Baixar
+                      </a>
+                    </Button>
+                  )}
+                  <Button variant="destructive" size="sm" onClick={() => handleDelete(doc.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {documents.length === 0 && !editingId && (
+          <div className="mt-6 rounded-[var(--radius)] border-2 border-dashed border-[var(--border)] p-12 text-center">
+            <FileText className="mx-auto h-12 w-12 text-[var(--muted)]" />
+            <p className="mt-4 text-sm text-[var(--muted)] md:text-base">
+              Nenhum documento cadastrado ainda. Adicione seu primeiro documento!
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

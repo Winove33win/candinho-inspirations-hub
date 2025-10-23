@@ -85,11 +85,11 @@ export default function Fotografias({ artistDetails, onUpsert }: FotografiasProp
         title="Galeria de Fotografias"
         description="Adicione até 12 fotografias com legendas (máximo 1 MB cada)"
       >
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {photos.map((photo, index) => (
             <div
               key={index}
-              className="space-y-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-4 shadow-sm"
+              className="space-y-4 overflow-hidden rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-4 shadow-sm"
             >
               <h4 className="text-sm font-semibold text-[var(--ink)]">Foto {index + 1}</h4>
 
@@ -101,6 +101,8 @@ export default function Fotografias({ artistDetails, onUpsert }: FotografiasProp
                 accept="image/*"
                 currentPath={photo.image}
                 onUploaded={(url) => updatePhoto(index, "image", url)}
+                buttonClassName="w-full"
+                actionsClassName="w-full"
               />
 
               <div className="space-y-2">

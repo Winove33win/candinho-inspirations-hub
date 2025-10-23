@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import type { ArtistDetails } from "@/hooks/useArtistDetails";
 import type { DashboardContextValue } from "../context";
+import { computeProfileCompletion } from "@/utils/profileCompletion";
 
 interface DadosPessoaisProps {
   artistDetails: ArtistDetails | null;
@@ -120,17 +121,8 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
     console.log("[SAVE::DADOS_PESSOAIS]", formData);
 
     try {
-      const wasIncomplete = !artistDetails?.perfil_completo;
-      const isProfileComplete = Boolean(
-        formData.artistic_name &&
-        formData.full_name &&
-        formData.accepted_terms1 &&
-        formData.accepted_terms2
-      );
-
       const response = await onUpsert({
         ...formData,
-        perfil_completo: isProfileComplete || artistDetails?.perfil_completo || false,
       });
 
       if (!response || response.error) {
@@ -142,7 +134,11 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
         description: "Dados pessoais salvos com sucesso!",
       });
 
-      if (wasIncomplete && response.data?.perfil_completo) {
+      const completionTarget =
+        response.data ?? (artistDetails ? { ...artistDetails, ...formData } : null);
+      const { percent } = computeProfileCompletion(completionTarget);
+
+      if (percent === 100 && !(artistDetails?.perfil_completo)) {
         setShowSuccessModal(true);
       }
       return true;

@@ -90,49 +90,55 @@ export default function Events() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-1">
-          <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">Eventos</h2>
-          <p className="text-sm text-[var(--muted)] md:text-base">
-            Divulgue apresentações, estreias e datas importantes.
-          </p>
+    <div className="site-container space-y-6 pb-16">
+      <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">Eventos</h2>
+            <p className="text-sm text-[var(--muted)] md:text-base">
+              Divulgue apresentações, estreias e datas importantes.
+            </p>
+          </div>
+          <Button onClick={() => setEditingId("new")} className="gap-2 self-start md:self-auto">
+            <Plus className="h-4 w-4" />
+            Novo evento
+          </Button>
         </div>
-        <Button onClick={() => setEditingId("new")} className="gap-2 self-start md:self-auto">
-          <Plus className="h-4 w-4" />
-          Novo evento
-        </Button>
       </div>
 
       {editingId && (
-        <EventForm
-          eventId={editingId === "new" ? null : editingId}
-          onClose={() => {
-            setEditingId(null);
-            loadEvents();
-          }}
-        />
-      )}
-
-      <div className="grid gap-6 md:grid-cols-2">
-        {events.map((event) => (
-          <EventPreview
-            key={event.id}
-            event={event}
-            onEdit={() => setEditingId(event.id)}
-            onDelete={() => handleDelete(event.id)}
+        <div className="space-y-6">
+          <EventForm
+            eventId={editingId === "new" ? null : editingId}
+            onClose={() => {
+              setEditingId(null);
+              loadEvents();
+            }}
           />
-        ))}
-      </div>
-
-      {events.length === 0 && !editingId && (
-        <Card className="border-dashed bg-[var(--surface)] p-12 text-center">
-          <CalendarIcon className="mx-auto h-12 w-12 text-[var(--muted)]" aria-hidden="true" />
-          <p className="mt-4 text-sm text-[var(--muted)] md:text-base">
-            Nenhum evento cadastrado ainda. Adicione seu primeiro evento!
-          </p>
-        </Card>
+        </div>
       )}
+
+      <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+        <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+          {events.map((event) => (
+            <EventPreview
+              key={event.id}
+              event={event}
+              onEdit={() => setEditingId(event.id)}
+              onDelete={() => handleDelete(event.id)}
+            />
+          ))}
+        </div>
+
+        {events.length === 0 && !editingId && (
+          <Card className="mt-6 border-dashed bg-[var(--surface)] p-12 text-center">
+            <CalendarIcon className="mx-auto h-12 w-12 text-[var(--muted)]" aria-hidden="true" />
+            <p className="mt-4 text-sm text-[var(--muted)] md:text-base">
+              Nenhum evento cadastrado ainda. Adicione seu primeiro evento!
+            </p>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
@@ -226,8 +232,8 @@ function EventForm({
         title={eventId ? "Editar evento" : "Novo evento"}
         description="Planeje as informações principais do seu evento."
       >
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
-          <div className="md:col-span-6">
+        <div className="grid grid-cols-12 gap-4 md:gap-6">
+          <div className="col-span-12 md:col-span-6">
             <Label htmlFor="eventName">Nome do evento *</Label>
             <Input
               id="eventName"
@@ -238,7 +244,7 @@ function EventForm({
             />
           </div>
 
-          <div className="md:col-span-4">
+          <div className="col-span-12 md:col-span-4">
             <Label htmlFor="eventDate">Data</Label>
             <Input
               id="eventDate"
@@ -248,7 +254,7 @@ function EventForm({
             />
           </div>
 
-          <div className="md:col-span-4">
+          <div className="col-span-12 md:col-span-4">
             <Label htmlFor="eventStart">Horário de início</Label>
             <Input
               id="eventStart"
@@ -258,7 +264,7 @@ function EventForm({
             />
           </div>
 
-          <div className="md:col-span-4">
+          <div className="col-span-12 md:col-span-4">
             <Label htmlFor="eventEnd">Horário de término</Label>
             <Input
               id="eventEnd"
@@ -268,7 +274,7 @@ function EventForm({
             />
           </div>
 
-          <div className="md:col-span-6">
+          <div className="col-span-12 md:col-span-6">
             <Label htmlFor="eventPlace">Local do evento</Label>
             <Input
               id="eventPlace"
@@ -278,7 +284,7 @@ function EventForm({
             />
           </div>
 
-          <div className="md:col-span-6">
+          <div className="col-span-12 md:col-span-6">
             <Label htmlFor="eventLink">Link para inscrição/ingresso</Label>
             <Input
               id="eventLink"
@@ -289,7 +295,7 @@ function EventForm({
             />
           </div>
 
-          <div className="md:col-span-6">
+          <div className="col-span-12">
             <Uploader
               label="Banner do evento"
               bucketPath="artist-media/photos"

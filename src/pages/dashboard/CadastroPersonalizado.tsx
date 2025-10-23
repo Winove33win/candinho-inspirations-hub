@@ -4,27 +4,26 @@ import { Settings, ExternalLink } from "lucide-react";
 
 export default function CadastroPersonalizado() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-['League_Spartan'] font-bold">
+    <div className="site-container space-y-6 pb-16">
+      <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+        <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">
           Cadastro Personalizado
         </h2>
-        <p className="text-sm text-[var(--muted)] mt-1">
+        <p className="mt-1 text-sm text-[var(--muted)] md:text-base">
           Configurações avançadas e personalização do seu perfil
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="p-6">
-          <Settings className="h-10 w-10 text-[var(--brand)] mb-4" />
-          <h3 className="text-lg font-semibold mb-2">
+      <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+        <Card className="p-6 md:p-8">
+          <Settings className="mb-4 h-10 w-10 text-[var(--brand)]" />
+          <h3 className="mb-2 text-lg font-semibold text-[var(--ink)]">
             Configurações de perfil
           </h3>
-          <p className="text-sm text-[var(--muted)] mb-4">
-            Gerencie suas preferências, visibilidade e configurações de
-            privacidade
+          <p className="mb-4 text-sm text-[var(--muted)] md:text-base">
+            Gerencie suas preferências, visibilidade e configurações de privacidade
           </p>
-          <Button variant="outline" asChild>
+          <Button variant="outline" asChild aria-label="Ir para meu perfil">
             <a href="/dashboard">
               Ir para perfil
               <ExternalLink className="ml-2 h-4 w-4" />
@@ -32,24 +31,22 @@ export default function CadastroPersonalizado() {
           </Button>
         </Card>
 
-        <Card className="p-6">
-          <div className="rounded-lg bg-[var(--brand-soft)] p-4 mb-4">
-            <p className="text-sm font-semibold text-[var(--brand)]">
-              Em desenvolvimento
-            </p>
+        <Card className="p-6 md:p-8">
+          <div className="mb-4 rounded-lg bg-[var(--brand-soft)] p-4">
+            <p className="text-sm font-semibold text-[var(--brand)]">Em desenvolvimento</p>
           </div>
-          <h3 className="text-lg font-semibold mb-2">
+          <h3 className="mb-2 text-lg font-semibold text-[var(--ink)]">
             Personalização avançada
           </h3>
-          <p className="text-sm text-[var(--muted)]">
+          <p className="text-sm text-[var(--muted)] md:text-base">
             Recursos de personalização adicional estarão disponíveis em breve
           </p>
         </Card>
       </div>
 
-      <Card className="p-6 bg-[var(--surface-alt)]">
-        <h3 className="font-semibold mb-3">Recursos disponíveis</h3>
-        <ul className="space-y-2 text-sm text-[var(--muted)]">
+      <Card className="bg-[var(--surface-alt)] p-6 md:p-8">
+        <h3 className="mb-3 text-base font-semibold text-[var(--ink)]">Recursos disponíveis</h3>
+        <ul className="space-y-2 text-sm text-[var(--muted)] md:text-base">
           <li className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--brand)]" />
             Edição completa de dados pessoais e profissionais

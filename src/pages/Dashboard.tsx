@@ -22,7 +22,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
-import type { ArtistDetails } from "@/hooks/useArtistDetails";
+import { computeProfileCompletion } from "@/utils/profileCompletion";
 
 type MenuItem = {
   icon: LucideIcon;
@@ -74,51 +74,16 @@ export default function Dashboard() {
       .padEnd(2, "");
   }, [displayName]);
 
-  const completion = useMemo(() => {
-    if (!artistDetails) return 15;
+  const { percent: completion } = useMemo(
+    () => computeProfileCompletion(artistDetails),
+    [artistDetails],
+  );
 
-    // Campos essenciais (peso 40%)
-    const essentialFields: (keyof ArtistDetails)[] = [
-      "artistic_name",
-      "full_name",
-      "cell_phone",
-      "date_of_birth",
-      "country_residence",
-      "accepted_terms1",
-    ];
-
-    // Campos de perfil (peso 30%)
-    const profileFields: (keyof ArtistDetails)[] = [
-      "profile_text2",
-      "instagram",
-      "biography1",
-      "how_is_it_defined",
-    ];
-
-    // Campos de mídia (peso 30%)
-    const mediaFields: (keyof ArtistDetails)[] = [
-      "image1",
-      "image2",
-      "link_to_video",
-      "audio",
-    ];
-
-    const countFilled = (fields: (keyof ArtistDetails)[]) => {
-      return fields.filter((field) => {
-        const value = artistDetails[field];
-        if (typeof value === "boolean") return value;
-        if (typeof value === "string") return value.trim().length > 0;
-        return Boolean(value);
-      }).length;
-    };
-
-    const essentialScore = (countFilled(essentialFields) / essentialFields.length) * 40;
-    const profileScore = (countFilled(profileFields) / profileFields.length) * 30;
-    const mediaScore = (countFilled(mediaFields) / mediaFields.length) * 30;
-
-    const total = Math.round(essentialScore + profileScore + mediaScore);
-    return artistDetails.perfil_completo ? 100 : Math.min(100, total);
-  }, [artistDetails]);
+  useEffect(() => {
+    if (artistDetails && completion === 100 && !artistDetails.perfil_completo) {
+      void upsertArtistDetails({ perfil_completo: true });
+    }
+  }, [artistDetails, completion, upsertArtistDetails]);
 
   // Loading geral
   if (userLoading || detailsLoading || !user) {
@@ -180,8 +145,8 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[var(--surface-alt)] text-[var(--ink)]">
       <Header />
-      <main className="pt-20">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 md:px-8 lg:flex-row">
+      <main className="pt-20 pb-20">
+        <div className="site-container flex w-full flex-col gap-8 lg:flex-row">
           <aside className="hidden w-[260px] shrink-0 border-r border-[var(--border)] bg-[var(--surface-alt)] lg:block">
             <div className="sticky top-28 space-y-8">
               <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)]">
@@ -230,7 +195,7 @@ export default function Dashboard() {
             </div>
           </aside>
 
-          <section className="flex-1 space-y-8 pb-20">
+          <section className="relative flex-1 space-y-8">
             <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] md:p-8">
               <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
                 <div className="max-w-2xl space-y-4">
@@ -249,7 +214,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">Status do perfil</p>
                     <span className="rounded-full bg-[var(--brand-soft)] px-3 py-1 text-xs font-semibold text-[var(--brand)]">
-                      {artistDetails?.perfil_completo ? "Completo" : "Em progresso"}
+                      {completion === 100 ? "Completo" : "Em progresso"}
                     </span>
                   </div>
                   <div className="mt-4 flex items-baseline gap-2">
