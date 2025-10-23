@@ -1,45 +1,168 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, User } from "lucide-react";
+
+import GlobalSearch from "@/components/GlobalSearch";
+import type { DiscoveryChip, SearchEntry } from "@/data/homepage";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
-import { Link } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/components/ui/use-toast";
+
+const AUTH_STORAGE_KEY = "smartx-demo-auth";
 
 const Header = () => {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isLogged, setIsLogged] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem(AUTH_STORAGE_KEY) === "1";
+  });
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 24);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleLogin = () => {
+    setIsLogged(true);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(AUTH_STORAGE_KEY, "1");
+    }
+    toast({
+      title: "Bem-vindo à SMARTx",
+      description: "Experiência personalizada ativada. Explore o portal do artista!",
+    });
+    navigate("/dashboard");
+  };
+
+  const handleLogout = () => {
+    setIsLogged(false);
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(AUTH_STORAGE_KEY);
+    }
+    toast({
+      title: "Até breve",
+      description: "Sessão encerrada com segurança.",
+    });
+  };
+
   return (
-    <header className="fixed top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-sm">
-      <div className="site-container">
-        <div className="flex items-center justify-between h-20">
-          <div className="flex items-center gap-8">
-            <h1 className="text-2xl font-bold tracking-tight">
-              SMART<span className="text-primary">x</span>
-            </h1>
-            <nav className="hidden md:flex items-center gap-6">
-              <a href="#home" className="text-sm font-medium hover:text-primary transition-colors">
-                HOME
-              </a>
-              <Link to="/artistas" className="text-sm font-medium hover:text-primary transition-colors">
-                ARTISTAS
-              </Link>
-              <Link to="/candinho" className="text-sm font-medium hover:text-primary transition-colors">
-                CANDINHO
-              </Link>
-              <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
-                PORTAL DO ARTISTA
-              </Link>
-              <a href="#contato" className="text-sm font-medium hover:text-primary transition-colors">
-                CONTATO
-              </a>
-            </nav>
+    <header
+      id="siteHeader"
+      className={`fixed inset-x-0 top-0 z-50 transition-all transition-soft ${
+        isScrolled
+          ? "bg-[rgba(18,0,0,0.85)]/90 backdrop-blur-xl shadow-[0_12px_45px_rgba(0,0,0,0.45)]"
+          : "bg-transparent"
+      }`}
+    >
+      <div className="site-container flex h-20 items-center justify-between gap-6">
+        <div className="flex items-center gap-10">
+          <Link to="/" className="flex items-baseline gap-1 text-2xl font-extrabold tracking-[0.24em] text-[var(--ink)]">
+            SMART<span className="text-[var(--brand)]">x</span>
+          </Link>
+          <nav aria-label="Navegação principal" className="hidden items-center gap-6 text-sm font-semibold uppercase tracking-[0.24em] text-[rgba(250,250,252,0.75)] lg:flex">
+            <a href="#hero" className="transition hover:text-[var(--brand)]">
+              Home
+            </a>
+            <a href="#carouselClassicos" className="transition hover:text-[var(--brand)]">
+              Artistas
+            </a>
+            <a href="#carouselWorldJazz" className="transition hover:text-[var(--brand)]">
+              Categorias
+            </a>
+            <Link to="/auth?mode=signup" className="transition hover:text-[var(--brand)]">
+              Cadastro
+            </Link>
+            <Link to="/dashboard" className="transition hover:text-[var(--brand)]">
+              Portal do Artista
+            </Link>
+            <a href="#siteFooter" className="transition hover:text-[var(--brand)]">
+              Contato
+            </a>
+          </nav>
+        </div>
+
+        <div className="flex flex-1 items-center justify-end gap-4">
+          <div className="hidden max-w-md flex-1 xl:block">
+            <GlobalSearch
+              id="global-search-header"
+              variant="header"
+              onSelectSuggestion={(entry: SearchEntry) => {
+                if (entry.type === "categoria") {
+                  window.dispatchEvent(
+                    new CustomEvent<DiscoveryChip>("smartx-chip-select", {
+                      detail: entry.label as DiscoveryChip,
+                    }),
+                  );
+                  document.getElementById("chipsDiscover")?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  return;
+                }
+
+                navigate(entry.href);
+              }}
+              onChipSelect={(chip) => {
+                window.dispatchEvent(new CustomEvent<DiscoveryChip>("smartx-chip-select", { detail: chip }));
+                document.getElementById("chipsDiscover")?.scrollIntoView({ behavior: "smooth", block: "center" });
+              }}
+            />
           </div>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" className="hidden md:inline-flex" asChild>
-              <Link to="/login">Login</Link>
-            </Button>
-            <Button size="sm" className="hidden md:inline-flex" asChild>
-              <Link to="/auth?mode=signup">Cadastre-se</Link>
-            </Button>
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </div>
+          {!isLogged ? (
+            <div className="hidden items-center gap-3 md:flex">
+              <Button variant="ghost" className="text-sm font-semibold uppercase tracking-[0.28em]" onClick={handleLogin}>
+                Login
+              </Button>
+              <Button
+                className="rounded-full bg-[var(--brand)] px-5 text-sm font-semibold uppercase tracking-[0.32em] text-[var(--ink)] hover:bg-[rgba(144,8,11,0.88)]"
+                onClick={() => navigate("/auth?mode=signup")}
+              >
+                Cadastre-se
+              </Button>
+            </div>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="flex h-11 items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 text-sm font-semibold uppercase tracking-[0.24em] text-[var(--ink)] transition hover:border-[rgba(144,8,11,0.4)] hover:bg-[rgba(144,8,11,0.18)]"
+                >
+                  <span className="hidden sm:inline">Minha Conta</span>
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[rgba(144,8,11,0.32)] text-[var(--ink)]">
+                    <User className="h-4 w-4" aria-hidden />
+                  </span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="glass-panel mt-2 w-56 border border-[rgba(255,255,255,0.12)] text-[rgba(250,250,252,0.82)]">
+                <DropdownMenuLabel className="text-xs uppercase tracking-[0.28em] text-[rgba(250,250,252,0.65)]">
+                  Acesso rápido
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-[rgba(255,255,255,0.08)]" />
+                <DropdownMenuItem asChild>
+                  <Link to="/dashboard">Portal do Artista</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/dashboard/projetos">Meus Projetos</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-[rgba(255,255,255,0.08)]" />
+                <DropdownMenuItem onSelect={handleLogout}>Sair</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          <button className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[var(--ink)] transition hover:border-[rgba(144,8,11,0.4)] lg:hidden">
+            <Menu className="h-5 w-5" aria-hidden />
+            <span className="sr-only">Abrir menu</span>
+          </button>
         </div>
       </div>
     </header>

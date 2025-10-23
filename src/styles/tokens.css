@@ -1,43 +1,46 @@
 :root {
+  --wine: #420000;
   --brand: #90080b;
-  --brand-600: #7b0509;
-  --brand-700: #650307;
-  --ink: #1f1f1f;
-  --muted: #6b7280;
-  --surface: #ffffff;
-  --surface-alt: #f7f7f8;
-  --border: #e5e7eb;
+  --brand-600: #b51218;
+  --brand-700: #7b0409;
+  --ink: #f4f4f6;
+  --ink-soft: #dad8de;
+  --muted: #a8a6ad;
+  --surface: rgba(32, 7, 7, 0.92);
+  --surface-alt: #120000;
+  --border: rgba(231, 231, 234, 0.24);
   --radius: 14px;
-  --shadow-card: 0 6px 22px rgba(0, 0, 0, 0.06);
-  --brand-soft: rgba(144, 8, 11, 0.08);
-  --brand-soft-strong: rgba(144, 8, 11, 0.12);
+  --shadow-card: 0 26px 60px rgba(0, 0, 0, 0.45);
+  --shadow-card-hover: 0 32px 70px rgba(144, 8, 11, 0.35);
+  --brand-soft: rgba(144, 8, 11, 0.22);
+  --brand-soft-strong: rgba(144, 8, 11, 0.32);
 
   --background: var(--surface-alt);
   --foreground: var(--ink);
-  --card: var(--surface);
+  --card: rgba(45, 12, 12, 0.78);
   --card-foreground: var(--ink);
-  --popover: var(--surface);
+  --popover: rgba(24, 4, 4, 0.94);
   --popover-foreground: var(--ink);
   --primary: var(--brand);
-  --primary-foreground: #ffffff;
-  --secondary: var(--surface);
+  --primary-foreground: #ffe9e9;
+  --secondary: rgba(255, 255, 255, 0.04);
   --secondary-foreground: var(--ink);
   --muted-foreground: var(--muted);
   --accent: var(--brand);
-  --accent-foreground: #ffffff;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
+  --accent-foreground: #ffe9e9;
+  --destructive: #ef4444;
+  --destructive-foreground: #fff5f5;
   --input: var(--border);
-  --ring: var(--brand);
+  --ring: rgba(144, 8, 11, 0.65);
 
-  --sidebar-background: var(--surface);
+  --sidebar-background: rgba(28, 6, 6, 0.92);
   --sidebar-foreground: var(--muted);
   --sidebar-primary: var(--brand);
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgba(144, 8, 11, 0.08);
-  --sidebar-accent-foreground: var(--brand);
+  --sidebar-primary-foreground: #ffe9e9;
+  --sidebar-accent: rgba(144, 8, 11, 0.18);
+  --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--border);
-  --sidebar-ring: rgba(144, 8, 11, 0.35);
+  --sidebar-ring: rgba(144, 8, 11, 0.45);
 
   --font-heading: "League Spartan", "Open Sans", system-ui, sans-serif;
   --font-body: "Open Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -64,7 +67,7 @@ h6 {
 }
 
 .site-container {
-  max-width: 1240px;
+  max-width: 1280px;
   margin-left: auto;
   margin-right: auto;
   padding-left: 24px;
