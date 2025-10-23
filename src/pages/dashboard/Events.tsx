@@ -1,329 +1,348 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useDashboardContext } from "./context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { Plus, Trash2, Calendar as CalendarIcon } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { FormSection } from "@/components/dashboard/FormSection";
 import { Uploader } from "@/components/dashboard/Uploader";
-import { ToolbarSave } from "@/components/dashboard/ToolbarSave";
-import { RichTextEditor } from "@/components/dashboard/RichTextEditor";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { useDashboardContext } from "./context";
 
-type EventRow = Database["public"]["Tables"]["events"]["Row"];
-type EventInsert = Database["public"]["Tables"]["events"]["Insert"];
-
-type EditableEvent = Omit<EventInsert, "member_id">;
-
-const emptyEvent: EditableEvent = {
-  name: "",
-  banner: "",
-  date: null,
-  start_time: null,
-  end_time: null,
-  place: "",
-  cta_link: "",
-  description: "",
-  status: "draft",
-};
+type Event = Database["public"]["Tables"]["events"]["Row"];
 
 export default function Events() {
   const { user } = useDashboardContext();
   const { toast } = useToast();
-
-  const [events, setEvents] = useState<EventRow[]>([]);
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-  const [form, setForm] = useState<EditableEvent>(emptyEvent);
-  const [saving, setSaving] = useState(false);
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadEvents = async () => {
-      if (!user?.id) return;
-      setLoading(true);
+    loadEvents();
+  }, [user?.id]);
+
+  async function loadEvents() {
+    if (!user?.id) return;
+
+    setLoading(true);
+    try {
       const { data, error } = await supabase
         .from("events")
         .select("*")
         .eq("member_id", user.id)
-        .order("date", { ascending: true });
+        .order("date", { ascending: false });
 
-      if (error) {
-        console.error("[LOAD::EVENTS]", error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar seus eventos.",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-
-      setEvents(data);
-      if (data.length > 0) {
-        const first = data[0];
-        setSelectedEventId(first.id);
-        setForm(mapRowToForm(first));
-      } else {
-        setSelectedEventId(null);
-        setForm(emptyEvent);
-      }
+      if (error) throw error;
+      setEvents(data || []);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os eventos",
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-    };
-
-    loadEvents();
-  }, [user?.id, toast]);
-
-  const mapRowToForm = (row: EventRow): EditableEvent => ({
-    name: row.name || "",
-    banner: row.banner || "",
-    date: row.date,
-    start_time: row.start_time,
-    end_time: row.end_time,
-    place: row.place || "",
-    cta_link: row.cta_link || "",
-    description: row.description || "",
-    status: row.status || "draft",
-  });
-
-  const handleSelectEvent = (eventId: string) => {
-    if (eventId === "novo") {
-      setSelectedEventId(null);
-      setForm(emptyEvent);
-      return;
     }
+  }
 
-    const event = events.find((item) => item.id === eventId);
-    if (event) {
-      setSelectedEventId(event.id);
-      setForm(mapRowToForm(event));
-    }
-  };
-
-  const handleNewEvent = () => {
-    setSelectedEventId(null);
-    setForm(emptyEvent);
-  };
-
-  const handleStatusToggle = () => {
-    setForm((current) => ({
-      ...current,
-      status: current.status === "published" ? "draft" : "published",
-    }));
-  };
-
-  const validateForm = () => {
-    if (!form.name?.trim()) {
-      toast({
-        title: "Campo obrigatório",
-        description: "Informe o nome do evento.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    if (form.cta_link && !/^https?:\/\//.test(form.cta_link)) {
-      toast({
-        title: "Link inválido",
-        description: "O link do botão deve começar com http:// ou https://",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleSave = async () => {
-    if (!validateForm()) return false;
-
-    setSaving(true);
-    console.log("[SAVE::EVENT]", form);
+  async function handleDelete(id: string) {
+    if (!confirm("Deseja realmente excluir este evento?")) return;
 
     try {
-      const payload: Database["public"]["Tables"]["events"]["Insert"] = {
-        ...form,
-        member_id: user.id,
-      };
-
-      if (selectedEventId) {
-        (payload as Database["public"]["Tables"]["events"]["Update"]).id = selectedEventId;
-      }
-
-      const { data, error } = await supabase
-        .from("events")
-        .upsert(payload, { onConflict: "id" })
-        .select()
-        .single();
+      const { error } = await supabase.from("events").delete().eq("id", id);
 
       if (error) throw error;
 
-      setEvents((current) => {
-        const others = current.filter((item) => item.id !== data.id);
-        return [data, ...others];
-      });
-      setSelectedEventId(data.id);
-      setForm(mapRowToForm(data));
-
+      toast({ title: "Evento excluído com sucesso" });
+      loadEvents();
+    } catch (error) {
+      console.error(error);
       toast({
-        title: "Sucesso",
-        description: "Evento salvo com sucesso!",
-      });
-      return true;
-    } catch (error: unknown) {
-      console.error("[SAVE::EVENT]", error);
-      const message = error instanceof Error ? error.message : "Não foi possível salvar o evento.";
-      toast({
-        title: "Erro",
-        description: message,
+        title: "Erro ao excluir",
         variant: "destructive",
       });
-      return false;
-    } finally {
-      setSaving(false);
     }
-  };
-
-  const currentStatusLabel = useMemo(
-    () => (form.status === "published" ? "Publicado" : "Rascunho"),
-    [form.status]
-  );
+  }
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--surface-alt)]">
-        <div className="h-16 w-16 animate-spin rounded-full border-b-2 border-[var(--brand)]" />
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[var(--brand)]" />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-6 md:px-8">
-      <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] md:p-8">
-        <div className="space-y-8">
-          <div className="space-y-2">
-            <h1 className="text-2xl font-['League_Spartan'] font-bold text-[var(--ink)] md:text-3xl">Eventos</h1>
-            <p className="text-sm text-[var(--muted)] md:text-base">
-              Divulgue apresentações e lançamentos com informações sempre atualizadas para o público SMARTx.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
-            <div className="flex-1 space-y-2">
-              <Label htmlFor="selectEvento">Selecionar evento</Label>
-              <Select value={selectedEventId ?? 'novo'} onValueChange={handleSelectEvent}>
-                <SelectTrigger id="selectEvento">
-                  <SelectValue placeholder="Escolha um evento" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="novo">Novo evento</SelectItem>
-                  {events.map((event) => (
-                    <SelectItem key={event.id} value={event.id}>
-                      {event.name || 'Sem título'}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Button variant="secondary" onClick={handleNewEvent}>
-                Novo evento
-              </Button>
-              <Button variant="secondary" onClick={handleStatusToggle}>
-                Alterar status ({currentStatusLabel})
-              </Button>
-            </div>
-          </div>
-
-          <FormSection title="Detalhes do evento">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-              <div>
-                <Label htmlFor="eventName">Nome do evento *</Label>
-                <Input
-                  id="eventName"
-                  value={form.name ?? ''}
-                  onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                  placeholder="Nome do evento"
-                />
-              </div>
-              <div>
-                <Uploader
-                  label="Banner do evento"
-                  maxBytes={2 * 1024 * 1024}
-                  bucketPath="artist-media/photos"
-                  accept="image/*"
-                  currentPath={form.banner ?? ''}
-                  onUploaded={(url) => setForm((prev) => ({ ...prev, banner: url }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="eventDate">Data</Label>
-                <Input
-                  id="eventDate"
-                  type="date"
-                  value={form.date ?? ''}
-                  onChange={(e) => setForm((prev) => ({ ...prev, date: e.target.value }))}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-2 md:gap-3">
-                <div>
-                  <Label htmlFor="eventStart">Início</Label>
-                  <Input
-                    id="eventStart"
-                    type="time"
-                    value={form.start_time ?? ''}
-                    onChange={(e) => setForm((prev) => ({ ...prev, start_time: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="eventEnd">Fim</Label>
-                  <Input
-                    id="eventEnd"
-                    type="time"
-                    value={form.end_time ?? ''}
-                    onChange={(e) => setForm((prev) => ({ ...prev, end_time: e.target.value }))}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="eventPlace">Local</Label>
-                <Input
-                  id="eventPlace"
-                  value={form.place ?? ''}
-                  onChange={(e) => setForm((prev) => ({ ...prev, place: e.target.value }))}
-                  placeholder="Local do evento"
-                />
-              </div>
-              <div>
-                <Label htmlFor="eventLink">Link do botão</Label>
-                <Input
-                  id="eventLink"
-                  value={form.cta_link ?? ''}
-                  onChange={(e) => setForm((prev) => ({ ...prev, cta_link: e.target.value }))}
-                  placeholder="https://"
-                />
-              </div>
-              <div className="md:col-span-2 space-y-2">
-                <Label htmlFor="eventDescription">Descrição</Label>
-                <RichTextEditor
-                  id="eventDescription"
-                  value={form.description ?? ''}
-                  onChange={(value) => setForm((prev) => ({ ...prev, description: value }))}
-                  placeholder="Conte sobre o evento"
-                />
-              </div>
-            </div>
-          </FormSection>
-
-          <div className="flex justify-end">
-            <ToolbarSave onSave={handleSave} saving={saving} />
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-['League_Spartan'] font-bold">Eventos</h2>
+          <p className="text-sm text-[var(--muted)] mt-1">
+            Divulgue apresentações, estreias e datas importantes
+          </p>
         </div>
+        <Button onClick={() => setEditingId("new")} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Novo evento
+        </Button>
       </div>
+
+      {editingId && (
+        <EventForm
+          eventId={editingId === "new" ? null : editingId}
+          onClose={() => {
+            setEditingId(null);
+            loadEvents();
+          }}
+        />
+      )}
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {events.map((event) => (
+          <Card key={event.id} className="overflow-hidden">
+            {event.banner && (
+              <div className="relative h-48 w-full overflow-hidden bg-[var(--surface-alt)]">
+                <img
+                  src={event.banner}
+                  alt={event.name || "Evento"}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            )}
+            <div className="p-6 space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold">{event.name || "Sem título"}</h3>
+                {event.date && (
+                  <p className="text-sm text-[var(--muted)] mt-1">
+                    {new Date(event.date).toLocaleDateString("pt-BR")}
+                    {event.start_time && ` às ${event.start_time}`}
+                  </p>
+                )}
+                {event.place && (
+                  <p className="text-sm text-[var(--muted)]">{event.place}</p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditingId(event.id)}
+                  className="flex-1"
+                >
+                  Editar
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => handleDelete(event.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {events.length === 0 && !editingId && (
+        <div className="rounded-[var(--radius)] border-2 border-dashed border-[var(--border)] p-12 text-center">
+          <CalendarIcon className="mx-auto h-12 w-12 text-[var(--muted)]" />
+          <p className="mt-4 text-[var(--muted)]">
+            Nenhum evento cadastrado ainda. Adicione seu primeiro evento!
+          </p>
+        </div>
+      )}
     </div>
   );
-
 }
 
+function EventForm({
+  eventId,
+  onClose,
+}: {
+  eventId: string | null;
+  onClose: () => void;
+}) {
+  const { user } = useDashboardContext();
+  const { toast } = useToast();
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState<Partial<Event>>({
+    name: "",
+    description: "",
+    date: "",
+    start_time: "",
+    end_time: "",
+    place: "",
+    cta_link: "",
+    banner: "",
+    status: "draft",
+  });
+
+  useEffect(() => {
+    if (eventId) {
+      loadEvent();
+    }
+  }, [eventId]);
+
+  async function loadEvent() {
+    if (!eventId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .eq("id", eventId)
+        .single();
+
+      if (error) throw error;
+      setFormData(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function handleSave() {
+    if (!user?.id) return;
+
+    setSaving(true);
+    try {
+      const payload = { ...formData, member_id: user.id };
+
+      if (eventId) {
+        const { error } = await supabase
+          .from("events")
+          .update(payload)
+          .eq("id", eventId);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("events").insert([payload]);
+
+        if (error) throw error;
+      }
+
+      toast({ title: "Evento salvo com sucesso!" });
+      onClose();
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Erro ao salvar",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Card className="p-6">
+      <FormSection title={eventId ? "Editar Evento" : "Novo Evento"}>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="name">Nome do evento</Label>
+            <Input
+              id="name"
+              value={formData.name || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, name: e.target.value }))
+              }
+              placeholder="Nome do evento"
+            />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <Label htmlFor="date">Data</Label>
+              <Input
+                id="date"
+                type="date"
+                value={formData.date || ""}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, date: e.target.value }))
+                }
+              />
+            </div>
+            <div>
+              <Label htmlFor="start_time">Horário</Label>
+              <Input
+                id="start_time"
+                type="time"
+                value={formData.start_time || ""}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, start_time: e.target.value }))
+                }
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="place">Local</Label>
+            <Input
+              id="place"
+              value={formData.place || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, place: e.target.value }))
+              }
+              placeholder="Local do evento"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="description">Descrição</Label>
+            <Textarea
+              id="description"
+              value={formData.description || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, description: e.target.value }))
+              }
+              placeholder="Descreva o evento..."
+              rows={3}
+            />
+          </div>
+
+          <Uploader
+            label="Banner do evento"
+            bucket="artist-photos"
+            maxBytes={5 * 1024 * 1024}
+            currentPath={formData.banner || ""}
+            onUploaded={(url) =>
+              setFormData((prev) => ({ ...prev, banner: url }))
+            }
+            accept="image/*"
+          />
+
+          <div>
+            <Label htmlFor="cta_link">Link para inscrição/ingresso</Label>
+            <Input
+              id="cta_link"
+              type="url"
+              value={formData.cta_link || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, cta_link: e.target.value }))
+              }
+              placeholder="https://..."
+            />
+          </div>
+
+          <div className="flex gap-2 pt-4">
+            <Button
+              onClick={handleSave}
+              disabled={saving || !formData.name}
+              className="flex-1"
+            >
+              {saving ? "Salvando..." : "Salvar evento"}
+            </Button>
+            <Button variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      </FormSection>
+    </Card>
+  );
+}

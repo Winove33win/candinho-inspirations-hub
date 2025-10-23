@@ -1,101 +1,139 @@
-import { useMemo } from "react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { CheckCircle2, Circle } from "lucide-react";
 import { useDashboardContext } from "./context";
-import { useNavigate } from "react-router-dom";
-
-const checklist = [
-  { field: "profile_image", label: "Envie uma foto de perfil", tab: "dados-pessoais" },
-  { field: "audio", label: "Adicione o áudio Ouça-me", tab: "videos" },
-  { field: "video_banner_landscape", label: "Envie o vídeo banner 16:9", tab: "videos" },
-  { field: "video_banner_portrait", label: "Envie o vídeo banner 9:16", tab: "videos" },
-  { field: "biography1", label: "Faça o upload do documento de biografia", tab: "biografia" },
-  { field: "image1", label: "Adicione fotografias à galeria", tab: "fotografias" },
-];
 
 export default function MinhaInscricao() {
   const { artistDetails } = useDashboardContext();
-  const navigate = useNavigate();
 
-  const { isComplete, missingItems, nextTab } = useMemo(() => {
-    if (!artistDetails) {
-      return { isComplete: false, missingItems: checklist, nextTab: "dados-pessoais" };
-    }
+  const steps = [
+    {
+      id: "cadastro",
+      title: "Cadastro básico",
+      description: "Complete seus dados pessoais e informações de contato",
+      completed: Boolean(
+        artistDetails?.full_name &&
+          artistDetails?.cell_phone &&
+          artistDetails?.accepted_terms1
+      ),
+    },
+    {
+      id: "perfil",
+      title: "Perfil profissional",
+      description: "Adicione biografia, redes sociais e informações artísticas",
+      completed: Boolean(
+        artistDetails?.artistic_name &&
+          artistDetails?.profile_text2 &&
+          artistDetails?.instagram
+      ),
+    },
+    {
+      id: "portfolio",
+      title: "Portfólio",
+      description: "Upload de fotos, vídeos e materiais de divulgação",
+      completed: Boolean(
+        artistDetails?.image1 || artistDetails?.link_to_video
+      ),
+    },
+    {
+      id: "revisao",
+      title: "Revisão final",
+      description: "Verifique todas as informações antes de submeter",
+      completed: artistDetails?.perfil_completo || false,
+    },
+  ];
 
-    const missing = checklist.filter((item) => {
-      const value = artistDetails[item.field as keyof typeof artistDetails];
-      return !value;
-    });
-
-    return {
-      isComplete: artistDetails.perfil_completo && missing.length === 0,
-      missingItems: missing,
-      nextTab: missing[0]?.tab ?? "dados-pessoais",
-    };
-  }, [artistDetails]);
-
-  const handleNavigate = () => {
-    navigate("/dashboard", { state: { focusTab: nextTab } });
-  };
-
-  const lastUpdate = artistDetails?.updated_at
-    ? format(new Date(artistDetails.updated_at), "dd 'de' MMMM 'de' yyyy HH:mm", { locale: ptBR })
-    : null;
+  const completedSteps = steps.filter((s) => s.completed).length;
+  const progress = (completedSteps / steps.length) * 100;
 
   return (
-    <div className="mx-auto max-w-6xl px-6 md:px-8">
-      <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] md:p-8">
-        <div className="space-y-8">
-          <div className="space-y-2">
-            <h1 className="text-2xl font-['League_Spartan'] font-bold text-[var(--ink)] md:text-3xl">Minha inscrição</h1>
-            <p className="text-sm text-[var(--muted)] md:text-base">
-              Acompanhe o status do seu cadastro e finalize as etapas pendentes para liberar todo o potencial do seu perfil.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-4 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] md:flex-row md:items-center md:justify-between">
-            <div className="flex items-start gap-3">
-              {isComplete ? (
-                <CheckCircle className="h-8 w-8 text-emerald-600" />
-              ) : (
-                <AlertCircle className="h-8 w-8 text-amber-500" />
-              )}
-              <div className="space-y-1">
-                <h2 className="text-xl font-semibold text-[var(--ink)]">Status do cadastro</h2>
-                <p className="text-sm text-[var(--muted)]">
-                  {isComplete ? 'Seu perfil está completo.' : 'Ainda há etapas pendentes para concluir seu perfil.'}
-                </p>
-                {lastUpdate && (
-                  <p className="text-xs text-[var(--muted)]">Última atualização: {lastUpdate}</p>
-                )}
-              </div>
-            </div>
-            <Button onClick={handleNavigate} className="self-start md:self-auto">
-              Concluir configuração
-            </Button>
-          </div>
-
-          <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)]">
-            <h3 className="text-lg font-semibold text-[var(--ink)] md:text-xl">Checklist</h3>
-            {missingItems.length === 0 ? (
-              <p className="mt-2 text-sm text-[var(--muted)]">Tudo pronto! Seu perfil está completo.</p>
-            ) : (
-              <ul className="mt-4 space-y-3">
-                {missingItems.map((item) => (
-                  <li key={item.field} className="flex items-start gap-3 text-sm text-[var(--ink)]">
-                    <AlertCircle className="mt-0.5 h-4 w-4 text-amber-500" />
-                    <span>{item.label}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-['League_Spartan'] font-bold">
+          Minha Inscrição
+        </h2>
+        <p className="text-sm text-[var(--muted)] mt-1">
+          Acompanhe o status da sua inscrição no programa SMARTx
+        </p>
       </div>
+
+      <Card className="p-6">
+        <div className="space-y-6">
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold">
+                Progresso geral
+              </span>
+              <span className="text-sm font-semibold text-[var(--brand)]">
+                {completedSteps}/{steps.length} etapas
+              </span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-[var(--surface-alt)]">
+              <div
+                className="h-full rounded-full bg-[var(--brand)] transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {steps.map((step, index) => (
+              <div
+                key={step.id}
+                className="flex gap-4 rounded-lg border border-[var(--border)] p-4 transition-all hover:border-[var(--brand)]"
+              >
+                <div className="flex-shrink-0 pt-1">
+                  {step.completed ? (
+                    <CheckCircle2 className="h-6 w-6 text-[var(--brand)]" />
+                  ) : (
+                    <Circle className="h-6 w-6 text-[var(--muted)]" />
+                  )}
+                </div>
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                      Etapa {index + 1}
+                    </span>
+                    {step.completed && (
+                      <span className="rounded-full bg-[var(--brand-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--brand)]">
+                        Completa
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="font-semibold">{step.title}</h3>
+                  <p className="text-sm text-[var(--muted)]">
+                    {step.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {progress === 100 ? (
+            <div className="rounded-lg bg-[var(--brand-soft)] p-6 text-center">
+              <CheckCircle2 className="mx-auto h-12 w-12 text-[var(--brand)] mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                Inscrição completa!
+              </h3>
+              <p className="text-sm text-[var(--muted)]">
+                Seu perfil está completo e pronto para ser revisado pela equipe
+                SMARTx. Você receberá um e-mail com próximos passos em breve.
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-alt)] p-6">
+              <h3 className="font-semibold mb-2">Próximos passos</h3>
+              <p className="text-sm text-[var(--muted)] mb-4">
+                Complete todas as etapas para finalizar sua inscrição no programa
+                SMARTx e aumentar suas chances de aprovação.
+              </p>
+              <Button asChild>
+                <a href="/dashboard">Continuar preenchimento</a>
+              </Button>
+            </div>
+          )}
+        </div>
+      </Card>
     </div>
   );
-
 }
-

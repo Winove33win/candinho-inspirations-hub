@@ -1,106 +1,143 @@
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { FormSection } from "@/components/dashboard/FormSection";
-import { ToolbarSave } from "@/components/dashboard/ToolbarSave";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboardContext } from "./context";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { Card } from "@/components/ui/card";
+import { MessageCircle, CheckCircle } from "lucide-react";
 
 export default function Suporte() {
   const { user } = useDashboardContext();
   const { toast } = useToast();
-  const [form, setForm] = useState({ subject: "", message: "" });
-  const [saving, setSaving] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [formData, setFormData] = useState({
+    subject: "",
+    message: "",
+  });
 
-  const handleSubmit = async () => {
-    if (!form.subject.trim() || !form.message.trim()) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Informe o assunto e a mensagem para abrir o chamado.",
-        variant: "destructive",
-      });
-      return false;
-    }
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
 
-    setSaving(true);
-    console.log("[SAVE::SUPPORT]", form);
+    if (!user?.id) return;
 
+    setSending(true);
     try {
-      const { error } = await supabase.from("support_tickets").insert({
-        member_id: user.id,
-        subject: form.subject,
-        message: form.message,
-      });
+      const { error } = await supabase.from("support_tickets").insert([
+        {
+          member_id: user.id,
+          subject: formData.subject,
+          message: formData.message,
+          status: "open",
+        },
+      ]);
 
       if (error) throw error;
 
       toast({
-        title: "Chamado enviado",
-        description: "Nossa equipe entrará em contato em breve.",
+        title: "Mensagem enviada!",
+        description: "Nossa equipe responderá em breve.",
       });
-      setForm({ subject: "", message: "" });
-      return true;
-    } catch (error: unknown) {
-      console.error("[SAVE::SUPPORT]", error);
-      const message = error instanceof Error ? error.message : "Não foi possível enviar o chamado.";
+
+      setFormData({ subject: "", message: "" });
+      setSubmitted(true);
+    } catch (error) {
+      console.error(error);
       toast({
-        title: "Erro",
-        description: message,
+        title: "Erro ao enviar",
         variant: "destructive",
       });
-      return false;
     } finally {
-      setSaving(false);
+      setSending(false);
     }
-  };
+  }
 
   return (
-    <div className="mx-auto max-w-6xl px-6 md:px-8">
-      <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] md:p-8">
-        <div className="space-y-8">
-          <div className="space-y-2">
-            <h1 className="text-2xl font-['League_Spartan'] font-bold text-[var(--ink)] md:text-3xl">Suporte</h1>
-            <p className="text-sm text-[var(--muted)] md:text-base">
-              Precisa de ajuda? Envie sua solicitação e nossa equipe retornará o contato rapidamente.
-            </p>
-          </div>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-['League_Spartan'] font-bold">Suporte</h2>
+        <p className="text-sm text-[var(--muted)] mt-1">
+          Precisa de ajuda? Entre em contato com nossa equipe
+        </p>
+      </div>
 
-          <FormSection
-            title="Central de suporte"
-            description="Envie suas dúvidas ou solicitações e retornaremos o mais breve possível."
-          >
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="supportSubject">Assunto</Label>
+      {submitted ? (
+        <Card className="p-8 text-center">
+          <CheckCircle className="mx-auto h-16 w-16 text-[var(--brand)] mb-4" />
+          <h3 className="text-xl font-semibold mb-2">Mensagem enviada!</h3>
+          <p className="text-[var(--muted)] mb-6">
+            Recebemos sua solicitação e responderemos em até 48 horas úteis.
+          </p>
+          <Button onClick={() => setSubmitted(false)}>
+            Enviar nova mensagem
+          </Button>
+        </Card>
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Card className="p-6 lg:col-span-2">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="subject">Assunto</Label>
                 <Input
-                  id="supportSubject"
-                  value={form.subject}
-                  onChange={(e) => setForm((prev) => ({ ...prev, subject: e.target.value }))}
-                  placeholder="Como podemos ajudar?"
+                  id="subject"
+                  required
+                  value={formData.subject}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, subject: e.target.value }))
+                  }
+                  placeholder="Ex: Dúvida sobre cadastro"
                 />
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="supportMessage">Mensagem</Label>
-                <Textarea
-                  id="supportMessage"
-                  value={form.message}
-                  onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
-                  placeholder="Descreva sua solicitação"
-                  className="min-h-[160px]"
-                />
-              </div>
-            </div>
-          </FormSection>
 
-          <div className="flex justify-end">
-            <ToolbarSave onSave={handleSubmit} saving={saving} defaultLabel="Abrir chamado" />
+              <div>
+                <Label htmlFor="message">Mensagem</Label>
+                <Textarea
+                  id="message"
+                  required
+                  value={formData.message}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, message: e.target.value }))
+                  }
+                  placeholder="Descreva sua dúvida ou problema..."
+                  rows={8}
+                />
+              </div>
+
+              <Button type="submit" disabled={sending} className="w-full">
+                {sending ? "Enviando..." : "Enviar mensagem"}
+              </Button>
+            </form>
+          </Card>
+
+          <div className="space-y-4">
+            <Card className="p-6">
+              <MessageCircle className="h-8 w-8 text-[var(--brand)] mb-3" />
+              <h3 className="font-semibold mb-2">Atendimento rápido</h3>
+              <p className="text-sm text-[var(--muted)] mb-4">
+                Respondemos em até 48 horas úteis
+              </p>
+              <p className="text-xs text-[var(--muted)]">
+                Para questões urgentes, entre em contato via WhatsApp
+              </p>
+            </Card>
+
+            <Card className="p-6 bg-[var(--brand-soft)]">
+              <h3 className="font-semibold mb-2 text-[var(--brand)]">
+                Perguntas frequentes
+              </h3>
+              <ul className="space-y-2 text-sm text-[var(--muted)]">
+                <li>• Como atualizar meu perfil?</li>
+                <li>• Como adicionar projetos?</li>
+                <li>• Como fazer upload de mídia?</li>
+                <li>• Como alterar minha senha?</li>
+              </ul>
+            </Card>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
-
 }
-

@@ -75,26 +75,49 @@ export default function Dashboard() {
   }, [displayName]);
 
   const completion = useMemo(() => {
-    const requiredFields: (keyof ArtistDetails)[] = [
+    if (!artistDetails) return 15;
+
+    // Campos essenciais (peso 40%)
+    const essentialFields: (keyof ArtistDetails)[] = [
       "artistic_name",
       "full_name",
       "cell_phone",
       "date_of_birth",
       "country_residence",
-      "profile_text2",
+      "accepted_terms1",
     ];
 
-    if (!artistDetails) return 20;
+    // Campos de perfil (peso 30%)
+    const profileFields: (keyof ArtistDetails)[] = [
+      "profile_text2",
+      "instagram",
+      "biography1",
+      "how_is_it_defined",
+    ];
 
-    const filled = requiredFields.filter((field) => {
-      const value = artistDetails[field];
-      if (typeof value === "boolean") return value;
-      if (typeof value === "string") return value.trim().length > 0;
-      return Boolean(value);
-    }).length;
+    // Campos de mídia (peso 30%)
+    const mediaFields: (keyof ArtistDetails)[] = [
+      "image1",
+      "image2",
+      "link_to_video",
+      "audio",
+    ];
 
-    const ratio = Math.round((filled / requiredFields.length) * 100);
-    return Math.min(100, Math.max(ratio, artistDetails.perfil_completo ? 100 : ratio));
+    const countFilled = (fields: (keyof ArtistDetails)[]) => {
+      return fields.filter((field) => {
+        const value = artistDetails[field];
+        if (typeof value === "boolean") return value;
+        if (typeof value === "string") return value.trim().length > 0;
+        return Boolean(value);
+      }).length;
+    };
+
+    const essentialScore = (countFilled(essentialFields) / essentialFields.length) * 40;
+    const profileScore = (countFilled(profileFields) / profileFields.length) * 30;
+    const mediaScore = (countFilled(mediaFields) / mediaFields.length) * 30;
+
+    const total = Math.round(essentialScore + profileScore + mediaScore);
+    return artistDetails.perfil_completo ? 100 : Math.min(100, total);
   }, [artistDetails]);
 
   // Loading geral

@@ -1,380 +1,309 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useDashboardContext } from "./context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { Plus, Trash2, Image as ImageIcon } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { FormSection } from "@/components/dashboard/FormSection";
 import { Uploader } from "@/components/dashboard/Uploader";
-import { ToolbarSave } from "@/components/dashboard/ToolbarSave";
-import { RichTextEditor } from "@/components/dashboard/RichTextEditor";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { useDashboardContext } from "./context";
 
-type ProjectRow = Database["public"]["Tables"]["projects"]["Row"];
-type ProjectInsert = Database["public"]["Tables"]["projects"]["Insert"];
-
-type EditableProject = Omit<ProjectInsert, "member_id">;
-
-const emptyProject: EditableProject = {
-  title: "",
-  cover_image: "",
-  banner_image: "",
-  about: "",
-  block1_title: "",
-  block1_image: "",
-  block2_title: "",
-  block2_image: "",
-  block3_title: "",
-  block3_image: "",
-  block4_title: "",
-  block4_image: "",
-  block5_title: "",
-  block5_image: "",
-  team_tech: "",
-  team_art: "",
-  project_sheet: "",
-  partners: "",
-  status: "draft",
-};
+type Project = Database["public"]["Tables"]["projects"]["Row"];
 
 export default function Projects() {
   const { user } = useDashboardContext();
   const { toast } = useToast();
-
-  const [projects, setProjects] = useState<ProjectRow[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [form, setForm] = useState<EditableProject>(emptyProject);
-  const [saving, setSaving] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadProjects = async () => {
-      if (!user?.id) return;
-      setLoading(true);
+    loadProjects();
+  }, [user?.id]);
+
+  async function loadProjects() {
+    if (!user?.id) return;
+    
+    setLoading(true);
+    try {
       const { data, error } = await supabase
         .from("projects")
         .select("*")
         .eq("member_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("[LOAD::PROJECTS]", error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar seus projetos.",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-
-      setProjects(data);
-      if (data.length > 0) {
-        const first = data[0];
-        setSelectedProjectId(first.id);
-        setForm(mapRowToForm(first));
-      } else {
-        setSelectedProjectId(null);
-        setForm(emptyProject);
-      }
-      setLoading(false);
-    };
-
-    loadProjects();
-  }, [user?.id, toast]);
-
-  const mapRowToForm = (row: ProjectRow): EditableProject => ({
-    title: row.title || "",
-    cover_image: row.cover_image || "",
-    banner_image: row.banner_image || "",
-    about: row.about || "",
-    block1_title: row.block1_title || "",
-    block1_image: row.block1_image || "",
-    block2_title: row.block2_title || "",
-    block2_image: row.block2_image || "",
-    block3_title: row.block3_title || "",
-    block3_image: row.block3_image || "",
-    block4_title: row.block4_title || "",
-    block4_image: row.block4_image || "",
-    block5_title: row.block5_title || "",
-    block5_image: row.block5_image || "",
-    team_tech: row.team_tech || "",
-    team_art: row.team_art || "",
-    project_sheet: row.project_sheet || "",
-    partners: row.partners || "",
-    status: row.status || "draft",
-  });
-
-  const handleSelectProject = (projectId: string) => {
-    if (projectId === "novo") {
-      setSelectedProjectId(null);
-      setForm(emptyProject);
-      return;
-    }
-
-    const project = projects.find((item) => item.id === projectId);
-    if (project) {
-      setSelectedProjectId(project.id);
-      setForm(mapRowToForm(project));
-    }
-  };
-
-  const handleNewProject = () => {
-    setSelectedProjectId(null);
-    setForm(emptyProject);
-  };
-
-  const handleStatusToggle = () => {
-    setForm((current) => ({
-      ...current,
-      status: current.status === "published" ? "draft" : "published",
-    }));
-  };
-
-  const handleSave = async () => {
-    if (!form.title?.trim()) {
+      if (error) throw error;
+      setProjects(data || []);
+    } catch (error) {
+      console.error(error);
       toast({
-        title: "Campo obrigatório",
-        description: "Informe o título do projeto.",
+        title: "Erro",
+        description: "Não foi possível carregar os projetos",
         variant: "destructive",
       });
-      return false;
+    } finally {
+      setLoading(false);
     }
+  }
 
-    setSaving(true);
-    console.log("[SAVE::PROJECT]", form);
+  async function handleDelete(id: string) {
+    if (!confirm("Deseja realmente excluir este projeto?")) return;
 
     try {
-      const payload: Database["public"]["Tables"]["projects"]["Insert"] = {
-        ...form,
-        member_id: user.id,
-      };
-
-      if (selectedProjectId) {
-        (payload as Database["public"]["Tables"]["projects"]["Update"]).id = selectedProjectId;
-      }
-
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("projects")
-        .upsert(payload, { onConflict: "id" })
-        .select()
-        .single();
+        .delete()
+        .eq("id", id);
 
       if (error) throw error;
 
-      setProjects((current) => {
-        const others = current.filter((item) => item.id !== data.id);
-        return [data, ...others];
-      });
-      setSelectedProjectId(data.id);
-      setForm(mapRowToForm(data));
-
+      toast({ title: "Projeto excluído com sucesso" });
+      loadProjects();
+    } catch (error) {
+      console.error(error);
       toast({
-        title: "Sucesso",
-        description: "Projeto salvo com sucesso!",
-      });
-      return true;
-    } catch (error: unknown) {
-      console.error("[SAVE::PROJECT]", error);
-      const message = error instanceof Error ? error.message : "Não foi possível salvar o projeto.";
-      toast({
-        title: "Erro",
-        description: message,
+        title: "Erro ao excluir",
         variant: "destructive",
       });
-      return false;
-    } finally {
-      setSaving(false);
     }
-  };
-
-  const currentStatusLabel = useMemo(
-    () => (form.status === "published" ? "Publicado" : "Rascunho"),
-    [form.status]
-  );
+  }
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--surface-alt)]">
-        <div className="h-16 w-16 animate-spin rounded-full border-b-2 border-[var(--brand)]" />
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[var(--brand)]" />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-6 md:px-8">
-      <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] md:p-8">
-        <div className="space-y-8">
-          <div className="space-y-2">
-            <h1 className="text-2xl font-['League_Spartan'] font-bold text-[var(--ink)] md:text-3xl">Projetos</h1>
-            <p className="text-sm text-[var(--muted)] md:text-base">
-              Gerencie e apresente seus projetos com materiais atualizados para a curadoria SMARTx.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
-            <div className="flex-1 space-y-2">
-              <Label htmlFor="selectProjeto">Selecionar seu projeto</Label>
-              <Select value={selectedProjectId ?? 'novo'} onValueChange={handleSelectProject}>
-                <SelectTrigger id="selectProjeto">
-                  <SelectValue placeholder="Escolha um projeto" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="novo">Novo projeto</SelectItem>
-                  {projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.title || 'Sem título'}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Button variant="secondary" onClick={handleNewProject}>
-                Novo projeto
-              </Button>
-              <Button variant="secondary" onClick={handleStatusToggle}>
-                Alterar status ({currentStatusLabel})
-              </Button>
-            </div>
-          </div>
-
-          <FormSection title="Informações principais">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-              <div>
-                <Label htmlFor="projectTitle">Título *</Label>
-                <Input
-                  id="projectTitle"
-                  value={form.title ?? ''}
-                  onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-                  placeholder="Nome do projeto"
-                />
-              </div>
-              <div>
-                <Uploader
-                  label="Imagem de capa"
-                  maxBytes={1024 * 1024}
-                  bucketPath="artist-media/photos"
-                  accept="image/*"
-                  currentPath={form.cover_image ?? ''}
-                  onUploaded={(url) => setForm((prev) => ({ ...prev, cover_image: url }))}
-                />
-              </div>
-              <div>
-                <Uploader
-                  label="Banner"
-                  maxBytes={2 * 1024 * 1024}
-                  bucketPath="artist-media/photos"
-                  accept="image/*"
-                  currentPath={form.banner_image ?? ''}
-                  onUploaded={(url) => setForm((prev) => ({ ...prev, banner_image: url }))}
-                />
-              </div>
-              <div className="md:col-span-2 space-y-2">
-                <Label htmlFor="projectAbout">Sobre o projeto</Label>
-                <RichTextEditor
-                  id="projectAbout"
-                  value={form.about ?? ''}
-                  onChange={(value) => setForm((prev) => ({ ...prev, about: value }))}
-                  placeholder="Descreva o projeto"
-                />
-              </div>
-            </div>
-          </FormSection>
-
-          <FormSection title="Blocos de destaque">
-            <div className="space-y-6">
-              {[1, 2, 3, 4, 5].map((block) => {
-                const titleKey = `block${block}_title` as keyof EditableProject;
-                const imageKey = `block${block}_image` as keyof EditableProject;
-                return (
-                  <div key={block} className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-                    <div>
-                      <Label htmlFor={`blockTitle${block}`}>Título bloco {block}</Label>
-                      <Input
-                        id={`blockTitle${block}`}
-                        value={(form[titleKey] as string | null) ?? ''}
-                        onChange={(e) =>
-                          setForm((prev) => ({
-                            ...prev,
-                            [titleKey]: e.target.value,
-                          }))
-                        }
-                        placeholder={`Título do bloco ${block}`}
-                      />
-                    </div>
-                    <div>
-                      <Uploader
-                        label={`Imagem bloco ${block}`}
-                        maxBytes={1024 * 1024}
-                        bucketPath="artist-media/photos"
-                        accept="image/*"
-                        currentPath={(form[imageKey] as string | null) ?? ''}
-                        onUploaded={(url) =>
-                          setForm((prev) => ({
-                            ...prev,
-                            [imageKey]: url,
-                          }))
-                        }
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </FormSection>
-
-          <FormSection title="Equipe e ficha técnica">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="teamTech">Equipe técnica</Label>
-                <RichTextEditor
-                  id="teamTech"
-                  value={form.team_tech ?? ''}
-                  onChange={(value) => setForm((prev) => ({ ...prev, team_tech: value }))}
-                  placeholder="Descreva a equipe técnica"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="teamArt">Equipe artística</Label>
-                <RichTextEditor
-                  id="teamArt"
-                  value={form.team_art ?? ''}
-                  onChange={(value) => setForm((prev) => ({ ...prev, team_art: value }))}
-                  placeholder="Descreva a equipe artística"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="projectSheet">Ficha técnica</Label>
-                <RichTextEditor
-                  id="projectSheet"
-                  value={form.project_sheet ?? ''}
-                  onChange={(value) => setForm((prev) => ({ ...prev, project_sheet: value }))}
-                  placeholder="Detalhes da ficha técnica"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="projectPartners">Parceiros</Label>
-                <RichTextEditor
-                  id="projectPartners"
-                  value={form.partners ?? ''}
-                  onChange={(value) => setForm((prev) => ({ ...prev, partners: value }))}
-                  placeholder="Liste parceiros e apoiadores"
-                />
-              </div>
-            </div>
-          </FormSection>
-
-          <div className="flex justify-end">
-            <ToolbarSave onSave={handleSave} saving={saving} />
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-['League_Spartan'] font-bold">Projetos</h2>
+          <p className="text-sm text-[var(--muted)] mt-1">
+            Gerencie seu portfólio de trabalhos e colaborações artísticas
+          </p>
         </div>
+        <Button
+          onClick={() => setEditingId("new")}
+          className="gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          Novo projeto
+        </Button>
       </div>
+
+      {editingId && (
+        <ProjectForm
+          projectId={editingId === "new" ? null : editingId}
+          onClose={() => {
+            setEditingId(null);
+            loadProjects();
+          }}
+        />
+      )}
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {projects.map((project) => (
+          <Card key={project.id} className="overflow-hidden">
+            {project.cover_image && (
+              <div className="relative h-48 w-full overflow-hidden bg-[var(--surface-alt)]">
+                <img
+                  src={project.cover_image}
+                  alt={project.title || "Projeto"}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            )}
+            <div className="p-6 space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold">{project.title || "Sem título"}</h3>
+                {project.about && (
+                  <p className="text-sm text-[var(--muted)] mt-2 line-clamp-3">
+                    {project.about}
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditingId(project.id)}
+                  className="flex-1"
+                >
+                  Editar
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => handleDelete(project.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {projects.length === 0 && !editingId && (
+        <div className="rounded-[var(--radius)] border-2 border-dashed border-[var(--border)] p-12 text-center">
+          <ImageIcon className="mx-auto h-12 w-12 text-[var(--muted)]" />
+          <p className="mt-4 text-[var(--muted)]">
+            Nenhum projeto cadastrado ainda. Adicione seu primeiro projeto!
+          </p>
+        </div>
+      )}
     </div>
   );
-
 }
 
+function ProjectForm({
+  projectId,
+  onClose,
+}: {
+  projectId: string | null;
+  onClose: () => void;
+}) {
+  const { user } = useDashboardContext();
+  const { toast } = useToast();
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState<Partial<Project>>({
+    title: "",
+    about: "",
+    cover_image: "",
+    banner_image: "",
+    status: "draft",
+  });
+
+  useEffect(() => {
+    if (projectId) {
+      loadProject();
+    }
+  }, [projectId]);
+
+  async function loadProject() {
+    if (!projectId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("id", projectId)
+        .single();
+
+      if (error) throw error;
+      setFormData(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function handleSave() {
+    if (!user?.id) return;
+
+    setSaving(true);
+    try {
+      const payload = { ...formData, member_id: user.id };
+
+      if (projectId) {
+        const { error } = await supabase
+          .from("projects")
+          .update(payload)
+          .eq("id", projectId);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("projects")
+          .insert([payload]);
+
+        if (error) throw error;
+      }
+
+      toast({ title: "Projeto salvo com sucesso!" });
+      onClose();
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Erro ao salvar",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Card className="p-6">
+      <FormSection title={projectId ? "Editar Projeto" : "Novo Projeto"}>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="title">Título do projeto</Label>
+            <Input
+              id="title"
+              value={formData.title || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, title: e.target.value }))
+              }
+              placeholder="Nome do projeto"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="about">Sobre o projeto</Label>
+            <Textarea
+              id="about"
+              value={formData.about || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, about: e.target.value }))
+              }
+              placeholder="Descreva o projeto..."
+              rows={4}
+            />
+          </div>
+
+          <Uploader
+            label="Imagem de capa"
+            bucket="artist-photos"
+            maxBytes={5 * 1024 * 1024}
+            currentPath={formData.cover_image || ""}
+            onUploaded={(url) =>
+              setFormData((prev) => ({ ...prev, cover_image: url }))
+            }
+            accept="image/*"
+          />
+
+          <Uploader
+            label="Banner do projeto"
+            bucket="artist-photos"
+            maxBytes={5 * 1024 * 1024}
+            currentPath={formData.banner_image || ""}
+            onUploaded={(url) =>
+              setFormData((prev) => ({ ...prev, banner_image: url }))
+            }
+            accept="image/*"
+          />
+
+          <div className="flex gap-2 pt-4">
+            <Button
+              onClick={handleSave}
+              disabled={saving || !formData.title}
+              className="flex-1"
+            >
+              {saving ? "Salvando..." : "Salvar projeto"}
+            </Button>
+            <Button variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      </FormSection>
+    </Card>
+  );
+}
