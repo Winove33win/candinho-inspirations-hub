@@ -45,7 +45,7 @@ const Artists = () => {
               {categories.map((category) => (
                 <Button
                   key={category.id}
-                  variant={selectedCategory === category.id ? "default" : "outline"}
+                  variant={selectedCategory === category.id ? "secondary" : "outline"}
                   size="sm"
                   onClick={() => setSelectedCategory(category.id)}
                   className="transition-all"

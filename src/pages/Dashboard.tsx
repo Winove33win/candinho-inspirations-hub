@@ -58,32 +58,6 @@ export default function Dashboard() {
     navigate("/login");
   };
 
-  // Loading geral
-  if (userLoading || detailsLoading || !user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--surface-alt)]">
-        <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-[var(--brand)]" />
-      </div>
-    );
-  }
-
-  const menuItems: MenuItem[] = [
-    { icon: User, label: "Meu perfil profissional", path: "/dashboard" },
-    { icon: FolderKanban, label: "Projetos", path: "/dashboard/projetos" },
-    { icon: Calendar, label: "Eventos", path: "/dashboard/eventos" },
-    { icon: FileText, label: "Documentos", path: "/dashboard/documentos" },
-    { icon: ClipboardList, label: "Minha Inscrição", path: "/dashboard/inscricao" },
-    { icon: HelpCircle, label: "Suporte", path: "/dashboard/suporte" },
-    { icon: Settings, label: "Cadastro Personalizado", path: "/dashboard/personalizado" },
-  ];
-
-  const contextValue: DashboardContextValue = {
-    user,
-    artistDetails,
-    refreshArtistDetails: reloadDetails,
-    upsertArtistDetails,
-  };
-
   const displayName = useMemo(() => {
     if (artistDetails?.artistic_name) return artistDetails.artistic_name;
     if (artistDetails?.full_name) return artistDetails.full_name;
@@ -122,6 +96,38 @@ export default function Dashboard() {
     const ratio = Math.round((filled / requiredFields.length) * 100);
     return Math.min(100, Math.max(ratio, artistDetails.perfil_completo ? 100 : ratio));
   }, [artistDetails]);
+
+  // Loading geral
+  if (userLoading || detailsLoading || !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[var(--surface-alt)]">
+        <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-[var(--brand)]" />
+      </div>
+    );
+  }
+
+  const menuItems: MenuItem[] = [
+    { icon: User, label: "Meu perfil profissional", path: "/dashboard" },
+    { icon: FolderKanban, label: "Projetos", path: "/dashboard/projetos" },
+    { icon: Calendar, label: "Eventos", path: "/dashboard/eventos" },
+    { icon: FileText, label: "Documentos", path: "/dashboard/documentos" },
+    { icon: ClipboardList, label: "Minha Inscrição", path: "/dashboard/inscricao" },
+    { icon: HelpCircle, label: "Suporte", path: "/dashboard/suporte" },
+    { icon: Settings, label: "Cadastro Personalizado", path: "/dashboard/personalizado" },
+  ];
+
+  const contextValue: DashboardContextValue = {
+    user,
+    artistDetails,
+    refreshArtistDetails: reloadDetails,
+    upsertArtistDetails: async (payload) => {
+      const result = await upsertArtistDetails(payload);
+      return {
+        data: result.data,
+        error: result.error instanceof Error ? null : result.error,
+      };
+    },
+  };
 
   const completionLabel =
     completion >= 90 ? "Perfil completo" : completion >= 60 ? "Quase lá" : "Comece por aqui";
