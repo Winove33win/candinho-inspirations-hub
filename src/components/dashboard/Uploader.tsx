@@ -132,7 +132,7 @@ export function Uploader({
 
   return (
     <div className="space-y-2" id={id}>
-      <label className="text-sm font-medium">{label}</label>
+      <label className="text-sm font-medium text-[var(--ink)]">{label}</label>
 
       <div className="flex items-center gap-2">
         <input

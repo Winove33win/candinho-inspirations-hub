@@ -197,99 +197,106 @@ export default function Documents() {
   };
 
   return (
-    <div className="space-y-8">
-      <FormSection title="Adicionar documento">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="documentTitle">Título</Label>
-            <Input
-              id="documentTitle"
-              value={newDocument.title}
-              onChange={(e) => setNewDocument((prev) => ({ ...prev, title: e.target.value }))}
-              placeholder="Nome do documento"
-            />
+    <div className="mx-auto max-w-6xl px-6 md:px-8">
+      <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] md:p-8">
+        <div className="space-y-8">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-['League_Spartan'] font-bold text-[var(--ink)] md:text-3xl">Documentos</h1>
+            <p className="text-sm text-[var(--muted)] md:text-base">
+              Armazene e compartilhe materiais oficiais com segurança na plataforma SMARTx.
+            </p>
           </div>
-          <div>
-            <Label htmlFor="documentKind">Tipo</Label>
-            <Select
-              value={newDocument.kind}
-              onValueChange={(value: DocumentKind) =>
-                setNewDocument((prev) => ({ ...prev, kind: value }))
-              }
-            >
-              <SelectTrigger id="documentKind">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {kindOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Uploader
-            label="Arquivo (PDF/DOC)"
-            maxBytes={4 * 1024 * 1024}
-            bucketPath="artist-media/docs"
-            accept=".pdf,.doc,.docx"
-            currentPath={newDocument.file_url}
-            onUploaded={(url) => setNewDocument((prev) => ({ ...prev, file_url: url }))}
-          />
-        </div>
 
-        <div className="flex justify-end pt-4">
-          <ToolbarSave onSave={handleAddDocument} saving={saving} defaultLabel="Adicionar documento" />
-        </div>
-      </FormSection>
-
-      <FormSection title="Meus documentos">
-        {loading ? (
-          <div className="flex items-center justify-center p-6">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
-          </div>
-        ) : documents.length === 0 ? (
-          <p className="text-muted-foreground">Nenhum documento cadastrado.</p>
-        ) : (
-          <div className="space-y-4">
-            {documents.map((document) => (
-              <div
-                key={document.id}
-                className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border rounded-lg p-4"
-              >
-                <div>
-                  <h4 className="font-semibold">{document.title || "Sem título"}</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {kindOptions.find((option) => option.value === document.kind)?.label || ""}
-                  </p>
-                  {signedUrls[document.id] ? (
-                    <a
-                      href={signedUrls[document.id]}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-primary text-sm underline"
-                    >
-                      Abrir documento
-                    </a>
-                  ) : document.file_url ? (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Link temporário indisponível. Tente novamente mais tarde.
-                    </p>
-                  ) : null}
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => handleDelete(document.id)}
-                  className="self-start md:self-auto"
-                >
-                  Excluir
-                </Button>
+          <FormSection title="Adicionar documento">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="documentTitle">Título</Label>
+                <Input
+                  id="documentTitle"
+                  value={newDocument.title}
+                  onChange={(e) => setNewDocument((prev) => ({ ...prev, title: e.target.value }))}
+                  placeholder="Nome do documento"
+                />
               </div>
-            ))}
-          </div>
-        )}
-      </FormSection>
+              <div className="space-y-2">
+                <Label htmlFor="documentKind">Tipo</Label>
+                <Select
+                  value={newDocument.kind}
+                  onValueChange={(value: DocumentKind) => setNewDocument((prev) => ({ ...prev, kind: value }))}
+                >
+                  <SelectTrigger id="documentKind">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {kindOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="md:col-span-2">
+                <Uploader
+                  label="Arquivo (PDF/DOC)"
+                  maxBytes={4 * 1024 * 1024}
+                  bucketPath="artist-media/docs"
+                  accept=".pdf,.doc,.docx"
+                  currentPath={newDocument.file_url}
+                  onUploaded={(url) => setNewDocument((prev) => ({ ...prev, file_url: url }))}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <ToolbarSave onSave={handleAddDocument} saving={saving} defaultLabel="Adicionar documento" />
+            </div>
+          </FormSection>
+
+          <FormSection title="Meus documentos">
+            {loading ? (
+              <div className="flex items-center justify-center p-6">
+                <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-[var(--brand)]" />
+              </div>
+            ) : documents.length === 0 ? (
+              <p className="text-sm text-[var(--muted)]">Nenhum documento cadastrado.</p>
+            ) : (
+              <div className="space-y-4">
+                {documents.map((document) => (
+                  <div
+                    key={document.id}
+                    className="flex flex-col gap-4 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-4 shadow-sm transition-all duration-200 hover:-translate-y-[1px] hover:shadow-md md:flex-row md:items-center md:justify-between md:p-6"
+                  >
+                    <div className="space-y-1">
+                      <h4 className="text-base font-semibold text-[var(--ink)]">{document.title || 'Sem título'}</h4>
+                      <p className="text-sm text-[var(--muted)]">
+                        {kindOptions.find((option) => option.value === document.kind)?.label || ''}
+                      </p>
+                      {signedUrls[document.id] ? (
+                        <a
+                          href={signedUrls[document.id]}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-sm font-semibold text-[var(--brand)] transition-colors duration-200 hover:text-[var(--brand-600)]"
+                        >
+                          Abrir documento
+                        </a>
+                      ) : document.file_url ? (
+                        <p className="text-xs text-[var(--muted)]">Link temporário indisponível. Tente novamente mais tarde.</p>
+                      ) : null}
+                    </div>
+                    <Button variant="secondary" onClick={() => handleDelete(document.id)} className="self-start md:self-auto">
+                      Excluir
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </FormSection>
+        </div>
+      </div>
     </div>
   );
+
 }
+

@@ -192,124 +192,138 @@ export default function Events() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      <div className="flex min-h-screen items-center justify-center bg-[var(--surface-alt)]">
+        <div className="h-16 w-16 animate-spin rounded-full border-b-2 border-[var(--brand)]" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col lg:flex-row lg:items-end gap-4">
-        <div className="flex-1">
-          <Label htmlFor="selectEvento">Selecionar evento</Label>
-          <Select value={selectedEventId ?? "novo"} onValueChange={handleSelectEvent}>
-            <SelectTrigger id="selectEvento">
-              <SelectValue placeholder="Escolha um evento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="novo">Novo evento</SelectItem>
-              {events.map((event) => (
-                <SelectItem key={event.id} value={event.id}>
-                  {event.name || "Sem título"}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleNewEvent}>
-            Novo evento
-          </Button>
-          <Button variant="outline" onClick={handleStatusToggle}>
-            Alterar status ({currentStatusLabel})
-          </Button>
-        </div>
-      </div>
-
-      <FormSection title="Detalhes do evento">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="eventName">Nome do evento *</Label>
-            <Input
-              id="eventName"
-              value={form.name ?? ""}
-              onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-              placeholder="Nome do evento"
-            />
+    <div className="mx-auto max-w-6xl px-6 md:px-8">
+      <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] md:p-8">
+        <div className="space-y-8">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-['League_Spartan'] font-bold text-[var(--ink)] md:text-3xl">Eventos</h1>
+            <p className="text-sm text-[var(--muted)] md:text-base">
+              Divulgue apresentações e lançamentos com informações sempre atualizadas para o público SMARTx.
+            </p>
           </div>
-          <Uploader
-            label="Banner do evento"
-            maxBytes={2 * 1024 * 1024}
-            bucketPath="artist-media/photos"
-            accept="image/*"
-            currentPath={form.banner ?? ""}
-            onUploaded={(url) => setForm((prev) => ({ ...prev, banner: url }))}
-          />
-          <div>
-            <Label htmlFor="eventDate">Data</Label>
-            <Input
-              id="eventDate"
-              type="date"
-              value={form.date ?? ""}
-              onChange={(e) => setForm((prev) => ({ ...prev, date: e.target.value }))}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label htmlFor="eventStart">Início</Label>
-              <Input
-                id="eventStart"
-                type="time"
-                value={form.start_time ?? ""}
-                onChange={(e) => setForm((prev) => ({ ...prev, start_time: e.target.value }))}
-              />
+
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
+            <div className="flex-1 space-y-2">
+              <Label htmlFor="selectEvento">Selecionar evento</Label>
+              <Select value={selectedEventId ?? 'novo'} onValueChange={handleSelectEvent}>
+                <SelectTrigger id="selectEvento">
+                  <SelectValue placeholder="Escolha um evento" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="novo">Novo evento</SelectItem>
+                  {events.map((event) => (
+                    <SelectItem key={event.id} value={event.id}>
+                      {event.name || 'Sem título'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <Label htmlFor="eventEnd">Fim</Label>
-              <Input
-                id="eventEnd"
-                type="time"
-                value={form.end_time ?? ""}
-                onChange={(e) => setForm((prev) => ({ ...prev, end_time: e.target.value }))}
-              />
+
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button variant="secondary" onClick={handleNewEvent}>
+                Novo evento
+              </Button>
+              <Button variant="secondary" onClick={handleStatusToggle}>
+                Alterar status ({currentStatusLabel})
+              </Button>
             </div>
           </div>
-          <div>
-            <Label htmlFor="eventPlace">Local</Label>
-            <Input
-              id="eventPlace"
-              value={form.place ?? ""}
-              onChange={(e) => setForm((prev) => ({ ...prev, place: e.target.value }))}
-              placeholder="Local do evento"
-            />
-          </div>
-          <div>
-            <Label htmlFor="eventLink">Link do botão</Label>
-            <Input
-              id="eventLink"
-              value={form.cta_link ?? ""}
-              onChange={(e) => setForm((prev) => ({ ...prev, cta_link: e.target.value }))}
-              placeholder="https://"
-            />
+
+          <FormSection title="Detalhes do evento">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+              <div>
+                <Label htmlFor="eventName">Nome do evento *</Label>
+                <Input
+                  id="eventName"
+                  value={form.name ?? ''}
+                  onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="Nome do evento"
+                />
+              </div>
+              <div>
+                <Uploader
+                  label="Banner do evento"
+                  maxBytes={2 * 1024 * 1024}
+                  bucketPath="artist-media/photos"
+                  accept="image/*"
+                  currentPath={form.banner ?? ''}
+                  onUploaded={(url) => setForm((prev) => ({ ...prev, banner: url }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="eventDate">Data</Label>
+                <Input
+                  id="eventDate"
+                  type="date"
+                  value={form.date ?? ''}
+                  onChange={(e) => setForm((prev) => ({ ...prev, date: e.target.value }))}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2 md:gap-3">
+                <div>
+                  <Label htmlFor="eventStart">Início</Label>
+                  <Input
+                    id="eventStart"
+                    type="time"
+                    value={form.start_time ?? ''}
+                    onChange={(e) => setForm((prev) => ({ ...prev, start_time: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="eventEnd">Fim</Label>
+                  <Input
+                    id="eventEnd"
+                    type="time"
+                    value={form.end_time ?? ''}
+                    onChange={(e) => setForm((prev) => ({ ...prev, end_time: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="eventPlace">Local</Label>
+                <Input
+                  id="eventPlace"
+                  value={form.place ?? ''}
+                  onChange={(e) => setForm((prev) => ({ ...prev, place: e.target.value }))}
+                  placeholder="Local do evento"
+                />
+              </div>
+              <div>
+                <Label htmlFor="eventLink">Link do botão</Label>
+                <Input
+                  id="eventLink"
+                  value={form.cta_link ?? ''}
+                  onChange={(e) => setForm((prev) => ({ ...prev, cta_link: e.target.value }))}
+                  placeholder="https://"
+                />
+              </div>
+              <div className="md:col-span-2 space-y-2">
+                <Label htmlFor="eventDescription">Descrição</Label>
+                <RichTextEditor
+                  id="eventDescription"
+                  value={form.description ?? ''}
+                  onChange={(value) => setForm((prev) => ({ ...prev, description: value }))}
+                  placeholder="Conte sobre o evento"
+                />
+              </div>
+            </div>
+          </FormSection>
+
+          <div className="flex justify-end">
+            <ToolbarSave onSave={handleSave} saving={saving} />
           </div>
         </div>
-
-        <div>
-          <Label>Descrição</Label>
-          <RichTextEditor
-            id="eventDescription"
-            value={form.description ?? ""}
-            onChange={(value) => setForm((prev) => ({ ...prev, description: value }))}
-            placeholder="Conte sobre o evento"
-          />
-        </div>
-      </FormSection>
-
-      <div className="flex justify-end">
-        <ToolbarSave onSave={handleSave} saving={saving} />
       </div>
     </div>
   );
+
 }
+
