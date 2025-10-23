@@ -166,8 +166,8 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
     <>
       <div className="space-y-6">
         <FormSection title="Informações básicas" description="Preencha seus dados pessoais">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+            <div className="md:col-span-6">
               <Label htmlFor="inputArtisticName">Nome Artístico *</Label>
               <Input
                 id="inputArtisticName"
@@ -177,7 +177,7 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
               />
             </div>
 
-            <div>
+            <div className="md:col-span-6">
               <Label htmlFor="inputFullName">Nome Completo *</Label>
               <Input
                 id="inputFullName"
@@ -187,7 +187,7 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
               />
             </div>
 
-            <div>
+            <div className="md:col-span-6">
               <Uploader
                 id="imageX80"
                 label="Foto de Perfil"
@@ -200,7 +200,7 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
               />
             </div>
 
-            <div>
+            <div className="md:col-span-6">
               <Label htmlFor="dropdown2">Como se define</Label>
               <Select
                 value={formData.how_is_it_defined1}
@@ -218,7 +218,7 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
               </Select>
             </div>
 
-            <div>
+            <div className="md:col-span-6">
               <Label htmlFor="input98">Especificação</Label>
               <Input
                 id="input98"
@@ -227,7 +227,7 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
               />
             </div>
 
-            <div>
+            <div className="md:col-span-6">
               <Label htmlFor="pinput6">Celular</Label>
               <Input
                 id="pinput6"
@@ -237,7 +237,7 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
               />
             </div>
 
-            <div>
+            <div className="md:col-span-6">
               <Label htmlFor="datePicker4">Data de Nascimento</Label>
               <Input
                 id="datePicker4"
@@ -247,7 +247,7 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
               />
             </div>
 
-            <div>
+            <div className="md:col-span-6">
               <Label htmlFor="dropdown3">País de Nascimento</Label>
               <Input
                 id="dropdown3"
@@ -255,22 +255,21 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
                 onChange={(e) => setFormData({ ...formData, country_of_birth: e.target.value })}
               />
             </div>
-          </div>
-
-          <div>
-            <Label htmlFor="textBox26">Frase de Impacto</Label>
-            <Textarea
-              id="textBox26"
-              value={formData.profile_text2}
-              onChange={(e) => setFormData({ ...formData, profile_text2: e.target.value })}
-              placeholder="Uma frase que defina você como artista"
-            />
+            <div className="md:col-span-12">
+              <Label htmlFor="textBox26">Frase de Impacto</Label>
+              <Textarea
+                id="textBox26"
+                value={formData.profile_text2}
+                onChange={(e) => setFormData({ ...formData, profile_text2: e.target.value })}
+                placeholder="Uma frase que defina você como artista"
+              />
+            </div>
           </div>
         </FormSection>
 
         <FormSection title="Endereço">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+            <div className="md:col-span-8">
               <Label htmlFor="pinput8">Endereço</Label>
               <Input
                 id="pinput8"
@@ -279,7 +278,7 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
               />
             </div>
 
-            <div>
+            <div className="md:col-span-4">
               <Label htmlFor="pinput11">CEP/Código Postal</Label>
               <Input
                 id="pinput11"
@@ -289,7 +288,7 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
               />
             </div>
 
-            <div>
+            <div className="md:col-span-6">
               <Label htmlFor="pinput9">Complemento</Label>
               <Input
                 id="pinput9"
@@ -298,7 +297,7 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
               />
             </div>
 
-            <div>
+            <div className="md:col-span-6">
               <Label htmlFor="pinput10">Cidade</Label>
               <Input
                 id="pinput10"
@@ -307,7 +306,7 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
               />
             </div>
 
-            <div>
+            <div className="md:col-span-6">
               <Label htmlFor="dropdown1">País de Residência</Label>
               <Input
                 id="dropdown1"

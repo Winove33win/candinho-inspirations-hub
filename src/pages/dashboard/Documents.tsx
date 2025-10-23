@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 
 type Document = Database["public"]["Tables"]["documents"]["Row"];
+type DocumentKind = Database["public"]["Enums"]["document_kind"];
 
 export default function Documents() {
   const { user } = useDashboardContext();
@@ -264,7 +265,7 @@ function DocumentForm({
             <Select
               value={formData.kind || "outro"}
               onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, kind: value as any }))
+                setFormData((prev) => ({ ...prev, kind: value as DocumentKind }))
               }
             >
               <SelectTrigger>

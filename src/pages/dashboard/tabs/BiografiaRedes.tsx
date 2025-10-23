@@ -106,8 +106,8 @@ export default function BiografiaRedes({ artistDetails, onUpsert }: BiografiaRed
       </FormSection>
 
       <FormSection title="Redes Sociais" description="Adicione links completos (incluindo https://)">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+          <div className="md:col-span-6">
             <Label htmlFor="input79">Facebook</Label>
             <Input
               id="input79"
@@ -118,7 +118,7 @@ export default function BiografiaRedes({ artistDetails, onUpsert }: BiografiaRed
             />
           </div>
 
-          <div>
+          <div className="md:col-span-6">
             <Label htmlFor="input83">Instagram</Label>
             <Input
               id="input83"
@@ -129,7 +129,7 @@ export default function BiografiaRedes({ artistDetails, onUpsert }: BiografiaRed
             />
           </div>
 
-          <div>
+          <div className="md:col-span-6">
             <Label htmlFor="input82">Spotify/Apple Music</Label>
             <Input
               id="input82"
@@ -140,7 +140,7 @@ export default function BiografiaRedes({ artistDetails, onUpsert }: BiografiaRed
             />
           </div>
 
-          <div>
+          <div className="md:col-span-6">
             <Label htmlFor="input81">Canal do YouTube</Label>
             <Input
               id="input81"
@@ -151,7 +151,7 @@ export default function BiografiaRedes({ artistDetails, onUpsert }: BiografiaRed
             />
           </div>
 
-          <div>
+          <div className="md:col-span-6">
             <Label htmlFor="input80">Website</Label>
             <Input
               id="input80"

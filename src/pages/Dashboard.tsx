@@ -181,9 +181,9 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[var(--surface-alt)] text-[var(--ink)]">
       <Header />
       <main className="pt-20">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 md:px-8 lg:flex-row">
-          <aside className="hidden w-[260px] shrink-0 border-r border-[var(--border)] bg-[var(--surface-alt)]/70 lg:block">
-            <div className="sticky top-28 space-y-6">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 md:px-8 lg:flex-row">
+          <aside className="hidden w-[260px] shrink-0 border-r border-[var(--border)] bg-[var(--surface-alt)] lg:block">
+            <div className="sticky top-28 space-y-8">
               <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)]">
                 <div className="flex items-center gap-4">
                   <div className="flex h-14 w-14 items-center justify-center rounded-[var(--radius)] bg-[var(--brand-soft)] text-lg font-semibold text-[var(--brand)]">
@@ -211,7 +211,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <nav className="space-y-1">
+              <nav className="space-y-1.5">
                 {menuItems.map((item) => (
                   <Item key={item.path} to={item.path} icon={item.icon}>
                     {item.label}
@@ -221,7 +221,7 @@ export default function Dashboard() {
 
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-2 text-sm text-[var(--muted)] transition-all duration-200 hover:text-[var(--ink)]"
+                className="w-full justify-start gap-2 text-sm text-[var(--muted)] transition-all duration-200 hover:bg-white hover:text-[var(--ink)]"
                 onClick={handleLogout}
               >
                 <LogOut className="h-4 w-4" />
@@ -230,7 +230,7 @@ export default function Dashboard() {
             </div>
           </aside>
 
-          <section className="flex-1 space-y-8 pb-16">
+          <section className="flex-1 space-y-8 pb-20">
             <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] md:p-8">
               <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
                 <div className="max-w-2xl space-y-4">
@@ -341,8 +341,8 @@ function Item({
       end
       className={({ isActive }) =>
         cn(
-          "flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-[var(--muted)] transition-all duration-200 hover:bg-[var(--surface)] hover:text-[var(--ink)]",
-          isActive && "bg-[var(--brand-soft)] text-[var(--brand)]",
+          "flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-[var(--muted)] transition-all duration-200 hover:bg-white hover:text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40",
+          isActive && "bg-[var(--brand)]/10 text-[var(--brand)] shadow-sm",
           className,
         )
       }

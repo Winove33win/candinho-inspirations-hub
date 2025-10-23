@@ -39,7 +39,7 @@ export default function MeuPerfil() {
   const details: ArtistDetails | null = artistDetails ?? null;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-10 md:px-8">
+    <div className="mx-auto max-w-6xl px-6 pb-16 md:px-8">
       <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)] md:p-10">
         <div className="space-y-8">
           <header className="space-y-3">
@@ -55,30 +55,30 @@ export default function MeuPerfil() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList
               aria-label="Navegação do perfil"
-              className="grid w-full gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-alt)] p-2 shadow-[var(--shadow-card)] sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5"
+              className="sticky top-16 z-30 flex w-full gap-2 overflow-x-auto rounded-xl border border-[var(--border)] bg-white/95 p-2 backdrop-blur supports-[backdrop-filter]:bg-white/80"
             >
-              <TabsTrigger className="min-h-[48px] rounded-xl px-4 py-2 text-center text-sm font-semibold text-[var(--muted)] transition-all duration-200 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=active]:shadow data-[state=inactive]:hover:text-[var(--ink)]" value="dados-pessoais">
+              <TabsTrigger className="flex-1 min-w-[160px] rounded-lg px-4 py-2 text-sm font-semibold text-[var(--muted)] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=active]:shadow" value="dados-pessoais">
                 Dados pessoais
               </TabsTrigger>
-              <TabsTrigger className="min-h-[48px] rounded-xl px-4 py-2 text-center text-sm font-semibold text-[var(--muted)] transition-all duration-200 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=active]:shadow data-[state=inactive]:hover:text-[var(--ink)]" value="visao-geral">
+              <TabsTrigger className="flex-1 min-w-[160px] rounded-lg px-4 py-2 text-sm font-semibold text-[var(--muted)] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=active]:shadow" value="visao-geral">
                 Visão Geral
               </TabsTrigger>
-              <TabsTrigger className="min-h-[48px] rounded-xl px-4 py-2 text-center text-sm font-semibold text-[var(--muted)] transition-all duration-200 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=active]:shadow data-[state=inactive]:hover:text-[var(--ink)]" value="trajetoria">
+              <TabsTrigger className="flex-1 min-w-[160px] rounded-lg px-4 py-2 text-sm font-semibold text-[var(--muted)] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=active]:shadow" value="trajetoria">
                 Trajetória Pessoal
               </TabsTrigger>
-              <TabsTrigger className="min-h-[48px] rounded-xl px-4 py-2 text-center text-sm font-semibold text-[var(--muted)] transition-all duration-200 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=active]:shadow data-[state=inactive]:hover:text-[var(--ink)]" value="carreira">
+              <TabsTrigger className="flex-1 min-w-[160px] rounded-lg px-4 py-2 text-sm font-semibold text-[var(--muted)] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=active]:shadow" value="carreira">
                 Carreira
               </TabsTrigger>
-              <TabsTrigger className="min-h-[48px] rounded-xl px-4 py-2 text-center text-sm font-semibold text-[var(--muted)] transition-all duration-200 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=active]:shadow data-[state=inactive]:hover:text-[var(--ink)]" value="mais">
+              <TabsTrigger className="flex-1 min-w-[160px] rounded-lg px-4 py-2 text-sm font-semibold text-[var(--muted)] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=active]:shadow" value="mais">
                 Mais
               </TabsTrigger>
-              <TabsTrigger className="min-h-[48px] rounded-xl px-4 py-2 text-center text-sm font-semibold text-[var(--muted)] transition-all duration-200 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=active]:shadow data-[state=inactive]:hover:text-[var(--ink)]" value="biografia">
+              <TabsTrigger className="flex-1 min-w-[160px] rounded-lg px-4 py-2 text-sm font-semibold text-[var(--muted)] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=active]:shadow" value="biografia">
                 Biografia e redes
               </TabsTrigger>
-              <TabsTrigger className="min-h-[48px] rounded-xl px-4 py-2 text-center text-sm font-semibold text-[var(--muted)] transition-all duration-200 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=active]:shadow data-[state=inactive]:hover:text-[var(--ink)]" value="videos">
+              <TabsTrigger className="flex-1 min-w-[160px] rounded-lg px-4 py-2 text-sm font-semibold text-[var(--muted)] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=active]:shadow" value="videos">
                 Vídeos e Áudios
               </TabsTrigger>
-              <TabsTrigger className="min-h-[48px] rounded-xl px-4 py-2 text-center text-sm font-semibold text-[var(--muted)] transition-all duration-200 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=active]:shadow data-[state=inactive]:hover:text-[var(--ink)]" value="fotografias">
+              <TabsTrigger className="flex-1 min-w-[160px] rounded-lg px-4 py-2 text-sm font-semibold text-[var(--muted)] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=active]:shadow" value="fotografias">
                 Fotografias
               </TabsTrigger>
             </TabsList>

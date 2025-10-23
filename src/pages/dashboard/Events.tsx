@@ -4,15 +4,27 @@ import { useDashboardContext } from "./context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Calendar as CalendarIcon } from "lucide-react";
+import { Loader2, Plus, Trash2, Calendar as CalendarIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { FormSection } from "@/components/dashboard/FormSection";
 import { Uploader } from "@/components/dashboard/Uploader";
+import { RichTextEditor } from "@/components/dashboard/RichTextEditor";
 import type { Database } from "@/integrations/supabase/types";
 
 type Event = Database["public"]["Tables"]["events"]["Row"];
+
+const normalizeEventPayload = (data: Partial<Event>) =>
+  Object.entries(data).reduce<Partial<Event>>((acc, [key, value]) => {
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      acc[key as keyof Event] = (trimmed.length ? trimmed : null) as Event[keyof Event];
+      return acc;
+    }
+
+    acc[key as keyof Event] = value as Event[keyof Event];
+    return acc;
+  }, {});
 
 export default function Events() {
   const { user } = useDashboardContext();
@@ -78,15 +90,15 @@ export default function Events() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-['League_Spartan'] font-bold">Eventos</h2>
-          <p className="text-sm text-[var(--muted)] mt-1">
-            Divulgue apresentações, estreias e datas importantes
+    <div className="space-y-8">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-1">
+          <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">Eventos</h2>
+          <p className="text-sm text-[var(--muted)] md:text-base">
+            Divulgue apresentações, estreias e datas importantes.
           </p>
         </div>
-        <Button onClick={() => setEditingId("new")} className="gap-2">
+        <Button onClick={() => setEditingId("new")} className="gap-2 self-start md:self-auto">
           <Plus className="h-4 w-4" />
           Novo evento
         </Button>
@@ -102,60 +114,24 @@ export default function Events() {
         />
       )}
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2">
         {events.map((event) => (
-          <Card key={event.id} className="overflow-hidden">
-            {event.banner && (
-              <div className="relative h-48 w-full overflow-hidden bg-[var(--surface-alt)]">
-                <img
-                  src={event.banner}
-                  alt={event.name || "Evento"}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            )}
-            <div className="p-6 space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold">{event.name || "Sem título"}</h3>
-                {event.date && (
-                  <p className="text-sm text-[var(--muted)] mt-1">
-                    {new Date(event.date).toLocaleDateString("pt-BR")}
-                    {event.start_time && ` às ${event.start_time}`}
-                  </p>
-                )}
-                {event.place && (
-                  <p className="text-sm text-[var(--muted)]">{event.place}</p>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditingId(event.id)}
-                  className="flex-1"
-                >
-                  Editar
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDelete(event.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </Card>
+          <EventPreview
+            key={event.id}
+            event={event}
+            onEdit={() => setEditingId(event.id)}
+            onDelete={() => handleDelete(event.id)}
+          />
         ))}
       </div>
 
       {events.length === 0 && !editingId && (
-        <div className="rounded-[var(--radius)] border-2 border-dashed border-[var(--border)] p-12 text-center">
-          <CalendarIcon className="mx-auto h-12 w-12 text-[var(--muted)]" />
-          <p className="mt-4 text-[var(--muted)]">
+        <Card className="border-dashed bg-[var(--surface)] p-12 text-center">
+          <CalendarIcon className="mx-auto h-12 w-12 text-[var(--muted)]" aria-hidden="true" />
+          <p className="mt-4 text-sm text-[var(--muted)] md:text-base">
             Nenhum evento cadastrado ainda. Adicione seu primeiro evento!
           </p>
-        </div>
+        </Card>
       )}
     </div>
   );
@@ -211,7 +187,12 @@ function EventForm({
 
     setSaving(true);
     try {
-      const payload = { ...formData, member_id: user.id };
+      const sanitized = normalizeEventPayload(formData);
+      const payload = {
+        ...sanitized,
+        member_id: user.id,
+        status: "published" as Event["status"],
+      };
 
       if (eventId) {
         const { error } = await supabase
@@ -240,109 +221,183 @@ function EventForm({
   }
 
   return (
-    <Card className="p-6">
-      <FormSection title={eventId ? "Editar Evento" : "Novo Evento"}>
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="name">Nome do evento</Label>
+    <div className="space-y-6">
+      <FormSection
+        title={eventId ? "Editar evento" : "Novo evento"}
+        description="Planeje as informações principais do seu evento."
+      >
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+          <div className="md:col-span-6">
+            <Label htmlFor="eventName">Nome do evento *</Label>
             <Input
-              id="name"
+              id="eventName"
               value={formData.name || ""}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, name: e.target.value }))
-              }
-              placeholder="Nome do evento"
+              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+              placeholder="Festival SMARTx"
+              required
             />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <Label htmlFor="date">Data</Label>
-              <Input
-                id="date"
-                type="date"
-                value={formData.date || ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, date: e.target.value }))
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor="start_time">Horário</Label>
-              <Input
-                id="start_time"
-                type="time"
-                value={formData.start_time || ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, start_time: e.target.value }))
-                }
-              />
-            </div>
+          <div className="md:col-span-4">
+            <Label htmlFor="eventDate">Data</Label>
+            <Input
+              id="eventDate"
+              type="date"
+              value={formData.date || ""}
+              onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
+            />
           </div>
 
-          <div>
-            <Label htmlFor="place">Local</Label>
+          <div className="md:col-span-4">
+            <Label htmlFor="eventStart">Horário de início</Label>
             <Input
-              id="place"
+              id="eventStart"
+              type="time"
+              value={formData.start_time || ""}
+              onChange={(e) => setFormData((prev) => ({ ...prev, start_time: e.target.value }))}
+            />
+          </div>
+
+          <div className="md:col-span-4">
+            <Label htmlFor="eventEnd">Horário de término</Label>
+            <Input
+              id="eventEnd"
+              type="time"
+              value={formData.end_time || ""}
+              onChange={(e) => setFormData((prev) => ({ ...prev, end_time: e.target.value }))}
+            />
+          </div>
+
+          <div className="md:col-span-6">
+            <Label htmlFor="eventPlace">Local do evento</Label>
+            <Input
+              id="eventPlace"
               value={formData.place || ""}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, place: e.target.value }))
-              }
-              placeholder="Local do evento"
+              onChange={(e) => setFormData((prev) => ({ ...prev, place: e.target.value }))}
+              placeholder="Teatro Municipal de São Paulo"
             />
           </div>
 
-          <div>
-            <Label htmlFor="description">Descrição</Label>
-            <Textarea
-              id="description"
-              value={formData.description || ""}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, description: e.target.value }))
-              }
-              placeholder="Descreva o evento..."
-              rows={3}
-            />
-          </div>
-
-          <Uploader
-            label="Banner do evento"
-            bucket="artist-photos"
-            maxBytes={5 * 1024 * 1024}
-            currentPath={formData.banner || ""}
-            onUploaded={(url) =>
-              setFormData((prev) => ({ ...prev, banner: url }))
-            }
-            accept="image/*"
-          />
-
-          <div>
-            <Label htmlFor="cta_link">Link para inscrição/ingresso</Label>
+          <div className="md:col-span-6">
+            <Label htmlFor="eventLink">Link para inscrição/ingresso</Label>
             <Input
-              id="cta_link"
+              id="eventLink"
               type="url"
               value={formData.cta_link || ""}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, cta_link: e.target.value }))
-              }
-              placeholder="https://..."
+              onChange={(e) => setFormData((prev) => ({ ...prev, cta_link: e.target.value }))}
+              placeholder="https://"
             />
           </div>
 
-          <div className="flex gap-2 pt-4">
-            <Button
-              onClick={handleSave}
-              disabled={saving || !formData.name}
-              className="flex-1"
-            >
-              {saving ? "Salvando..." : "Salvar evento"}
-            </Button>
-            <Button variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
+          <div className="md:col-span-6">
+            <Uploader
+              label="Banner do evento"
+              bucketPath="artist-media/photos"
+              maxBytes={5 * 1024 * 1024}
+              currentPath={formData.banner || ""}
+              onUploaded={(url) => setFormData((prev) => ({ ...prev, banner: url }))}
+              accept="image/*"
+            />
           </div>
         </div>
       </FormSection>
+
+      <FormSection
+        title="Descrição"
+        description="Conte ao público o que esperar do evento."
+      >
+        <RichTextEditor
+          id="eventDescription"
+          value={formData.description || ""}
+          onChange={(value) => setFormData((prev) => ({ ...prev, description: value }))}
+          placeholder="Descreva a programação, artistas e destaques do evento."
+        />
+      </FormSection>
+
+      <div className="flex flex-wrap justify-end gap-3">
+        <Button type="button" variant="secondary" onClick={onClose} className="min-w-[160px]">
+          Cancelar
+        </Button>
+        <Button
+          type="button"
+          onClick={handleSave}
+          disabled={saving || !formData.name}
+          className="min-w-[180px]"
+        >
+          {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+          {eventId ? "Atualizar evento" : "Publicar evento"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function EventPreview({
+  event,
+  onEdit,
+  onDelete,
+}: {
+  event: Event;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const eventDate = event.date ? new Date(`${event.date}T00:00:00`) : null;
+  const formattedDate = eventDate
+    ? eventDate.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
+    : "Data a definir";
+
+  const timeLabel = [event.start_time, event.end_time].filter(Boolean).join(" - ");
+
+  return (
+    <Card className="group overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+      {event.banner && (
+        <div className="relative h-48 w-full overflow-hidden">
+          <img
+            src={event.banner}
+            alt={event.name || "Banner do evento"}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/30 to-transparent" aria-hidden="true" />
+        </div>
+      )}
+
+      <div className="space-y-4 p-6 md:p-8">
+        <div className="space-y-2">
+          <h3 className="text-xl font-semibold text-[var(--ink)]">
+            {event.name || "Evento sem título"}
+          </h3>
+          <p className="text-sm font-semibold text-[var(--brand)]">
+            {formattedDate}
+            {timeLabel && <span className="text-[var(--muted)]"> · {timeLabel}</span>}
+          </p>
+          {event.place && <p className="text-sm text-[var(--muted)]">{event.place}</p>}
+        </div>
+
+        {event.description && (
+          <div
+            className="prose prose-sm max-w-none text-[var(--muted)] line-clamp-3"
+            dangerouslySetInnerHTML={{ __html: event.description }}
+          />
+        )}
+
+        <div className="flex items-center gap-2 pt-2">
+          <Button variant="secondary" size="sm" className="flex-1" onClick={onEdit}>
+            Editar
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={onDelete}
+            aria-label={`Excluir ${event.name ?? "evento"}`}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
     </Card>
   );
 }
