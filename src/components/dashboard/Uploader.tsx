@@ -4,6 +4,7 @@ import { Upload, Check, Loader2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getSignedUrl } from "@/integrations/supabase/storage";
+import { cn } from "@/lib/utils";
 
 interface UploaderProps {
   label: string;
@@ -15,6 +16,10 @@ interface UploaderProps {
   currentPath?: string;
   id?: string;
   previewClassName?: string;
+  className?: string;
+  buttonClassName?: string;
+  actionsClassName?: string;
+  removeButtonClassName?: string;
 }
 
 export function Uploader({
@@ -27,6 +32,10 @@ export function Uploader({
   currentPath,
   id,
   previewClassName,
+  className,
+  buttonClassName,
+  actionsClassName,
+  removeButtonClassName,
 }: UploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState("");
@@ -131,10 +140,10 @@ export function Uploader({
   const isImage = preview && (preview.match(/\.(jpeg|jpg|gif|png|webp)$/i) || accept.includes("image"));
 
   return (
-    <div className="space-y-2" id={id}>
+    <div className={cn("space-y-2", className)} id={id}>
       <label className="text-sm font-medium text-[var(--ink)]">{label}</label>
 
-      <div className="flex items-center gap-2">
+      <div className={cn("flex flex-wrap items-center gap-2", actionsClassName)}>
         <input
           ref={fileInputRef}
           type="file"
@@ -150,7 +159,10 @@ export function Uploader({
           variant="outline"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="flex-1"
+          className={cn(
+            "flex-1 justify-center whitespace-normal",
+            buttonClassName,
+          )}
           aria-label={label}
         >
           {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -167,6 +179,7 @@ export function Uploader({
             onClick={handleRemove}
             disabled={uploading}
             aria-label="Remover arquivo"
+            className={removeButtonClassName}
           >
             <X className="h-4 w-4" />
           </Button>

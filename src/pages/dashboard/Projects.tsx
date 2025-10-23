@@ -98,49 +98,55 @@ export default function Projects() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-1">
-          <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">Projetos</h2>
-          <p className="text-sm text-[var(--muted)] md:text-base">
-            Gerencie seu portfólio de trabalhos e colaborações artísticas.
-          </p>
+    <div className="site-container space-y-6 pb-16">
+      <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">Projetos</h2>
+            <p className="text-sm text-[var(--muted)] md:text-base">
+              Gerencie seu portfólio de trabalhos e colaborações artísticas.
+            </p>
+          </div>
+          <Button onClick={() => setEditingId("new")} className="gap-2 self-start md:self-auto">
+            <Plus className="h-4 w-4" />
+            Novo projeto
+          </Button>
         </div>
-        <Button onClick={() => setEditingId("new")} className="gap-2 self-start md:self-auto">
-          <Plus className="h-4 w-4" />
-          Novo projeto
-        </Button>
       </div>
 
       {editingId && (
-        <ProjectForm
-          projectId={editingId === "new" ? null : editingId}
-          onClose={() => {
-            setEditingId(null);
-            loadProjects();
-          }}
-        />
-      )}
-
-      <div className="grid gap-6 md:grid-cols-2">
-        {projects.map((project) => (
-          <ProjectPreview
-            key={project.id}
-            project={project}
-            onEdit={() => setEditingId(project.id)}
-            onDelete={() => handleDelete(project.id)}
+        <div className="space-y-6">
+          <ProjectForm
+            projectId={editingId === "new" ? null : editingId}
+            onClose={() => {
+              setEditingId(null);
+              loadProjects();
+            }}
           />
-        ))}
-      </div>
-
-      {projects.length === 0 && !editingId && (
-        <Card className="border-dashed bg-[var(--surface)] p-12 text-center">
-          <ImageIcon className="mx-auto h-12 w-12 text-[var(--muted)]" aria-hidden="true" />
-          <p className="mt-4 text-sm text-[var(--muted)] md:text-base">
-            Nenhum projeto cadastrado ainda. Adicione seu primeiro projeto!
-          </p>
-        </Card>
+        </div>
       )}
+
+      <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+        <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+          {projects.map((project) => (
+            <ProjectPreview
+              key={project.id}
+              project={project}
+              onEdit={() => setEditingId(project.id)}
+              onDelete={() => handleDelete(project.id)}
+            />
+          ))}
+        </div>
+
+        {projects.length === 0 && !editingId && (
+          <Card className="mt-6 border-dashed bg-[var(--surface)] p-12 text-center">
+            <ImageIcon className="mx-auto h-12 w-12 text-[var(--muted)]" aria-hidden="true" />
+            <p className="mt-4 text-sm text-[var(--muted)] md:text-base">
+              Nenhum projeto cadastrado ainda. Adicione seu primeiro projeto!
+            </p>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
@@ -246,8 +252,8 @@ function ProjectForm({
         title={projectId ? "Editar projeto" : "Novo projeto"}
         description="Organize os detalhes visuais e editoriais do seu projeto."
       >
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
-          <div className="md:col-span-6">
+        <div className="grid grid-cols-12 gap-4 md:gap-6">
+          <div className="col-span-12">
             <Label htmlFor="projectTitle">Nome do projeto *</Label>
             <Input
               id="projectTitle"
@@ -258,7 +264,7 @@ function ProjectForm({
             />
           </div>
 
-          <div className="md:col-span-6">
+          <div className="col-span-12">
             <Uploader
               label="Banner do projeto"
               bucketPath="artist-media/photos"
@@ -269,7 +275,7 @@ function ProjectForm({
             />
           </div>
 
-          <div className="md:col-span-6">
+          <div className="col-span-12">
             <Uploader
               label="Imagem/Seção do projeto"
               bucketPath="artist-media/photos"
@@ -315,8 +321,8 @@ function ProjectForm({
                     Bloco {index}
                   </span>
                 </div>
-                <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-12">
-                  <div className="md:col-span-12">
+                <div className="mt-4 grid grid-cols-12 gap-4 md:gap-6">
+                  <div className="col-span-12">
                     <RichTextEditor
                       id={`projectBlock${index}`}
                       value={(formData[titleKey] as string | null) || ""}
@@ -326,7 +332,7 @@ function ProjectForm({
                       placeholder={`Conteúdo do bloco ${index}`}
                     />
                   </div>
-                  <div className="md:col-span-6">
+                  <div className="col-span-12 md:col-span-6">
                     <Uploader
                       label={`Imagem do bloco ${index}`}
                       bucketPath="artist-media/photos"
@@ -349,8 +355,8 @@ function ProjectForm({
         title="Ficha técnica e parcerias"
         description="Detalhe equipes envolvidas, ficha artística e parcerias estratégicas."
       >
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
-          <div className="md:col-span-12">
+        <div className="grid grid-cols-12 gap-4 md:gap-6">
+          <div className="col-span-12">
             <Label htmlFor="teamTech">Equipe técnica</Label>
             <RichTextEditor
               id="teamTech"
@@ -360,7 +366,7 @@ function ProjectForm({
             />
           </div>
 
-          <div className="md:col-span-12">
+          <div className="col-span-12">
             <Label htmlFor="teamArt">Equipe artística</Label>
             <RichTextEditor
               id="teamArt"
@@ -370,7 +376,7 @@ function ProjectForm({
             />
           </div>
 
-          <div className="md:col-span-12">
+          <div className="col-span-12">
             <Label htmlFor="projectSheet">Ficha artística</Label>
             <RichTextEditor
               id="projectSheet"
@@ -380,7 +386,7 @@ function ProjectForm({
             />
           </div>
 
-          <div className="md:col-span-12">
+          <div className="col-span-12">
             <Label htmlFor="partners">Parcerias</Label>
             <RichTextEditor
               id="partners"
