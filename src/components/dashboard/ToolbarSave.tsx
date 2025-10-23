@@ -14,8 +14,8 @@ interface ToolbarSaveProps {
 export function ToolbarSave({
   onSave,
   saving = false,
-  successLabel = "Conteúdo enviado ✔️",
-  defaultLabel = "Publicar",
+  successLabel = "Alterações salvas ✔️",
+  defaultLabel = "Salvar alterações",
   variant = "primary",
   disabled = false,
 }: ToolbarSaveProps) {
