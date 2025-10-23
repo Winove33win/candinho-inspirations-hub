@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { getSignedUrl } from "@/utils/storage";
 
-type ArtistRow = Database["public"]["Tables"]["new_artist_details"]["Row"];
+type ArtistRow = Database["public"]["Views"]["artist_details_public"]["Row"];
 
 const photoIndexes = Array.from({ length: 12 }, (_, index) => index + 1);
 const youtubeKeys = [
@@ -61,7 +61,7 @@ export default function ArtistDetail() {
 
         if (slug.includes("-")) {
           const { data: bySlug, error: slugError } = await supabase
-            .from("new_artist_details")
+            .from("artist_details_public")
             .select("*")
             .eq("slug", slug)
             .maybeSingle();
@@ -71,7 +71,7 @@ export default function ArtistDetail() {
 
         if (!data) {
           const { data: byId, error: idError } = await supabase
-            .from("new_artist_details")
+            .from("artist_details_public")
             .select("*")
             .eq("id", slug)
             .maybeSingle();
@@ -81,7 +81,7 @@ export default function ArtistDetail() {
 
         if (!data) {
           const { data: byMember, error: memberError } = await supabase
-            .from("new_artist_details")
+            .from("artist_details_public")
             .select("*")
             .eq("member_id", slug)
             .maybeSingle();

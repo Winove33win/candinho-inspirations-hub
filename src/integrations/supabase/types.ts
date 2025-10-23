@@ -451,6 +451,70 @@ export type Database = {
       }
     }
     Views: {
+      artist_details_public: {
+        Row: {
+          artistic_name: string | null
+          audio: string | null
+          biography1: string | null
+          carreira_titulo: string | null
+          city: string | null
+          country_residence: string | null
+          created_at: string | null
+          facebook: string | null
+          full_name: string | null
+          historia_titulo: string | null
+          id: string | null
+          image1: string | null
+          image10: string | null
+          image10_text: string | null
+          image11: string | null
+          image11_text: string | null
+          image12: string | null
+          image12_text: string | null
+          image1_text: string | null
+          image2: string | null
+          image2_text: string | null
+          image3: string | null
+          image3_text: string | null
+          image4: string | null
+          image4_text: string | null
+          image5: string | null
+          image5_text: string | null
+          image6: string | null
+          image6_text: string | null
+          image7: string | null
+          image7_text: string | null
+          image8: string | null
+          image8_text: string | null
+          image9: string | null
+          image9_text: string | null
+          instagram: string | null
+          link_to_video: string | null
+          link_to_video10: string | null
+          link_to_video2: string | null
+          link_to_video3: string | null
+          link_to_video4: string | null
+          link_to_video5: string | null
+          link_to_video6: string | null
+          link_to_video7: string | null
+          link_to_video8: string | null
+          link_to_video9: string | null
+          mais_titulo: string | null
+          member_id: string | null
+          music_spotify_apple: string | null
+          perfil_completo: boolean | null
+          profile_image: string | null
+          profile_text2: string | null
+          slug: string | null
+          updated_at: string | null
+          video_banner_landscape: string | null
+          video_banner_portrait: string | null
+          visao_geral_titulo: string | null
+          website: string | null
+          youtube_channel: string | null
+        }
+        Relationships: []
+      }
       artists_public: {
         Row: {
           artistic_name: string | null
