@@ -362,24 +362,24 @@ export interface SearchEntry {
 }
 
 export const searchIndex: SearchEntry[] = [
-  ...artistsLibrary.map((artist) => ({
+  ...artistsLibrary.map((artist): SearchEntry => ({
     id: artist.id,
     label: artist.name,
-    type: "artista",
+    type: "artista" as const,
     href: artist.links.profile,
     meta: artist.role,
   })),
-  ...discoveryChips.map((chip) => ({
+  ...discoveryChips.map((chip): SearchEntry => ({
     id: `chip-${chip.toLowerCase().replace(/\s+/g, "-")}`,
     label: chip,
-    type: "categoria",
+    type: "categoria" as const,
     href: `/#chipsDiscover`,
     meta: "Coleção SMARTx",
   })),
   {
     id: projectHighlight.id,
     label: projectHighlight.title,
-    type: "projeto",
+    type: "projeto" as const,
     href: "/candinho",
     meta: "Projeto Especial",
   },

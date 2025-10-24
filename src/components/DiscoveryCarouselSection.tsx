@@ -102,7 +102,7 @@ const DiscoveryCarouselSection = ({
           <CarouselContent className="-ml-4">
             {(loading ? placeholderItems : artists).map((artist, index) => (
               <CarouselItem
-                key={loading ? index : artist.id}
+                key={loading ? index : (artist as ArtistCardData).id}
                 className="basis-[85%] pl-4 sm:basis-1/2 md:basis-2/5 lg:basis-1/3 xl:basis-1/4 2xl:basis-1/5"
               >
                 {loading ? (
@@ -114,8 +114,8 @@ const DiscoveryCarouselSection = ({
                   </div>
                 ) : (
                   <ArtistCard
-                    artist={artist}
-                    isFollowed={isFollowed(artist.id)}
+                    artist={artist as ArtistCardData}
+                    isFollowed={isFollowed((artist as ArtistCardData).id)}
                     onFollowToggle={onFollowToggle}
                   />
                 )}

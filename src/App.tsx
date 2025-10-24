@@ -16,6 +16,7 @@ import Documents from "./pages/dashboard/Documents";
 import MinhaInscricao from "./pages/dashboard/MinhaInscricao";
 import Suporte from "./pages/dashboard/Suporte";
 import CadastroPersonalizado from "./pages/dashboard/CadastroPersonalizado";
+import ImportArtists from "./pages/dashboard/ImportArtists";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="inscricao" element={<MinhaInscricao />} />
             <Route path="suporte" element={<Suporte />} />
             <Route path="personalizado" element={<CadastroPersonalizado />} />
+            <Route path="importar-artistas" element={<ImportArtists />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
