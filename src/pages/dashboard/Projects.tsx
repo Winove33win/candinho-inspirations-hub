@@ -20,17 +20,20 @@ const blockIndexes = [1, 2, 3, 4, 5] as const;
 const getPlainText = (value?: string | null) =>
   value ? value.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").trim() : "";
 
-const normalizeProjectPayload = (data: Partial<Project>) =>
-  Object.entries(data).reduce<Partial<Project>>((acc, [key, value]) => {
+const normalizeProjectPayload = (data: Partial<Project>): Partial<Project> => {
+  const result: any = {};
+  
+  for (const [key, value] of Object.entries(data)) {
     if (typeof value === "string") {
       const trimmed = value.trim();
-      acc[key as keyof Project] = (trimmed.length ? trimmed : null) as Project[keyof Project];
-      return acc;
+      result[key] = trimmed.length > 0 ? trimmed : null;
+    } else {
+      result[key] = value;
     }
-
-    acc[key as keyof Project] = value as Project[keyof Project];
-    return acc;
-  }, {});
+  }
+  
+  return result as Partial<Project>;
+};
 
 export default function Projects() {
   const { user } = useDashboardContext();
@@ -462,9 +465,9 @@ function ProjectPreview({
       const label = getPlainText(value);
       if (!label) return null;
       const truncated = label.length > 48 ? `${label.slice(0, 45)}…` : label;
-      return { id: index, label: truncated };
+      return { id: index as typeof index, label: truncated };
     })
-    .filter((chip): chip is { id: number; label: string } => chip !== null);
+    .filter((chip): chip is { id: 1 | 2 | 3 | 4 | 5; label: string } => chip !== null);
 
   return (
     <Card className="group overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-md">

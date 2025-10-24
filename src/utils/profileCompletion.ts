@@ -65,7 +65,10 @@ export function computeProfileCompletion(
     },
     {
       key: "fotografias",
-      ok: imageKeys.some((key) => isNonEmpty(details[key])),
+      ok: imageKeys.some((key) => {
+        const val = details[key];
+        return typeof val === "string" ? isNonEmpty(val) : false;
+      }),
     },
   ] as const;
 

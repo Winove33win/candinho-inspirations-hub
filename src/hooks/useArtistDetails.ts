@@ -71,22 +71,21 @@ export function useArtistDetails(userId: string | undefined) {
     loadArtistDetails();
   }, [userId, loadArtistDetails]);
 
-  const normalizePayload = (payload: Partial<ArtistDetails>) => {
-    return Object.entries(payload).reduce<Partial<ArtistDetails>>((acc, [key, value]) => {
+  const normalizePayload = (payload: Partial<ArtistDetails>): Partial<ArtistDetails> => {
+    const result: any = {};
+    
+    for (const [key, value] of Object.entries(payload)) {
       if (typeof value === "string") {
         const trimmed = value.trim();
-        acc[key as keyof ArtistDetails] = trimmed.length > 0 ? trimmed : null;
-        return acc;
+        result[key] = trimmed.length > 0 ? trimmed : null;
+      } else if (typeof value === "boolean" || value === null || value === undefined) {
+        result[key] = value ?? null;
+      } else {
+        result[key] = value;
       }
-
-      if (typeof value === "boolean" || value === null || value === undefined) {
-        acc[key as keyof ArtistDetails] = value ?? null;
-        return acc;
-      }
-
-      acc[key as keyof ArtistDetails] = value as ArtistDetails[keyof ArtistDetails];
-      return acc;
-    }, {});
+    }
+    
+    return result as Partial<ArtistDetails>;
   };
 
   const upsertArtistDetails = async (payload: Partial<ArtistDetails>): Promise<UpsertResponse> => {

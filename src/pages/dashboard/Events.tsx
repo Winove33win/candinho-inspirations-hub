@@ -15,17 +15,20 @@ import { getSignedUrl } from "@/utils/storage";
 
 type Event = Database["public"]["Tables"]["events"]["Row"];
 
-const normalizeEventPayload = (data: Partial<Event>) =>
-  Object.entries(data).reduce<Partial<Event>>((acc, [key, value]) => {
+const normalizeEventPayload = (data: Partial<Event>): Partial<Event> => {
+  const result: any = {};
+  
+  for (const [key, value] of Object.entries(data)) {
     if (typeof value === "string") {
       const trimmed = value.trim();
-      acc[key as keyof Event] = (trimmed.length ? trimmed : null) as Event[keyof Event];
-      return acc;
+      result[key] = trimmed.length > 0 ? trimmed : null;
+    } else {
+      result[key] = value;
     }
-
-    acc[key as keyof Event] = value as Event[keyof Event];
-    return acc;
-  }, {});
+  }
+  
+  return result as Partial<Event>;
+};
 
 export default function Events() {
   const { user } = useDashboardContext();
