@@ -46,12 +46,6 @@ export default function Dashboard() {
     reloadDetails,
   } = useArtistDetails(user?.id);
 
-  useEffect(() => {
-    if (!userLoading && !user) {
-      navigate("/login");
-    }
-  }, [userLoading, user, navigate]);
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast({ title: "Logout realizado", description: "Até logo!" });
