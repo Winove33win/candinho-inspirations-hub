@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Candinho from "./pages/Candinho";
 import ArtistsIndex from "./pages/public/ArtistsIndex";
@@ -18,8 +18,16 @@ import Suporte from "./pages/dashboard/Suporte";
 import CadastroPersonalizado from "./pages/dashboard/CadastroPersonalizado";
 import ImportArtists from "./pages/dashboard/ImportArtists";
 import NotFound from "./pages/NotFound";
+import { useCurrentMember } from "@/hooks/useCurrentMember";
 
 const queryClient = new QueryClient();
+
+const RequireAuth = ({ children }: any) => {
+  const { user, loading } = useCurrentMember();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  return children;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -34,7 +42,7 @@ const App = () => (
           <Route path="/artista/:slug" element={<ArtistDetail />} />
           <Route path="/login" element={<Auth />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<Dashboard />}>
+          <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>}>
             <Route index element={<MeuPerfil />} />
             <Route path="projetos" element={<Projects />} />
             <Route path="eventos" element={<Events />} />

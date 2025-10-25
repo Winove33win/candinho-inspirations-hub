@@ -1,4 +1,4 @@
-import { ARTIST_BUCKET } from "@/config/storage";
+import { getBucketForFolder, KNOWN_BUCKETS, DEFAULT_BUCKET } from "@/config/storage";
 import { supabase } from "@/integrations/supabase/client";
 
 export async function uploadToArtistBucket(opts: {
@@ -18,16 +18,18 @@ export async function uploadToArtistBucket(opts: {
   const filename = `${Date.now()}-${normalizedName}.${ext}`.toLowerCase();
   const objectPath = `${userId}/${folder}/${filename}`;
 
+  const bucket = getBucketForFolder(folder);
+
   const { error } = await supabase.storage
-    .from(ARTIST_BUCKET)
+    .from(bucket)
     .upload(objectPath, file, {
       upsert,
-      contentType: file.type || `image/${ext}`,
+      contentType: file.type || "application/octet-stream",
       cacheControl: "3600",
     });
 
   if (error) throw error;
-  return { path: `${ARTIST_BUCKET}/${objectPath}` };
+  return { path: `${bucket}/${objectPath}` };
 }
 
 export async function getSignedUrl(path: string, expiresSec = 3600) {
@@ -47,8 +49,10 @@ export async function getSignedUrl(path: string, expiresSec = 3600) {
   let bucket = segments[0];
   let objectPathSegments = segments.slice(1);
 
-  if (bucket !== ARTIST_BUCKET || objectPathSegments.length === 0) {
-    bucket = ARTIST_BUCKET;
+  // If the first segment is not a known bucket, assume the whole path is the objectPath
+  // and use the default bucket (backward compatibility)
+  if (!KNOWN_BUCKETS.includes(bucket) || objectPathSegments.length === 0) {
+    bucket = DEFAULT_BUCKET;
     objectPathSegments = segments;
   }
 
