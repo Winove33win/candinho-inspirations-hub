@@ -13,19 +13,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useToast } from "@/components/ui/use-toast";
-
-const AUTH_STORAGE_KEY = "smartx-demo-auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
-  const { toast } = useToast();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isLogged, setIsLogged] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem(AUTH_STORAGE_KEY) === "1";
-  });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -35,29 +29,6 @@ const Header = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const handleLogin = () => {
-    setIsLogged(true);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(AUTH_STORAGE_KEY, "1");
-    }
-    toast({
-      title: "Bem-vindo à SMARTx",
-      description: "Experiência personalizada ativada. Explore o portal do artista!",
-    });
-    navigate("/dashboard");
-  };
-
-  const handleLogout = () => {
-    setIsLogged(false);
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem(AUTH_STORAGE_KEY);
-    }
-    toast({
-      title: "Até breve",
-      description: "Sessão encerrada com segurança.",
-    });
-  };
 
   const navigateToSection = (sectionId: string, options?: { chip?: DiscoveryChip }) => {
     if (typeof window === "undefined") {
@@ -155,9 +126,13 @@ const Header = () => {
               }}
             />
           </div>
-          {!isLogged ? (
+          {!user ? (
             <div className="hidden items-center gap-3 md:flex">
-              <Button variant="ghost" className="text-sm font-semibold uppercase tracking-[0.28em]" onClick={handleLogin}>
+              <Button 
+                variant="ghost" 
+                className="text-sm font-semibold uppercase tracking-[0.28em]" 
+                onClick={() => navigate(`/auth?next=${encodeURIComponent(location.pathname)}`)}
+              >
                 Login
               </Button>
               <Button
@@ -192,7 +167,7 @@ const Header = () => {
                   <Link to="/dashboard/projetos">Meus Projetos</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-[rgba(255,255,255,0.08)]" />
-                <DropdownMenuItem onSelect={handleLogout}>Sair</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => signOut()}>Sair</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
