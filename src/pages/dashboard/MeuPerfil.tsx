@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
 import type { ArtistDetails } from "@/hooks/useArtistDetails";
 import { useDashboardContext } from "./context";
 
@@ -42,7 +43,7 @@ export default function MeuPerfil() {
     <div className="relative space-y-4 pb-16">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <div className="site-container">
-          <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-6 shadow-[var(--shadow-card)] md:p-10">
+          <Card className="p-6 md:p-10">
             <header className="space-y-3">
               <span className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-soft)] px-4 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-[var(--brand)]">
                 Perfil
@@ -54,57 +55,57 @@ export default function MeuPerfil() {
                 Organize suas informações, mídias e trajetória artística para manter sua presença alinhada ao padrão SMARTx.
               </p>
             </header>
-          </div>
+          </Card>
         </div>
 
         <TabsList
           aria-label="Navegação do perfil"
-          className="sticky top-20 z-30 site-container -mx-6 flex h-auto gap-2 overflow-x-auto rounded-xl border border-[#e5e7eb] bg-white/95 px-2 py-2 backdrop-blur supports-[overflow:clip]:[overflow:clip] [scrollbar-gutter:stable] md:-mx-8"
+          className="sticky top-20 z-30 site-container -mx-6 flex h-auto gap-2 overflow-x-auto rounded-xl border border-[var(--elev-border)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] px-2 py-2 backdrop-blur supports-[overflow:clip]:[overflow:clip] [scrollbar-gutter:stable] md:-mx-8"
         >
           <TabsTrigger
-            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[#6b7280] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#90080b]/40 data-[state=active]:bg-[#90080b] data-[state=active]:text-white data-[state=inactive]:hover:text-[#1f1f1f]"
+            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
             value="dados-pessoais"
           >
             Dados pessoais
           </TabsTrigger>
           <TabsTrigger
-            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[#6b7280] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#90080b]/40 data-[state=active]:bg-[#90080b] data-[state=active]:text-white data-[state=inactive]:hover:text-[#1f1f1f]"
+            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
             value="visao-geral"
           >
             Visão Geral
           </TabsTrigger>
           <TabsTrigger
-            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[#6b7280] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#90080b]/40 data-[state=active]:bg-[#90080b] data-[state=active]:text-white data-[state=inactive]:hover:text-[#1f1f1f]"
+            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
             value="trajetoria"
           >
             Trajetória Pessoal
           </TabsTrigger>
           <TabsTrigger
-            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[#6b7280] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#90080b]/40 data-[state=active]:bg-[#90080b] data-[state=active]:text-white data-[state=inactive]:hover:text-[#1f1f1f]"
+            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
             value="carreira"
           >
             Carreira
           </TabsTrigger>
           <TabsTrigger
-            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[#6b7280] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#90080b]/40 data-[state=active]:bg-[#90080b] data-[state=active]:text-white data-[state=inactive]:hover:text-[#1f1f1f]"
+            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
             value="mais"
           >
             Mais
           </TabsTrigger>
           <TabsTrigger
-            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[#6b7280] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#90080b]/40 data-[state=active]:bg-[#90080b] data-[state=active]:text-white data-[state=inactive]:hover:text-[#1f1f1f]"
+            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
             value="biografia"
           >
             Biografia e redes
           </TabsTrigger>
           <TabsTrigger
-            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[#6b7280] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#90080b]/40 data-[state=active]:bg-[#90080b] data-[state=active]:text-white data-[state=inactive]:hover:text-[#1f1f1f]"
+            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
             value="videos"
           >
             Vídeos e Áudios
           </TabsTrigger>
           <TabsTrigger
-            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[#6b7280] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#90080b]/40 data-[state=active]:bg-[#90080b] data-[state=active]:text-white data-[state=inactive]:hover:text-[#1f1f1f]"
+            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
             value="fotografias"
           >
             Fotografias
@@ -112,7 +113,7 @@ export default function MeuPerfil() {
         </TabsList>
 
         <div className="site-container">
-          <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-4 shadow-[var(--shadow-card)] md:p-8">
+          <Card className="p-4 md:p-8">
             <TabsContent value="dados-pessoais" className="mt-0 focus-visible:outline-none">
               <DadosPessoais artistDetails={details} onUpsert={upsertArtistDetails} />
             </TabsContent>
@@ -144,7 +145,7 @@ export default function MeuPerfil() {
             <TabsContent value="fotografias" className="mt-0 focus-visible:outline-none">
               <Fotografias artistDetails={details} onUpsert={upsertArtistDetails} />
             </TabsContent>
-          </div>
+          </Card>
         </div>
       </Tabs>
     </div>

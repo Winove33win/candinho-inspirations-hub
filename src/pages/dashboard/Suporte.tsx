@@ -57,12 +57,12 @@ export default function Suporte() {
 
   return (
     <div className="site-container space-y-6 pb-16">
-      <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+      <Card className="p-6 md:p-8">
         <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">Suporte</h2>
         <p className="mt-1 text-sm text-[var(--muted)] md:text-base">
           Precisa de ajuda? Entre em contato com nossa equipe
         </p>
-      </div>
+      </Card>
 
       {submitted ? (
         <Card className="p-8 text-center md:p-10">

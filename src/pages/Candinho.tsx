@@ -257,22 +257,22 @@ const Candinho = () => {
               </h2>
               
               <div className="grid md:grid-cols-2 gap-12">
-                <div className="bg-white/50 p-8 rounded-2xl">
+                <div className="rounded-2xl border border-[var(--elev-border)] bg-[var(--surface)] p-8 shadow-[var(--shadow-1)]">
                   <h3 className="text-2xl font-bold mb-6 text-center">Cronograma 2025</h3>
                   <div className="space-y-4">
-                    <div className="flex justify-between items-center p-4 bg-white rounded-lg">
+                    <div className="flex justify-between items-center rounded-lg border border-[var(--elev-border)] bg-[var(--surface-2)] p-4">
                       <span className="font-semibold">Janeiro - Fevereiro</span>
                       <span className="text-muted-foreground">Ensaios e Preparação</span>
                     </div>
-                    <div className="flex justify-between items-center p-4 bg-white rounded-lg">
+                    <div className="flex justify-between items-center rounded-lg border border-[var(--elev-border)] bg-[var(--surface-2)] p-4">
                       <span className="font-semibold">Março</span>
                       <span className="text-muted-foreground">Estreia em São Paulo</span>
                     </div>
-                    <div className="flex justify-between items-center p-4 bg-white rounded-lg">
+                    <div className="flex justify-between items-center rounded-lg border border-[var(--elev-border)] bg-[var(--surface-2)] p-4">
                       <span className="font-semibold">Abril - Maio</span>
                       <span className="text-muted-foreground">Turnê Nacional</span>
                     </div>
-                    <div className="flex justify-between items-center p-4 bg-white rounded-lg">
+                    <div className="flex justify-between items-center rounded-lg border border-[var(--elev-border)] bg-[var(--surface-2)] p-4">
                       <span className="font-semibold">Junho</span>
                       <span className="text-muted-foreground">Workshops e Oficinas</span>
                     </div>

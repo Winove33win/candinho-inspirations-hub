@@ -95,7 +95,7 @@ export default function Events() {
 
   return (
     <div className="site-container space-y-6 pb-16">
-      <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+      <Card className="p-6 md:p-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
             <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">Eventos</h2>
@@ -108,7 +108,7 @@ export default function Events() {
             Novo evento
           </Button>
         </div>
-      </div>
+      </Card>
 
       {editingId && (
         <div className="space-y-6">
@@ -122,7 +122,7 @@ export default function Events() {
         </div>
       )}
 
-      <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+      <Card className="p-6 md:p-8">
         <div className="grid gap-4 md:grid-cols-2 md:gap-6">
           {events.map((event) => (
             <EventPreview
@@ -142,7 +142,7 @@ export default function Events() {
             </p>
           </Card>
         )}
-      </div>
+      </Card>
     </div>
   );
 }
