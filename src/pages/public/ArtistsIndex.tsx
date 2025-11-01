@@ -97,7 +97,7 @@ export default function ArtistsIndex() {
               ? Array.from({ length: 8 }).map((_, index) => (
                   <div
                     key={`skeleton-${index}`}
-                    className="animate-pulse space-y-4 rounded-2xl border border-[var(--border)] bg-white p-5"
+                    className="animate-pulse space-y-4 rounded-2xl border border-[var(--elev-border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-1)]"
                   >
                     <div className="aspect-square w-full rounded-xl bg-[var(--surface)]" />
                     <div className="h-4 w-1/2 rounded bg-[var(--surface)]" />
@@ -112,7 +112,7 @@ export default function ArtistsIndex() {
                     <Link
                       key={artist.id}
                       to={href}
-                      className="group rounded-2xl border border-[var(--border)] bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+                      className="group rounded-2xl border border-[var(--elev-border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-1)] transition hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(0,0,0,0.45)]"
                     >
                       <div className="aspect-square w-full overflow-hidden rounded-xl bg-[var(--surface-alt)]">
                         {cover && (

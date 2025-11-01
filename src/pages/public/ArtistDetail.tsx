@@ -235,7 +235,7 @@ export default function ArtistDetail() {
               </div>
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                <div className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm">
+                <div className="rounded-2xl border border-[var(--elev-border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-1)]">
                   <h2 className="text-lg font-semibold text-[var(--ink)]">Contato e Redes</h2>
                   <ul className="mt-4 space-y-3 text-sm text-[var(--muted)]">
                     {artist?.facebook && (
@@ -287,7 +287,7 @@ export default function ArtistDetail() {
                     .map((section) => (
                       <section
                         key={section.title}
-                        className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm"
+                        className="rounded-2xl border border-[var(--elev-border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-1)]"
                       >
                         <h2 className="text-lg font-semibold text-[var(--ink)]">{section.title}</h2>
                         <div
@@ -298,7 +298,7 @@ export default function ArtistDetail() {
                     ))}
 
                   {(mediaUrls.audio || mediaUrls.video_banner_landscape || mediaUrls.video_banner_portrait || youtubeLinks.length > 0) && (
-                    <section className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm">
+                    <section className="rounded-2xl border border-[var(--elev-border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-1)]">
                       <h2 className="text-lg font-semibold text-[var(--ink)]">Mídia</h2>
                       <div className="mt-4 space-y-4">
                         {mediaUrls.audio && <audio controls src={mediaUrls.audio} className="w-full" />}
@@ -327,11 +327,11 @@ export default function ArtistDetail() {
                   )}
 
                   {photos.length > 0 && (
-                    <section className="rounded-2xl border border-[var(--border)] bg-white p-6 shadow-sm">
+                    <section className="rounded-2xl border border-[var(--elev-border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-1)]">
                       <h2 className="text-lg font-semibold text-[var(--ink)]">Fotografias</h2>
                       <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3">
                         {photos.map((photo, index) => (
-                          <figure key={index} className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]">
+                          <figure key={index} className="overflow-hidden rounded-xl border border-[var(--elev-border)] bg-[var(--surface)]">
                             <img src={photo.src} alt="" className="h-48 w-full object-cover" />
                             {photo.caption && (
                               <figcaption className="p-2 text-xs text-[var(--muted)]">{photo.caption}</figcaption>

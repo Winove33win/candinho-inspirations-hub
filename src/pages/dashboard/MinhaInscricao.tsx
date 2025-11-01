@@ -63,7 +63,7 @@ export default function MinhaInscricao() {
 
   return (
     <div className="site-container space-y-6 pb-16">
-      <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+      <Card className="p-6 md:p-8">
         <div className="space-y-2">
           <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">
             Minha Inscrição
@@ -72,7 +72,7 @@ export default function MinhaInscricao() {
             Acompanhe o status da sua inscrição no programa SMARTx.
           </p>
         </div>
-      </div>
+      </Card>
 
       <Card className="space-y-8 p-6 md:p-8">
         <div className="space-y-3">
@@ -94,7 +94,7 @@ export default function MinhaInscricao() {
           {steps.map((step, index) => (
             <div
               key={step.id}
-              className="flex gap-4 rounded-[var(--radius)] border border-[var(--border)] bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-[1px] hover:shadow-md md:p-6"
+              className="smartx-card flex gap-4 p-4 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-[0_12px_32px_rgba(0,0,0,0.45)] md:p-6"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--surface-alt)]">
                 {step.completed ? (

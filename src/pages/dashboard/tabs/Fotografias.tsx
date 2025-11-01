@@ -85,13 +85,13 @@ export default function Fotografias({ artistDetails, onUpsert }: FotografiasProp
         title="Galeria de Fotografias"
         description="Adicione até 12 fotografias com legendas (máximo 1 MB cada)"
       >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="gallery-grid">
           {photos.map((photo, index) => (
             <div
               key={index}
-              className="space-y-4 overflow-hidden rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-4 shadow-sm"
+              className="smartx-card gallery-card smartx-card--compact space-y-4"
             >
-              <h4 className="text-sm font-semibold text-[var(--ink)]">Foto {index + 1}</h4>
+              <div className="gallery-card__label">Foto {index + 1}</div>
 
               <Uploader
                 id={`uploaderFoto${index + 1}`}
@@ -106,8 +106,10 @@ export default function Fotografias({ artistDetails, onUpsert }: FotografiasProp
                 nameHint={`foto-${index + 1}`}
               />
 
-              <div className="space-y-2">
-                <Label htmlFor={`legenda${index + 1}`}>Legenda</Label>
+              <div className="gallery-card__legend space-y-2">
+                <Label htmlFor={`legenda${index + 1}`} className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--text-3)]">
+                  Legenda
+                </Label>
                 <Input
                   id={`legenda${index + 1}`}
                   value={photo.text}

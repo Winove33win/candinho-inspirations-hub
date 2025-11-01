@@ -120,7 +120,7 @@ export default function Documents() {
 
   return (
     <div className="site-container space-y-6 pb-16">
-      <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+      <Card className="p-6 md:p-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">Documentos</h2>
@@ -133,7 +133,7 @@ export default function Documents() {
             Novo documento
           </Button>
         </div>
-      </div>
+      </Card>
 
       {editingId && (
         <div className="space-y-6">
@@ -147,7 +147,7 @@ export default function Documents() {
         </div>
       )}
 
-      <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+      <Card className="p-6 md:p-8">
         <div className="grid gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
           {documents.map((doc) => (
             <Card key={doc.id} className="p-6">
@@ -192,7 +192,7 @@ export default function Documents() {
             </p>
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

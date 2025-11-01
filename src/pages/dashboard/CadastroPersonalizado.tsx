@@ -5,14 +5,14 @@ import { Settings, ExternalLink } from "lucide-react";
 export default function CadastroPersonalizado() {
   return (
     <div className="site-container space-y-6 pb-16">
-      <div className="rounded-[var(--radius)] border border-[#e5e7eb] bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+      <Card className="p-6 md:p-8">
         <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">
           Cadastro Personalizado
         </h2>
         <p className="mt-1 text-sm text-[var(--muted)] md:text-base">
           Configurações avançadas e personalização do seu perfil
         </p>
-      </div>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2 md:gap-6">
         <Card className="p-6 md:p-8">
