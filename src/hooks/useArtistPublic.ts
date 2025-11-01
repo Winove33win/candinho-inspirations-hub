@@ -18,31 +18,48 @@ export type ArtistPublic = {
   videos?: { url: string; provider?: "youtube" | "vimeo" | "file" }[];
 };
 
-async function fetchArtistPublic(slug: string): Promise<ArtistPublic> {
-  const response = await fetch(`/api/public/artist/${slug}`, {
-    headers: {
-      "Cache-Control": "no-store",
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error("Não foi possível carregar o artista.");
+async function fetchArtist(slug: string): Promise<ArtistPublic> {
+  const normalizedSlug = slug.trim();
+  if (!normalizedSlug) {
+    throw new Error("Slug obrigatório");
   }
 
-  return (await response.json()) as ArtistPublic;
+  const res = await fetch(`/api/public/artist/${encodeURIComponent(normalizedSlug)}`, {
+    headers: {
+      Accept: "application/json",
+      "Cache-Control": "no-store",
+    },
+    credentials: "include",
+  });
+
+  const contentType = res.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    const preview = (await res.text()).slice(0, 200);
+    throw new Error(`API não retornou JSON (status ${res.status}). Preview: ${preview}`);
+  }
+
+  const data = (await res.json()) as unknown;
+
+  if (!res.ok) {
+    const message = (data as { error?: string } | null | undefined)?.error;
+    throw new Error(message || `Falha ${res.status}`);
+  }
+
+  return data as ArtistPublic;
 }
 
-export function useArtistPublic(slug?: string) {
+export function useArtistPublic(slug: string) {
+  const normalizedSlug = slug.trim();
+
   return useQuery({
-    queryKey: ["artist-public", slug],
-    queryFn: () => {
-      if (!slug) {
-        throw new Error("Slug obrigatório");
-      }
-      return fetchArtistPublic(slug);
-    },
-    enabled: Boolean(slug),
+    queryKey: ["artist-public", normalizedSlug],
+    queryFn: () => fetchArtist(normalizedSlug),
+    enabled: normalizedSlug.length > 0,
     staleTime: 0,
     gcTime: 0,
+    retry: (count, err: unknown) => {
+      const message = String((err as { message?: string } | undefined)?.message || "");
+      return !message.includes("não retornou JSON") && count < 2;
+    },
   });
 }
