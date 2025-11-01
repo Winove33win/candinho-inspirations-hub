@@ -18,7 +18,15 @@ export type ArtistPublic = {
   videos?: { url: string; provider?: "youtube" | "vimeo" | "file" }[];
 };
 
-type JsonLike = Record<string, unknown> | Array<unknown> | string | number | boolean | null;
+/* ---------- Helpers de erro/HTTP ---------- */
+
+type JsonLike =
+  | Record<string, unknown>
+  | Array<unknown>
+  | string
+  | number
+  | boolean
+  | null;
 
 class HttpResponseError extends Error {
   status: number;
@@ -26,7 +34,10 @@ class HttpResponseError extends Error {
   body: JsonLike;
   preview?: string;
 
-  constructor(message: string, options: { status: number; url: string; body: JsonLike; preview?: string }) {
+  constructor(
+    message: string,
+    options: { status: number; url: string; body: JsonLike; preview?: string }
+  ) {
     super(message);
     this.name = "HttpResponseError";
     this.status = options.status;
@@ -39,13 +50,21 @@ class HttpResponseError extends Error {
 class NonJsonResponseError extends HttpResponseError {
   contentType: string;
 
-  constructor(message: string, options: {
-    status: number;
-    url: string;
-    preview: string;
-    contentType: string;
-  }) {
-    super(message, { status: options.status, url: options.url, body: null, preview: options.preview });
+  constructor(
+    message: string,
+    options: {
+      status: number;
+      url: string;
+      preview: string;
+      contentType: string;
+    }
+  ) {
+    super(message, {
+      status: options.status,
+      url: options.url,
+      body: null,
+      preview: options.preview,
+    });
     this.name = "NonJsonResponseError";
     this.contentType = options.contentType;
   }
@@ -67,29 +86,23 @@ async function readJsonBody(response: Response, url: string): Promise<JsonLike> 
   const preview = rawBody.slice(0, 200);
 
   if (!contentType.includes("application/json")) {
-    throw new NonJsonResponseError(
-      `Resposta não-JSON da API (status ${response.status})`,
-      {
-        status: response.status,
-        url,
-        preview,
-        contentType,
-      },
-    );
+    throw new NonJsonResponseError(`Resposta não-JSON da API (status ${response.status})`, {
+      status: response.status,
+      url,
+      preview,
+      contentType,
+    });
   }
 
   try {
     return rawBody.length > 0 ? (JSON.parse(rawBody) as JsonLike) : null;
-  } catch (error) {
-    throw new NonJsonResponseError(
-      `Falha ao interpretar JSON da API (status ${response.status})`,
-      {
-        status: response.status,
-        url,
-        preview,
-        contentType,
-      },
-    );
+  } catch {
+    throw new NonJsonResponseError(`Falha ao interpretar JSON da API (status ${response.status})`, {
+      status: response.status,
+      url,
+      preview,
+      contentType,
+    });
   }
 }
 
@@ -106,38 +119,48 @@ async function requestJson(url: string, init?: RequestInit): Promise<JsonLike> {
 
   if (!response.ok) {
     const message =
-      (body && typeof body === "object" && "error" in body && typeof body.error === "string" && body.error) ||
+      (body &&
+        typeof body === "object" &&
+        "error" in body &&
+        typeof (body as any).error === "string" &&
+        (body as any).error) ||
       `Falha ${response.status}`;
 
     throw new HttpResponseError(message, {
       status: response.status,
       url,
       body,
-      preview: typeof body === "string" ? body.slice(0, 200) : undefined,
+      preview: typeof body === "string" ? (body as string).slice(0, 200) : undefined,
     });
   }
 
   return body;
 }
 
+/* ---------- Fetchers (primário + fallback) ---------- */
+
 async function fetchArtistFromPrimary(slug: string): Promise<ArtistPublic> {
   const url = `/api/public/artist/${encodeURIComponent(slug)}`;
   const data = await requestJson(url, {
     credentials: "include",
   });
-
   return data as ArtistPublic;
 }
 
 async function fetchArtistFromSupabase(slug: string): Promise<ArtistPublic> {
   const supabaseUrl = normalizeBaseUrl(import.meta.env.VITE_SUPABASE_URL);
-  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const anonKey =
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+    import.meta.env.VITE_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !anonKey) {
     throw new Error("Configuração do Supabase ausente para fallback da API pública");
   }
 
-  const url = `${supabaseUrl}/functions/v1/public-artist?slug=${encodeURIComponent(slug)}`;
+  const url = `${supabaseUrl}/functions/v1/public-artist?slug=${encodeURIComponent(
+    slug
+  )}`;
+
   const data = await requestJson(url, {
     method: "GET",
     credentials: "omit",
@@ -152,18 +175,23 @@ async function fetchArtistFromSupabase(slug: string): Promise<ArtistPublic> {
 
 async function fetchArtist(slug: string): Promise<ArtistPublic> {
   const normalizedSlug = slug.trim();
-  if (!normalizedSlug) {
-    throw new Error("Slug obrigatório");
-  }
+  if (!normalizedSlug) throw new Error("Slug obrigatório");
 
   try {
     return await fetchArtistFromPrimary(normalizedSlug);
   } catch (error) {
     if (error instanceof NonJsonResponseError) {
-      console.warn("[useArtistPublic] Resposta inesperada da API primária, tentando fallback do Supabase.", error);
+      console.warn(
+        "[useArtistPublic] Resposta inesperada da API primária, tentando fallback do Supabase.",
+        error
+      );
     } else if (error instanceof TypeError) {
-      console.warn("[useArtistPublic] Falha de rede ao chamar API primária, tentando fallback do Supabase.", error);
+      console.warn(
+        "[useArtistPublic] Falha de rede ao chamar API primária, tentando fallback do Supabase.",
+        error
+      );
     } else {
+      // Erros 4xx/5xx com JSON válido devem subir (não faz sentido fallback)
       throw error;
     }
 
@@ -178,6 +206,8 @@ async function fetchArtist(slug: string): Promise<ArtistPublic> {
   }
 }
 
+/* ---------- Hook ---------- */
+
 export function useArtistPublic(slug: string) {
   const normalizedSlug = slug.trim();
 
@@ -188,10 +218,10 @@ export function useArtistPublic(slug: string) {
     staleTime: 0,
     gcTime: 0,
     retry: (count, err: unknown) => {
-      if (err instanceof NonJsonResponseError) {
-        return false;
-      }
+      // não ficar tentando quando a resposta é HTML/fallback do SPA
+      if (err instanceof NonJsonResponseError) return false;
       const message = String((err as { message?: string } | undefined)?.message || "");
+      // se já caiu no fallback Supabase e falhou, não insista
       return !message.includes("fallback Supabase") && count < 2;
     },
   });
