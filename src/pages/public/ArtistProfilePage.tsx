@@ -120,7 +120,7 @@ function renderSection(content?: string | null) {
 }
 
 export default function ArtistProfilePage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug = "" } = useParams<{ slug: string }>();
   const { data: artist, isLoading, isError, error } = useArtistPublic(slug);
 
   useArtistSeo(artist);
@@ -138,6 +138,33 @@ export default function ArtistProfilePage() {
     { title: "Carreira", content: artist?.career },
     { title: "Mais", content: artist?.more },
   ];
+
+  if (error) {
+    const friendlyMessage = (() => {
+      const message = (error as Error).message;
+      if (message === "artist_not_found") {
+        return "Artista não encontrado.";
+      }
+      if (message === "internal_error") {
+        return "Erro interno ao carregar o artista.";
+      }
+      return message;
+    })();
+
+    return (
+      <div className="min-h-screen bg-[var(--bg-0)] text-[var(--text-2)]">
+        <Header />
+        <main className="pt-24 pb-20">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+            <div className="rounded-xl border border-[var(--elev-border)] bg-[var(--surface)] p-6 text-sm text-red-400">
+              {friendlyMessage}
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--bg-0)] text-[var(--text-2)]">
@@ -206,13 +233,7 @@ export default function ArtistProfilePage() {
             </div>
           )}
 
-          {!isLoading && isError && (
-            <div className="rounded-3xl border border-destructive/40 bg-destructive/10 p-6 text-sm text-destructive">
-              {(error as Error)?.message ?? "Não foi possível carregar os dados do artista."}
-            </div>
-          )}
-
-          {!isLoading && !artist && !isError && (
+          {!isLoading && !artist && !isError && slug && (
             <div className="rounded-3xl border border-[var(--divider)] bg-[var(--surface)] p-6 text-center text-sm text-[var(--text-3)]">
               Artista não encontrado.
             </div>

@@ -7,6 +7,18 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "GET, OPTIONS",
 };
 
+function jsonResponse(body: unknown, init?: ResponseInit) {
+  return new Response(JSON.stringify(body), {
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+      ...(init?.headers ?? {}),
+    },
+    status: init?.status ?? 200,
+  });
+}
+
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -126,14 +138,16 @@ function detectVideoProvider(url: string | null | undefined) {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", {
+      headers: { ...corsHeaders, "Cache-Control": "no-store" },
+    });
   }
 
   if (req.method !== "GET") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse(
+      { error: "method_not_allowed" },
+      { status: 405 },
+    );
   }
 
   const url = new URL(req.url);
@@ -142,20 +156,14 @@ serve(async (req) => {
   const slug = slugSegment ? decodeURIComponent(slugSegment) : null;
 
   if (!slug) {
-    return new Response(JSON.stringify({ error: "Slug is required" }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: "slug_required" }, { status: 400 });
   }
 
   try {
     const record = await loadArtist(slug);
 
     if (!record) {
-      return new Response(JSON.stringify({ error: "Artist not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" },
-      });
+      return jsonResponse({ error: "artist_not_found", slug }, { status: 404 });
     }
 
     const photosPromises = Array.from({ length: 12 }).map(async (_, index) => {
@@ -234,19 +242,9 @@ serve(async (req) => {
       videos,
     };
 
-    return new Response(JSON.stringify(responseBody), {
-      status: 200,
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "application/json",
-        "Cache-Control": "no-store",
-      },
-    });
+    return jsonResponse(responseBody);
   } catch (err) {
     console.error("[PUBLIC_ARTIST::ERROR]", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" },
-    });
+    return jsonResponse({ error: "internal_error" }, { status: 500 });
   }
 });
