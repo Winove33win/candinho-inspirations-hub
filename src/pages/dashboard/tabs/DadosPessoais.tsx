@@ -162,7 +162,7 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
     <>
       <div className="space-y-6">
         <FormSection title="Informações básicas" description="Preencha seus dados pessoais">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+          <div className="grid grid-cols-1 gap-y-4 md:grid-cols-12 md:gap-6">
             <div className="md:col-span-6">
               <Label htmlFor="inputArtisticName">Nome Artístico *</Label>
               <Input
@@ -265,7 +265,7 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
         </FormSection>
 
         <FormSection title="Endereço">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+          <div className="grid grid-cols-1 gap-y-4 md:grid-cols-12 md:gap-6">
             <div className="md:col-span-8">
               <Label htmlFor="pinput8">Endereço</Label>
               <Input

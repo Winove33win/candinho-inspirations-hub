@@ -107,7 +107,7 @@ export default function BiografiaRedes({ artistDetails, onUpsert }: BiografiaRed
       </FormSection>
 
       <FormSection title="Redes Sociais" description="Adicione links completos (incluindo https://)">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+        <div className="grid grid-cols-1 gap-y-4 md:grid-cols-12 md:gap-6">
           <div className="md:col-span-6">
             <Label htmlFor="input79">Facebook</Label>
             <Input
