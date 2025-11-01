@@ -1,7 +1,6 @@
 // src/pages/Dashboard.tsx
 import { useEffect, useMemo, type ReactNode } from "react";
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { Outlet, NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   User,
@@ -15,7 +14,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useCurrentMember } from "@/hooks/useCurrentMember";
+import { useAuth } from "@/contexts/AuthContext";
 import { useArtistDetails } from "@/hooks/useArtistDetails";
 import type { DashboardContextValue } from "./dashboard/context";
 import Header from "@/components/Header";
@@ -35,9 +34,8 @@ type QuickAction = MenuItem & {
 };
 
 export default function Dashboard() {
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, loading: userLoading } = useCurrentMember();
+  const { user, loading: userLoading, signOut } = useAuth();
 
   const {
     artistDetails,
@@ -47,9 +45,8 @@ export default function Dashboard() {
   } = useArtistDetails(user?.id);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    toast({ title: "Logout realizado", description: "Até logo!" });
-    navigate("/login");
+    toast({ title: "Saindo...", description: "Até logo!" });
+    await signOut();
   };
 
   const displayName = useMemo(() => {

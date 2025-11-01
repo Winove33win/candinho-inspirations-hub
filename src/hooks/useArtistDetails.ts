@@ -16,6 +16,12 @@ export function useArtistDetails(userId: string | undefined) {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  // Limpa estado quando userId muda (login/logout)
+  useEffect(() => {
+    setArtistDetails(null);
+    setLoading(true);
+  }, [userId]);
+
   const loadArtistDetails = useCallback(async () => {
     if (!userId) return;
 
