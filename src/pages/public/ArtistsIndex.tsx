@@ -106,7 +106,7 @@ export default function ArtistsIndex() {
                 ))
               : items.map((artist) => {
                   const cover = signedUrls[artist.id];
-                  const href = `/artista/${artist.slug ?? artist.id}`;
+                  const href = `/artistas/${artist.slug ?? artist.id}`;
 
                   return (
                     <Link
