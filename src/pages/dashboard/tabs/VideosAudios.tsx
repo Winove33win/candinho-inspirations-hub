@@ -122,7 +122,7 @@ export default function VideosAudios({ artistDetails, onUpsert }: VideosAudiosPr
       </FormSection>
 
       <FormSection title="Vídeos Banner" description="Envie vídeos de até 15 MB">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+        <div className="grid grid-cols-1 gap-y-4 md:grid-cols-12 md:gap-6">
           <div className="md:col-span-6">
             <Uploader
               label="Vídeo Banner Landscape (Desktop 16:9)"
@@ -150,7 +150,7 @@ export default function VideosAudios({ artistDetails, onUpsert }: VideosAudiosPr
       </FormSection>
 
       <FormSection title="Links do YouTube" description="Adicione até 10 links de vídeos do YouTube">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+        <div className="grid grid-cols-1 gap-y-4 md:grid-cols-12 md:gap-6">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
             const key = `link_to_video${num === 1 ? "" : num}` as keyof typeof formData;
             return (
