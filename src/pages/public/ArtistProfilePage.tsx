@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useArtistPublic } from "@/hooks/useArtistPublic";
@@ -251,8 +251,14 @@ function Hero({ name, coverUrl, avatarUrl, pills = [], highlight, actions }: Her
           {coverUrl ? (
             <img src={coverUrl} alt={`Capa de ${name}`} />
           ) : (
-            <div style={{ width:"100%", height:"100%", background:
-            "radial-gradient(circle at 15% 0%, rgba(225,29,72,.35), transparent 60%), #121214" }} />
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                background:
+                  "radial-gradient(circle at 15% 0%, rgba(225,29,72,.35), transparent 60%), #121214",
+              }}
+            />
           )}
         </div>
 
@@ -261,15 +267,21 @@ function Hero({ name, coverUrl, avatarUrl, pills = [], highlight, actions }: Her
             {avatarUrl ? (
               <img src={avatarUrl} alt={`Retrato de ${name}`} />
             ) : (
-              <div aria-hidden="true" style={{width:"100%",height:"100%",background:
-              "linear-gradient(135deg, rgba(225,29,72,.45), rgba(30,30,35,.95))"}}/>
+              <div
+                aria-hidden="true"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  background:
+                    "linear-gradient(135deg, rgba(225,29,72,.45), rgba(30,30,35,.95))",
+                }}
+              />
             )}
           </div>
 
           <div>
             <h1 className="hero-name">{name}</h1>
 
-            {/* chips país/cidade + destaque */}
             {(pills?.length || highlight) ? (
               <div className="pills" style={{ marginTop: 8 }}>
                 {pills?.map((item, i) => (
@@ -281,10 +293,7 @@ function Hero({ name, coverUrl, avatarUrl, pills = [], highlight, actions }: Her
               </div>
             ) : null}
 
-            {/* CTA principais */}
-            <div className="hero-actions">
-              {actions}
-            </div>
+            <div className="hero-actions">{actions}</div>
           </div>
         </div>
       </div>
@@ -544,7 +553,12 @@ export default function ArtistProfilePage() {
                 <div className="vertical-list">
                   {projects.map((project) => {
                     if (!project) return null;
+
+                    const previewAbout = project.about ? truncate(toPlainText(project.about), 200) : undefined;
+                    const projectSlug = artist.slug || slug;
+                    const projectHref = `/artistas/${projectSlug}/projetos/${project.id}`;
                     const hasMeta = project.partners || project.teamArt || project.teamTech;
+
                     return (
                       <article className="card project-card" key={project.id}>
                         {(project.coverUrl || project.bannerUrl) && (
@@ -558,7 +572,15 @@ export default function ArtistProfilePage() {
                         )}
                         <div className="project-body">
                           <h3 className="project-title">{project.title ?? "Projeto"}</h3>
-                          {project.about && <p className="text-md">{project.about}</p>}
+
+                          {previewAbout ? (
+                            <p className="text-md">{previewAbout}</p>
+                          ) : project.about ? (
+                            <p className="text-md">{toPlainText(project.about)}</p>
+                          ) : (
+                            <p className="text-md">Conheça os detalhes deste projeto no perfil completo.</p>
+                          )}
+
                           {hasMeta && (
                             <ul className="project-meta">
                               {project.partners && (
@@ -578,8 +600,12 @@ export default function ArtistProfilePage() {
                               )}
                             </ul>
                           )}
-                          {project.projectSheetUrl && (
-                            <div className="project-actions">
+
+                          <div className="project-actions">
+                            <Link className="btn btn--accent" to={projectHref}>
+                              Ver projeto completo
+                            </Link>
+                            {project.projectSheetUrl && (
                               <a
                                 className="btn"
                                 href={project.projectSheetUrl}
@@ -588,8 +614,8 @@ export default function ArtistProfilePage() {
                               >
                                 Baixar release
                               </a>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </article>
                     );
@@ -647,29 +673,29 @@ export default function ArtistProfilePage() {
             {/* Fotos */}
             <div className="section" id="fotos">
               <h2 className="title-lg">Galeria de Fotos</h2>
-            {photos.length > 0 ? (
-              <div className="photo-grid">
-                {photos.map((photo, index) => (
-                  <figure className="photo" key={`${photo.url}-${index}`}>
-                    <button
-                      type="button"
-                      className="photo-hit"
-                      onClick={() => openLightbox(photoItems, index)}
-                      aria-label="Ampliar foto"
-                    >
-                      <img
-                        src={photo.url}
-                        alt={photo.alt && photo.alt.trim().length > 0 ? photo.alt : artist.stageName}
-                        loading="lazy"
-                      />
-                    </button>
-                  </figure>
-                ))}
-              </div>
-            ) : (
-              <p className="text-md">Nenhuma fotografia enviada.</p>
-            )}
-          </div>
+              {photos.length > 0 ? (
+                <div className="photo-grid">
+                  {photos.map((photo, index) => (
+                    <figure className="photo" key={`${photo.url}-${index}`}>
+                      <button
+                        type="button"
+                        className="photo-hit"
+                        onClick={() => openLightbox(photoItems, index)}
+                        aria-label="Ampliar foto"
+                      >
+                        <img
+                          src={photo.url}
+                          alt={photo.alt && photo.alt.trim().length > 0 ? photo.alt : artist.stageName}
+                          loading="lazy"
+                        />
+                      </button>
+                    </figure>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-md">Nenhuma fotografia enviada.</p>
+              )}
+            </div>
 
             {/* Vídeos */}
             <div className="section" id="videos">
