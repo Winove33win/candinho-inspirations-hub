@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useParams } from "react-router-dom";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { useArtistPublic } from "@/hooks/useArtistPublic";
 import type { ArtistPublic } from "@/hooks/useArtistPublic";
 import "@/styles/artist.css";
@@ -96,6 +98,18 @@ function useArtistSeo(artist?: ArtistPublic) {
   }, [artist, metaDescription]);
 }
 
+function ArtistPageShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="min-h-screen bg-[var(--surface-alt)] text-[var(--ink)]">
+      <Header />
+      <main className="pt-24 pb-20">
+        <div className="site-container">{children}</div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
 /* -------------------- SectionTabs (guias laterais) -------------------- */
 function SectionTabs({
   sections,
@@ -110,8 +124,8 @@ function SectionTabs({
 
   return (
     <div className="card section">
-      <div className="flex flex-col gap-6 lg:flex-row">
-        <div className="flex flex-row gap-3 overflow-x-auto pb-2 lg:w-64 lg:flex-col lg:overflow-visible lg:pb-0">
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[220px,1fr] lg:items-start">
+        <nav className="flex flex-row gap-3 overflow-x-auto pb-2 lg:flex-col lg:gap-2 lg:overflow-visible lg:pb-0">
           {sections.map((s, i) => {
             const isActive = i === currentIndex;
             return (
@@ -120,7 +134,7 @@ function SectionTabs({
                 type="button"
                 onClick={() => setActive(i)}
                 aria-pressed={isActive}
-                className={`min-w-[160px] flex-1 whitespace-nowrap rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
+                className={`w-full min-w-[160px] rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent,#e11d48)] ${
                   isActive
                     ? "border-[var(--accent,#e11d48)] bg-white/5 text-white shadow"
                     : "border-[var(--border,#26262a)] bg-transparent text-[#a1a1aa] hover:border-[var(--accent,#e11d48)] hover:bg-white/5"
@@ -130,7 +144,7 @@ function SectionTabs({
               </button>
             );
           })}
-        </div>
+        </nav>
         <div className="flex-1 space-y-3">
           <h3 className="title-lg">{current?.title}</h3>
           {current?.html ? (
@@ -341,6 +355,15 @@ export default function ArtistProfilePage() {
 
   useArtistSeo(artist);
 
+  const renderStatus = (title: string, message: string) => (
+    <ArtistPageShell>
+      <div className="mx-auto max-w-2xl rounded-2xl border border-[var(--elev-border)] bg-[var(--surface)] p-8 text-[var(--ink)] shadow-[var(--shadow-1)]">
+        <h2 className="text-2xl font-semibold text-[var(--ink)]">{title}</h2>
+        <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">{message}</p>
+      </div>
+    </ArtistPageShell>
+  );
+
   if (error) {
     const friendlyMessage = (() => {
       const message = (error as Error).message;
@@ -349,45 +372,20 @@ export default function ArtistProfilePage() {
       return message;
     })();
 
-    return (
-      <div className="artist-page">
-        <main className="container">
-          <div className="card">
-            <h2 className="title-lg">Ops! Não foi possível carregar o artista.</h2>
-            <p className="text-md" style={{ marginTop: "12px" }}>{friendlyMessage}</p>
-          </div>
-        </main>
-      </div>
-    );
+    return renderStatus("Ops! Não foi possível carregar o artista.", friendlyMessage);
   }
 
   if (isLoading) {
-    return (
-      <div className="artist-page">
-        <main className="container">
-          <div className="card">
-            <h2 className="title-lg">Carregando artista…</h2>
-            <p className="text-md" style={{ marginTop: "12px" }}>
-              Estamos preparando o perfil com todos os detalhes.
-            </p>
-          </div>
-        </main>
-      </div>
+    return renderStatus(
+      "Carregando artista…",
+      "Estamos preparando o perfil com todos os detalhes."
     );
   }
 
   if (!artist) {
-    return (
-      <div className="artist-page">
-        <main className="container">
-          <div className="card">
-            <h2 className="title-lg">Artista não encontrado.</h2>
-            <p className="text-md" style={{ marginTop: "12px" }}>
-              Verifique o link ou explore outros talentos disponíveis na plataforma.
-            </p>
-          </div>
-        </main>
-      </div>
+    return renderStatus(
+      "Artista não encontrado.",
+      "Verifique o link ou explore outros talentos disponíveis na plataforma."
     );
   }
 
@@ -430,23 +428,24 @@ export default function ArtistProfilePage() {
   );
 
   return (
-    <div className="artist-page">
-      <Hero
-        name={artist.stageName}
-        coverUrl={artist.coverUrl}
-        avatarUrl={artist.avatarUrl}
-        pills={heroPills}
-        highlight={highlight}
-        actions={heroActions}
-      />
+    <ArtistPageShell>
+      <div className="artist-page overflow-hidden rounded-[32px] border border-[rgba(255,255,255,0.08)] bg-[#0f0f10] shadow-[0_32px_120px_rgba(12,10,10,0.6)]">
+        <Hero
+          name={artist.stageName}
+          coverUrl={artist.coverUrl}
+          avatarUrl={artist.avatarUrl}
+          pills={heroPills}
+          highlight={highlight}
+          actions={heroActions}
+        />
 
-      <main className="container h-grid">
-        <aside className="card">
-          <h2 className="title-lg">Contatos & Redes</h2>
-          {socialLinks.length > 0 ? (
-            <ul className="text-md" style={{ marginTop: "12px" }}>
-              {socialLinks.map((item) => (
-                <li key={item.url} style={{ marginBottom: "8px" }}>
+        <div className="container h-grid pb-16 pt-10">
+          <aside className="card">
+            <h2 className="title-lg">Contatos & Redes</h2>
+            {socialLinks.length > 0 ? (
+              <ul className="text-md" style={{ marginTop: "12px" }}>
+                {socialLinks.map((item) => (
+                  <li key={item.url} style={{ marginBottom: "8px" }}>
                   <a href={item.url} target="_blank" rel="noopener noreferrer">
                     {item.label || item.url}
                   </a>
@@ -457,96 +456,93 @@ export default function ArtistProfilePage() {
             <p className="text-md" style={{ marginTop: "12px" }}>
               Nenhum contato informado até o momento.
             </p>
-          )}
-        </aside>
-
-        <section>
-          <StatPills stats={statPills} title="Números & Reconhecimentos" />
-
-          {/* Guias laterais de apresentação */}
-          <SectionTabs
-            sections={[
-              { title: "Visão Geral", html: artist.vision ?? "" },
-              { title: "História", html: artist.history ?? "" },
-              { title: "Carreira", html: artist.career ?? "" },
-              { title: "Mais", html: artist.more ?? "" },
-            ]}
-          />
-
-          {/* Fotos */}
-          <div className="section" id="fotos">
-            <h2 className="title-lg">Galeria de Fotos</h2>
-            {photos.length > 0 ? (
-              <div className="photo-grid">
-                {photos.map((photo, index) => (
-                  <figure className="photo" key={`${photo.url}-${index}`}>
-                    <img
-                      src={photo.url}
-                      alt={photo.alt && photo.alt.trim().length > 0 ? photo.alt : artist.stageName}
-                      loading="lazy"
-                    />
-                  </figure>
-                ))}
-              </div>
-            ) : (
-              <p className="text-md">Nenhuma fotografia enviada.</p>
             )}
-          </div>
+          </aside>
 
-          {/* Vídeos */}
-          <div className="section" id="videos">
-            <h2 className="title-lg">Galeria de Vídeos</h2>
-            <MediaGrid
-              items={videos}
-              emptyMessage="Nenhum vídeo disponível no momento."
-              renderItem={(video, index) => {
-                const src = toEmbedSrc(video);
-                const key = `${video.url}-${index}`;
-                if (!src) {
+          <section>
+            <StatPills stats={statPills} title="Números & Reconhecimentos" />
+
+            {/* Guias laterais de apresentação */}
+            <SectionTabs
+              sections={[
+                { title: "Visão Geral", html: artist.vision ?? "" },
+                { title: "História", html: artist.history ?? "" },
+                { title: "Carreira", html: artist.career ?? "" },
+                { title: "Mais", html: artist.more ?? "" },
+              ]}
+            />
+
+            {/* Fotos */}
+            <div className="section" id="fotos">
+              <h2 className="title-lg">Galeria de Fotos</h2>
+              {photos.length > 0 ? (
+                <div className="photo-grid">
+                  {photos.map((photo, index) => (
+                    <figure className="photo" key={`${photo.url}-${index}`}>
+                      <img
+                        src={photo.url}
+                        alt={photo.alt && photo.alt.trim().length > 0 ? photo.alt : artist.stageName}
+                        loading="lazy"
+                      />
+                    </figure>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-md">Nenhuma fotografia enviada.</p>
+              )}
+            </div>
+
+            {/* Vídeos */}
+            <div className="section" id="videos">
+              <h2 className="title-lg">Galeria de Vídeos</h2>
+              <MediaGrid
+                items={videos}
+                emptyMessage="Nenhum vídeo disponível no momento."
+                renderItem={(video, index) => {
+                  const src = toEmbedSrc(video);
+                  const key = `${video.url}-${index}`;
+                  if (!src) {
+                    return (
+                      <div className="media" key={key} aria-hidden="true">
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            background:
+                              "linear-gradient(135deg, rgba(225,29,72,0.25), rgba(40,40,45,0.85))",
+                          }}
+                        />
+                      </div>
+                    );
+                  }
+                  if (/(\.mp4|\.webm|\.ogg)(\?.*)?$/i.test(src)) {
+                    return (
+                      <div className="media" key={key}>
+                        <video controls style={{ width: "100%", height: "100%", objectFit: "cover", backgroundColor: "#000" }}>
+                          <source src={src} />
+                          Seu navegador não suporta reprodução de vídeo.
+                        </video>
+                      </div>
+                    );
+                  }
                   return (
-                    <div className="media" key={key} aria-hidden="true">
-                      <div
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          background:
-                            "linear-gradient(135deg, rgba(225,29,72,0.25), rgba(40,40,45,0.85))",
-                        }}
+                    <div className="media" key={key}>
+                      <iframe
+                        src={src}
+                        title={`Vídeo ${index + 1} de ${artist.stageName}`}
+                        loading="lazy"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
                       />
                     </div>
                   );
-                }
-                if (/(\.mp4|\.webm|\.ogg)(\?.*)?$/i.test(src)) {
-                  return (
-                    <div className="media" key={key}>
-                      <video controls style={{ width: "100%", height: "100%", objectFit: "cover", backgroundColor: "#000" }}>
-                        <source src={src} />
-                        Seu navegador não suporta reprodução de vídeo.
-                      </video>
-                    </div>
-                  );
-                }
-                return (
-                  <div className="media" key={key}>
-                    <iframe
-                      src={src}
-                      title={`Vídeo ${index + 1} de ${artist.stageName}`}
-                      loading="lazy"
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                );
-              }}
-            />
-          </div>
-        </section>
-      </main>
-
-      <footer className="container footer">
-        <small>© SMARTx — Todos os direitos reservados.</small>
-      </footer>
-    </div>
+                }}
+              />
+            </div>
+          </section>
+        </div>
+      </div>
+    </ArtistPageShell>
   );
 }
