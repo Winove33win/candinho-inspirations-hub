@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { KNOWN_BUCKETS, getBucketForFolder } from "@/config/storage";
 
 export default function ImportArtists() {
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const { toast } = useToast();
+  const videoBucket = getBucketForFolder("videos");
 
   const parseCSVLine = (line: string): string[] => {
     const result: string[] = [];
@@ -36,6 +38,44 @@ export default function ImportArtists() {
     return value.replace(/^"|"$/g, '').trim() || null;
   };
 
+  type BannerStatus = "empty" | "valid" | "invalid" | "normalized";
+
+  const normalizeVideoBanner = (
+    value: string | null,
+  ): { value: string | null; status: BannerStatus } => {
+    if (!value) {
+      return { value: null, status: "empty" as const };
+    }
+
+    const trimmed = value.trim().replace(/^\/+/, "");
+    if (!trimmed) {
+      return { value: null, status: "empty" as const };
+    }
+
+    if (/^https?:\/\//i.test(trimmed)) {
+      return { value: trimmed, status: "valid" as const };
+    }
+
+    const segments = trimmed.split("/").filter(Boolean);
+    if (segments.length < 2) {
+      return { value: null, status: "invalid" as const };
+    }
+
+    const [firstSegment, ...rest] = segments;
+    if (firstSegment === videoBucket) {
+      return { value: [firstSegment, ...rest].join("/"), status: "valid" as const };
+    }
+
+    if (KNOWN_BUCKETS.includes(firstSegment)) {
+      return { value: null, status: "invalid" as const };
+    }
+
+    return {
+      value: `${videoBucket}/${segments.join("/")}`,
+      status: "normalized" as const,
+    };
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -54,6 +94,8 @@ export default function ImportArtists() {
       let imported = 0;
       let skipped = 0;
       let errors = 0;
+      let normalizedVideoBanners = 0;
+      let invalidVideoBanners = 0;
 
       for (let i = 0; i < dataLines.length; i++) {
         const line = dataLines[i];
@@ -92,6 +134,14 @@ export default function ImportArtists() {
           }
 
           // Map CSV fields to database columns
+          const videoPortrait = normalizeVideoBanner(cleanValue(cols[17]));
+          const videoLandscape = normalizeVideoBanner(cleanValue(cols[18]));
+
+          normalizedVideoBanners += Number(videoPortrait.status === "normalized");
+          normalizedVideoBanners += Number(videoLandscape.status === "normalized");
+          invalidVideoBanners += Number(videoPortrait.status === "invalid");
+          invalidVideoBanners += Number(videoLandscape.status === "invalid");
+
           const artistData = {
             member_id: userId,
             artistic_name: artisticName,
@@ -107,8 +157,8 @@ export default function ImportArtists() {
             mais_titulo: cleanValue(cols[14]),
             biography1: cleanValue(cols[15]),
             audio: cleanValue(cols[16]),
-            video_banner_portrait: cleanValue(cols[17]),
-            video_banner_landscape: cleanValue(cols[18]),
+            video_banner_portrait: videoPortrait.value,
+            video_banner_landscape: videoLandscape.value,
             link_to_video: cleanValue(cols[19]),
             link_to_video2: cleanValue(cols[20]),
             link_to_video3: cleanValue(cols[21]),
@@ -176,9 +226,19 @@ export default function ImportArtists() {
         setProgress({ current: i + 1, total: dataLines.length });
       }
 
+      const adjustments: string[] = [];
+      if (normalizedVideoBanners > 0) {
+        adjustments.push(`${normalizedVideoBanners} banner${normalizedVideoBanners > 1 ? "s" : ""} normalizado${normalizedVideoBanners > 1 ? "s" : ""}`);
+      }
+      if (invalidVideoBanners > 0) {
+        adjustments.push(`${invalidVideoBanners} banner${invalidVideoBanners > 1 ? "s" : ""} descartado${invalidVideoBanners > 1 ? "s" : ""}`);
+      }
+
+      const adjustmentsMessage = adjustments.length > 0 ? ` (${adjustments.join(", ")})` : "";
+
       toast({
         title: "Importação concluída",
-        description: `${imported} artistas importados, ${skipped} ignorados, ${errors} erros`,
+        description: `${imported} artistas importados, ${skipped} ignorados, ${errors} erros${adjustmentsMessage}`,
       });
     } catch (error) {
       console.error("Import error:", error);
