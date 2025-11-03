@@ -1,4 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+import { getSignedUrl } from "@/utils/storage";
 
 export type ArtistPublic = {
   id: string;
@@ -68,11 +71,6 @@ class NonJsonResponseError extends HttpResponseError {
     this.name = "NonJsonResponseError";
     this.contentType = options.contentType;
   }
-}
-
-function normalizeBaseUrl(value: string | undefined) {
-  if (!value) return undefined;
-  return value.endsWith("/") ? value.slice(0, -1) : value;
 }
 
 const DEFAULT_HEADERS = {
@@ -148,29 +146,151 @@ async function fetchArtistFromPrimary(slug: string): Promise<ArtistPublic> {
 }
 
 async function fetchArtistFromSupabase(slug: string): Promise<ArtistPublic> {
-  const supabaseUrl = normalizeBaseUrl(import.meta.env.VITE_SUPABASE_URL);
-  const anonKey =
-    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-    import.meta.env.VITE_SUPABASE_ANON_KEY;
+  type ArtistRecord = Database["public"]["Views"]["artist_details_public"]["Row"];
 
-  if (!supabaseUrl || !anonKey) {
-    throw new Error("Configuração do Supabase ausente para fallback da API pública");
+  async function loadArtistRecord(): Promise<ArtistRecord | null> {
+    const lookups: Array<{
+      column: keyof ArtistRecord;
+      value: string;
+    }> = [
+      { column: "slug", value: slug },
+      { column: "id", value: slug },
+      { column: "member_id", value: slug },
+    ];
+
+    for (const lookup of lookups) {
+      const { data, error } = await supabase
+        .from("artist_details_public")
+        .select("*")
+        .eq(lookup.column as string, lookup.value)
+        .maybeSingle();
+
+      if (error && error.code !== "PGRST116") {
+        throw error;
+      }
+
+      if (data) {
+        return data;
+      }
+    }
+
+    return null;
   }
 
-  const url = `${supabaseUrl}/functions/v1/public-artist?slug=${encodeURIComponent(
-    slug
-  )}`;
+  function detectVideoProvider(url: string | null | undefined) {
+    if (!url) return undefined;
+    const lower = url.toLowerCase();
+    if (lower.includes("youtu")) return "youtube" as const;
+    if (lower.includes("vimeo")) return "vimeo" as const;
+    if (/(\.mp4|\.webm|\.ogg)(\?.*)?$/.test(lower)) return "file" as const;
+    return undefined;
+  }
 
-  const data = await requestJson(url, {
-    method: "GET",
-    credentials: "omit",
-    headers: {
-      apikey: anonKey,
-      Authorization: `Bearer ${anonKey}`,
-    },
+  async function resolveSignedUrl(path: string | null | undefined) {
+    if (!path) return null;
+
+    try {
+      return await getSignedUrl(path, 3600);
+    } catch (error) {
+      console.warn("[useArtistPublic] Falha ao gerar URL assinada do Supabase", {
+        path,
+        error,
+      });
+      return null;
+    }
+  }
+
+  const record = await loadArtistRecord();
+
+  if (!record) {
+    const notFound = new Error("artist_not_found");
+    (notFound as Error & { status?: number }).status = 404;
+    throw notFound;
+  }
+
+  const photoIndexes = Array.from({ length: 12 }, (_, index) => index + 1);
+  const photosPromises = photoIndexes.map(async (index) => {
+    const path = record[`image${index}` as keyof ArtistRecord];
+    if (typeof path !== "string" || path.length === 0) {
+      return null;
+    }
+
+    const signed = await resolveSignedUrl(path);
+    if (!signed) return null;
+
+    const caption = record[`image${index}_text` as keyof ArtistRecord];
+    return {
+      url: signed,
+      alt: typeof caption === "string" && caption.length > 0 ? caption : undefined,
+    };
   });
 
-  return data as ArtistPublic;
+  const photos = (await Promise.all(photosPromises)).filter(
+    (photo): photo is { url: string; alt?: string } => photo !== null
+  );
+
+  const videoKeys: Array<keyof ArtistRecord> = [
+    "link_to_video",
+    "link_to_video2",
+    "link_to_video3",
+    "link_to_video4",
+    "link_to_video5",
+    "link_to_video6",
+    "link_to_video7",
+    "link_to_video8",
+    "link_to_video9",
+    "link_to_video10",
+  ];
+
+  const videos = videoKeys
+    .map((key) => record[key])
+    .filter((value): value is string => typeof value === "string" && value.length > 0)
+    .map((value) => ({
+      url: value,
+      provider: detectVideoProvider(value),
+    }));
+
+  const socials = [
+    { label: "Site oficial", url: record.website },
+    { label: "Instagram", url: record.instagram },
+    { label: "Facebook", url: record.facebook },
+    { label: "YouTube", url: record.youtube_channel },
+    { label: "Spotify / Apple Music", url: record.music_spotify_apple },
+  ].filter((item) => typeof item.url === "string" && item.url.length > 0);
+
+  const stats: ArtistPublic["stats"] = [];
+  if (record.country_residence) {
+    stats.push({ key: "País", value: record.country_residence });
+  }
+  if (record.city) {
+    stats.push({ key: "Cidade", value: record.city });
+  }
+  if (record.profile_text2) {
+    stats.push({ key: "Destaque", value: record.profile_text2 });
+  }
+
+  const avatarUrl = await resolveSignedUrl(record.profile_image);
+  const coverUrl =
+    (await resolveSignedUrl(record.video_banner_landscape)) ||
+    (await resolveSignedUrl(record.video_banner_portrait));
+
+  return {
+    id: record.id ?? slug,
+    slug: record.slug ?? slug,
+    stageName: record.artistic_name || record.full_name || "Artista SMARTx",
+    country: record.country_residence ?? undefined,
+    city: record.city ?? undefined,
+    avatarUrl,
+    coverUrl,
+    stats,
+    vision: record.visao_geral_titulo ?? undefined,
+    history: record.historia_titulo ?? undefined,
+    career: record.carreira_titulo ?? undefined,
+    more: record.mais_titulo ?? undefined,
+    socials,
+    photos,
+    videos,
+  };
 }
 
 async function fetchArtist(slug: string): Promise<ArtistPublic> {
