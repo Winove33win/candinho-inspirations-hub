@@ -205,9 +205,6 @@ interface HeroProps {
   actions?: ReactNode;
 }
 function Hero({ name, coverUrl, avatarUrl, pills = [], highlight, actions }: HeroProps) {
-  const pillItems = [...pills];
-  if (highlight) pillItems.push(highlight);
-
   return (
     <header className="sticky-hero">
       <div className="container hero">
@@ -215,44 +212,38 @@ function Hero({ name, coverUrl, avatarUrl, pills = [], highlight, actions }: Her
           {coverUrl ? (
             <img src={coverUrl} alt={`Capa de ${name}`} />
           ) : (
-            <div
-              style={{
-                width: "100%",
-                height: "100%",
-                background:
-                  "radial-gradient(circle at top left, rgba(225,29,72,0.35), transparent 60%), #121214",
-              }}
-            />
+            <div style={{ width:"100%", height:"100%", background:
+            "radial-gradient(circle at 15% 0%, rgba(225,29,72,.35), transparent 60%), #121214" }} />
           )}
         </div>
+
         <div className="hero-overlay">
           <div className="hero-avatar">
             {avatarUrl ? (
               <img src={avatarUrl} alt={`Retrato de ${name}`} />
             ) : (
-              <div
-                aria-hidden="true"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  background:
-                    "linear-gradient(135deg, rgba(225,29,72,0.45), rgba(30,30,35,0.95))",
-                }}
-              />
+              <div aria-hidden="true" style={{width:"100%",height:"100%",background:
+              "linear-gradient(135deg, rgba(225,29,72,.45), rgba(30,30,35,.95))"}}/>
             )}
           </div>
+
           <div>
-            <h1 className="title-xl">{name}</h1>
-            {pillItems.length > 0 && (
-              <div className="pills" style={{ marginTop: "10px" }}>
-                {pillItems.map((item, index) => (
-                  <span className="pill" key={`${item}-${index}`}>
-                    {item}
-                  </span>
+            <h1 className="hero-name">{name}</h1>
+
+            {/* chips país/cidade + destaque */}
+            {pills?.length > 0 && (
+              <div className="pills" style={{ marginTop: 10 }}>
+                {pills.map((item, i) => (
+                  <span className="pill" key={`${item}-${i}`}>{item}</span>
                 ))}
+                {highlight && <span className="pill">{highlight}</span>}
               </div>
             )}
-            {actions && <div className="hero-actions" style={{ marginTop: "14px" }}>{actions}</div>}
+
+            {/* CTA principais */}
+            <div className="hero-actions">
+              {actions}
+            </div>
           </div>
         </div>
       </div>
@@ -440,22 +431,30 @@ export default function ArtistProfilePage() {
         />
 
         <div className="container h-grid pb-16 pt-10">
-          <aside className="card">
+          <aside className="card contact-card">
             <h2 className="title-lg">Contatos & Redes</h2>
+
             {socialLinks.length > 0 ? (
-              <ul className="text-md" style={{ marginTop: "12px" }}>
+              <ul className="social-list">
                 {socialLinks.map((item) => (
-                  <li key={item.url} style={{ marginBottom: "8px" }}>
-                  <a href={item.url} target="_blank" rel="noopener noreferrer">
-                    {item.label || item.url}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-md" style={{ marginTop: "12px" }}>
-              Nenhum contato informado até o momento.
-            </p>
+                  <li className="social-item" key={item.url}>
+                    <span className="social-dot" aria-hidden="true" />
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Abrir ${item.label || "link externo"}`}
+                      title={item.label || item.url}
+                    >
+                      {item.label || item.url}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-md" style={{ marginTop: 12 }}>
+                Nenhum contato informado até o momento.
+              </p>
             )}
           </aside>
 
