@@ -41,6 +41,11 @@ function isVideoUrl(url?: string) {
   return /(\.mp4|\.webm|\.ogg)(\?|$)/i.test(url);
 }
 
+function isYoutubeLink(url?: string) {
+  if (!url) return false;
+  return /(youtube\.com|youtu\.be)/i.test(url);
+}
+
 export default function ArtistDetail() {
   const { slug } = useParams<{ slug: string }>();
   const [artist, setArtist] = useState<ArtistRow | null>(null);
@@ -141,8 +146,12 @@ export default function ArtistDetail() {
         const value = artist[key as keyof ArtistRow];
         if (typeof value === "string" && value) {
           try {
-            const url = await getSignedUrl(value, 3600);
-            next[key] = url;
+            if (value.startsWith("http://") || value.startsWith("https://")) {
+              next[key] = value;
+            } else {
+              const url = await getSignedUrl(value, 3600);
+              next[key] = url;
+            }
           } catch (err) {
             console.error("[ARTIST::MEDIA_URL]", err);
           }
@@ -183,6 +192,12 @@ export default function ArtistDetail() {
   const heroIsVideo = isVideoUrl(heroMedia);
   const heroImage = heroIsVideo ? undefined : heroMedia;
   const heroVideo = heroIsVideo ? heroMedia : undefined;
+  const bannerLandscapeUrl = mediaUrls.video_banner_landscape;
+  const bannerPortraitUrl = mediaUrls.video_banner_portrait;
+  const bannerLandscapeIsYoutube = isYoutubeLink(bannerLandscapeUrl);
+  const bannerPortraitIsYoutube = isYoutubeLink(bannerPortraitUrl);
+  const bannerLandscapeIsVideo = isVideoUrl(bannerLandscapeUrl);
+  const bannerPortraitIsVideo = isVideoUrl(bannerPortraitUrl);
   const impactPhrase = artist?.profile_text2 || "Artista integrante da rede SMARTx.";
   const displayName = artist?.artistic_name || artist?.full_name || "Artista SMARTx";
 
@@ -322,11 +337,51 @@ export default function ArtistDetail() {
                       <h2 className="text-lg font-semibold text-[var(--ink)]">Mídia</h2>
                       <div className="mt-4 space-y-4">
                         {mediaUrls.audio && <audio controls src={mediaUrls.audio} className="w-full" />}
-                        {mediaUrls.video_banner_landscape && (
-                          <video controls src={mediaUrls.video_banner_landscape} className="w-full rounded-lg" />
+                        {bannerLandscapeUrl && (
+                          <div className="space-y-2">
+                            <p className="text-sm font-semibold text-[var(--ink)]">Banner Landscape</p>
+                            {bannerLandscapeIsYoutube ? (
+                              <a
+                                href={bannerLandscapeUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="break-words text-sm text-[var(--muted)] hover:text-[var(--brand)]"
+                              >
+                                {bannerLandscapeUrl}
+                              </a>
+                            ) : bannerLandscapeIsVideo ? (
+                              <video controls src={bannerLandscapeUrl} className="w-full rounded-lg" />
+                            ) : (
+                              <img
+                                src={bannerLandscapeUrl}
+                                alt="Banner landscape do artista"
+                                className="w-full rounded-lg"
+                              />
+                            )}
+                          </div>
                         )}
-                        {mediaUrls.video_banner_portrait && (
-                          <video controls src={mediaUrls.video_banner_portrait} className="w-full rounded-lg" />
+                        {bannerPortraitUrl && (
+                          <div className="space-y-2">
+                            <p className="text-sm font-semibold text-[var(--ink)]">Banner Portrait</p>
+                            {bannerPortraitIsYoutube ? (
+                              <a
+                                href={bannerPortraitUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="break-words text-sm text-[var(--muted)] hover:text-[var(--brand)]"
+                              >
+                                {bannerPortraitUrl}
+                              </a>
+                            ) : bannerPortraitIsVideo ? (
+                              <video controls src={bannerPortraitUrl} className="w-full rounded-lg" />
+                            ) : (
+                              <img
+                                src={bannerPortraitUrl}
+                                alt="Banner portrait do artista"
+                                className="w-full rounded-lg"
+                              />
+                            )}
+                          </div>
                         )}
                         {youtubeLinks.length > 0 && (
                           <div className="space-y-2">

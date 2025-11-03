@@ -190,6 +190,10 @@ async function fetchArtistFromSupabase(slug: string): Promise<ArtistPublic> {
     if (!path) return null;
 
     try {
+      if (/^https?:\/\//i.test(path)) {
+        return path;
+      }
+
       return await getSignedUrl(path, 3600);
     } catch (error) {
       console.warn("[useArtistPublic] Falha ao gerar URL assinada do Supabase", {
@@ -282,9 +286,11 @@ async function fetchArtistFromSupabase(slug: string): Promise<ArtistPublic> {
   }
 
   const avatarUrl = await resolveSignedUrl(record.profile_image);
+  const landscapeBanner = await resolveSignedUrl(record.video_banner_landscape);
+  const portraitBanner = await resolveSignedUrl(record.video_banner_portrait);
   const coverUrl =
-    (await resolveSignedUrl(record.video_banner_landscape)) ||
-    (await resolveSignedUrl(record.video_banner_portrait));
+    (landscapeBanner && detectVideoProvider(landscapeBanner) !== "youtube" ? landscapeBanner : null) ||
+    (portraitBanner && detectVideoProvider(portraitBanner) !== "youtube" ? portraitBanner : null);
 
   return {
     id: record.id ?? slug,
