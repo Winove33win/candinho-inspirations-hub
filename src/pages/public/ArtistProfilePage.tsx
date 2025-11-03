@@ -7,20 +7,17 @@ import "@/styles/artist.css";
 
 type ArtistStat = NonNullable<ArtistPublic["stats"]>[number];
 
+/* -------------------- utils -------------------- */
 function toPlainText(value?: string | null) {
   if (!value) return "";
-  return value
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  return value.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
 }
-
 function truncate(value: string, max = 160) {
   if (value.length <= max) return value;
   return `${value.slice(0, max - 1).trim()}…`;
 }
 
+/* -------------------- SEO + JSON-LD -------------------- */
 function useArtistSeo(artist?: ArtistPublic) {
   const plainVision = artist?.vision ? toPlainText(artist.vision) : "";
   const plainHistory = artist?.history ? toPlainText(artist.history) : "";
@@ -63,11 +60,8 @@ function useArtistSeo(artist?: ArtistPublic) {
         created = true;
       }
       const previousContent = element.getAttribute("content");
-      if (config.content) {
-        element.setAttribute("content", config.content);
-      } else {
-        element.removeAttribute("content");
-      }
+      if (config.content) element.setAttribute("content", config.content);
+      else element.removeAttribute("content");
       return { element, previousContent, created };
     });
 
@@ -93,29 +87,71 @@ function useArtistSeo(artist?: ArtistPublic) {
     return () => {
       document.title = previousTitle;
       previousMeta.forEach(({ element, previousContent, created }) => {
-        if (created) {
-          element.remove();
-        } else if (previousContent) {
-          element.setAttribute("content", previousContent);
-        } else {
-          element.removeAttribute("content");
-        }
+        if (created) element.remove();
+        else if (previousContent) element.setAttribute("content", previousContent);
+        else element.removeAttribute("content");
       });
       if (jsonLdEl) jsonLdEl.remove();
     };
   }, [artist, metaDescription]);
 }
 
+/* -------------------- SectionTabs (guias laterais) -------------------- */
+function SectionTabs({
+  sections,
+  initialIndex = 0,
+}: {
+  sections: { title: string; html?: string | null }[];
+  initialIndex?: number;
+}) {
+  const [active, setActive] = useState(initialIndex);
+  const currentIndex = sections.length > 0 ? Math.min(active, sections.length - 1) : 0;
+  const current = sections[currentIndex];
+
+  return (
+    <div className="card section">
+      <div className="flex flex-col gap-6 lg:flex-row">
+        <div className="flex flex-row gap-3 overflow-x-auto pb-2 lg:w-64 lg:flex-col lg:overflow-visible lg:pb-0">
+          {sections.map((s, i) => {
+            const isActive = i === currentIndex;
+            return (
+              <button
+                key={s.title}
+                type="button"
+                onClick={() => setActive(i)}
+                aria-pressed={isActive}
+                className={`min-w-[160px] flex-1 whitespace-nowrap rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
+                  isActive
+                    ? "border-[var(--accent,#e11d48)] bg-white/5 text-white shadow"
+                    : "border-[var(--border,#26262a)] bg-transparent text-[#a1a1aa] hover:border-[var(--accent,#e11d48)] hover:bg-white/5"
+                }`}
+              >
+                {s.title}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex-1 space-y-3">
+          <h3 className="title-lg">{current?.title}</h3>
+          {current?.html ? (
+            <div className="text-md" dangerouslySetInnerHTML={{ __html: current.html }} />
+          ) : (
+            <p className="text-md">Conteúdo não informado.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* -------------------- SectionCard util -------------------- */
 interface SectionContentProps {
   html?: string | null;
   clamp?: boolean;
 }
-
 function SectionContent({ html, clamp }: SectionContentProps) {
   const [expanded, setExpanded] = useState(false);
-
   if (!html) return <p className="text-md">Conteúdo não informado.</p>;
-
   return (
     <div>
       <div
@@ -123,26 +159,19 @@ function SectionContent({ html, clamp }: SectionContentProps) {
         dangerouslySetInnerHTML={{ __html: html }}
       />
       {clamp && !expanded && (
-        <button
-          type="button"
-          className="btn"
-          style={{ marginTop: "12px" }}
-          onClick={() => setExpanded(true)}
-        >
+        <button type="button" className="btn" style={{ marginTop: "12px" }} onClick={() => setExpanded(true)}>
           Ler mais
         </button>
       )}
     </div>
   );
 }
-
 interface SectionCardProps {
   title: string;
   html?: string | null;
   clamp?: boolean;
   children?: ReactNode;
 }
-
 function SectionCard({ title, html, clamp, children }: SectionCardProps) {
   return (
     <div className="card section">
@@ -152,6 +181,7 @@ function SectionCard({ title, html, clamp, children }: SectionCardProps) {
   );
 }
 
+/* -------------------- Hero -------------------- */
 interface HeroProps {
   name: string;
   coverUrl?: string | null;
@@ -160,7 +190,6 @@ interface HeroProps {
   highlight?: string;
   actions?: ReactNode;
 }
-
 function Hero({ name, coverUrl, avatarUrl, pills = [], highlight, actions }: HeroProps) {
   const pillItems = [...pills];
   if (highlight) pillItems.push(highlight);
@@ -217,14 +246,13 @@ function Hero({ name, coverUrl, avatarUrl, pills = [], highlight, actions }: Her
   );
 }
 
+/* -------------------- Stats + Media helpers -------------------- */
 interface StatPillsProps {
   stats?: { key: string; value: number | string }[];
   title?: string;
 }
-
 function StatPills({ stats, title = "Destaques" }: StatPillsProps) {
   if (!stats || stats.length === 0) return null;
-
   return (
     <div className="card section">
       <h2 className="title-lg">{title}</h2>
@@ -247,7 +275,6 @@ interface MediaGridProps<T> {
   renderItem: (item: T, index: number) => ReactNode;
   emptyMessage: string;
 }
-
 function MediaGrid<T>({ items, renderItem, emptyMessage }: MediaGridProps<T>) {
   if (!items || items.length === 0) return <p className="text-md">{emptyMessage}</p>;
   return <div className="media-grid">{items.map((item, index) => renderItem(item, index))}</div>;
@@ -257,7 +284,6 @@ interface VideoItem {
   url: string;
   provider?: "youtube" | "vimeo" | "file";
 }
-
 function extractYouTubeId(url: string) {
   try {
     const parsed = new URL(url);
@@ -266,12 +292,9 @@ function extractYouTubeId(url: string) {
       const segments = parsed.pathname.split("/").filter(Boolean);
       return segments.pop() ?? null;
     }
-  } catch (err) {
-    console.error("[VIDEOS::YOUTUBE_ID]", err);
-  }
+  } catch {}
   return null;
 }
-
 function extractVimeoId(url: string) {
   try {
     const parsed = new URL(url);
@@ -279,27 +302,20 @@ function extractVimeoId(url: string) {
       const segments = parsed.pathname.split("/").filter(Boolean);
       return segments.pop() ?? null;
     }
-  } catch (err) {
-    console.error("[VIDEOS::VIMEO_ID]", err);
-  }
+  } catch {}
   return null;
 }
-
 function toEmbedSrc(video: VideoItem) {
   if (!video.url) return null;
-
   const provider = video.provider;
-
   if (provider === "youtube") {
     const id = extractYouTubeId(video.url);
     return id ? `https://www.youtube.com/embed/${id}` : null;
   }
-
   if (provider === "vimeo") {
     const id = extractVimeoId(video.url);
     return id ? `https://player.vimeo.com/video/${id}` : null;
   }
-
   if (provider === "file") return video.url;
 
   const lower = video.url.toLowerCase();
@@ -312,14 +328,13 @@ function toEmbedSrc(video: VideoItem) {
     return id ? `https://player.vimeo.com/video/${id}` : null;
   }
   if (/(\.mp4|\.webm|\.ogg)(\?.*)?$/.test(lower)) return video.url;
-
   return video.url;
 }
-
 function formatStatValue(value: string | number) {
   return typeof value === "number" ? value.toLocaleString("pt-BR") : value;
 }
 
+/* -------------------- Page -------------------- */
 export default function ArtistProfilePage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const { data: artist, isLoading, error } = useArtistPublic(slug);
@@ -381,7 +396,8 @@ export default function ArtistProfilePage() {
     (item): item is string => !!item && item.trim().length > 0
   );
   const stats = (artist.stats ?? []).filter(
-    (stat): stat is ArtistStat => stat != null && stat.value != null && `${stat.value}`.toString().trim().length > 0
+    (stat): stat is ArtistStat =>
+      stat != null && stat.value != null && `${stat.value}`.toString().trim().length > 0
   );
   const [primaryStat, ...otherStats] = stats;
   const highlight = primaryStat
@@ -406,25 +422,12 @@ export default function ArtistProfilePage() {
           Contato
         </a>
       ) : (
-        <button
-          type="button"
-          className="btn"
-          disabled
-          aria-disabled="true"
-          style={{ opacity: 0.45, cursor: "not-allowed" }}
-        >
+        <button type="button" className="btn" disabled aria-disabled="true" style={{ opacity: 0.45, cursor: "not-allowed" }}>
           Contato
         </button>
       )}
     </>
   );
-
-  const sectionContent = [
-    { title: "Visão Geral", content: artist.vision, clamp: true },
-    { title: "História", content: artist.history },
-    { title: "Carreira", content: artist.career },
-    { title: "Mais", content: artist.more },
-  ];
 
   return (
     <div className="artist-page">
@@ -460,15 +463,17 @@ export default function ArtistProfilePage() {
         <section>
           <StatPills stats={statPills} title="Números & Reconhecimentos" />
 
-          {sectionContent.map((section) => (
-            <SectionCard
-              key={section.title}
-              title={section.title}
-              html={section.content}
-              clamp={section.clamp}
-            />
-          ))}
+          {/* Guias laterais de apresentação */}
+          <SectionTabs
+            sections={[
+              { title: "Visão Geral", html: artist.vision ?? "" },
+              { title: "História", html: artist.history ?? "" },
+              { title: "Carreira", html: artist.career ?? "" },
+              { title: "Mais", html: artist.more ?? "" },
+            ]}
+          />
 
+          {/* Fotos */}
           <div className="section" id="fotos">
             <h2 className="title-lg">Galeria de Fotos</h2>
             {photos.length > 0 ? (
@@ -488,6 +493,7 @@ export default function ArtistProfilePage() {
             )}
           </div>
 
+          {/* Vídeos */}
           <div className="section" id="videos">
             <h2 className="title-lg">Galeria de Vídeos</h2>
             <MediaGrid
@@ -510,21 +516,16 @@ export default function ArtistProfilePage() {
                     </div>
                   );
                 }
-
                 if (/(\.mp4|\.webm|\.ogg)(\?.*)?$/i.test(src)) {
                   return (
                     <div className="media" key={key}>
-                      <video
-                        controls
-                        style={{ width: "100%", height: "100%", objectFit: "cover", backgroundColor: "#000" }}
-                      >
+                      <video controls style={{ width: "100%", height: "100%", objectFit: "cover", backgroundColor: "#000" }}>
                         <source src={src} />
                         Seu navegador não suporta reprodução de vídeo.
                       </video>
                     </div>
                   );
                 }
-
                 return (
                   <div className="media" key={key}>
                     <iframe
