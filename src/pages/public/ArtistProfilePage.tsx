@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Images, PlayCircle, Send } from "lucide-react";
 import Header from "@/components/Header";
@@ -106,16 +106,53 @@ function useArtistSeo(artist?: ArtistPublic) {
   }, [artist, metaDescription]);
 }
 
-function renderSection(content?: string | null) {
-  if (!content) {
-    return <p className="text-sm text-[var(--text-3)]">Conteúdo não informado.</p>;
-  }
+function SectionTabs({
+  sections,
+  initialIndex = 0,
+}: {
+  sections: { title: string; html?: string | null }[];
+  initialIndex?: number;
+}) {
+  const [active, setActive] = useState(initialIndex);
+  const currentIndex = sections.length > 0 ? Math.min(active, sections.length - 1) : 0;
+  const current = sections[currentIndex];
 
   return (
-    <div
-      className="prose prose-invert max-w-none"
-      dangerouslySetInnerHTML={{ __html: content }}
-    />
+    <div className="card section rounded-3xl border border-[var(--elev-border)] bg-[var(--surface)] shadow-[var(--shadow-1)]">
+      <div className="flex flex-col gap-6 px-6 py-6 lg:flex-row">
+        <div className="flex flex-row gap-3 overflow-x-auto pb-2 lg:w-64 lg:flex-col lg:overflow-visible lg:pb-0">
+          {sections.map((s, i) => {
+            const isActive = i === currentIndex;
+            return (
+              <button
+                key={s.title}
+                type="button"
+                onClick={() => setActive(i)}
+                aria-pressed={isActive}
+                className={`min-w-[160px] flex-1 whitespace-nowrap rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
+                  isActive
+                    ? "border-[var(--accent,#e11d48)] bg-white/5 text-white shadow"
+                    : "border-[var(--border,#26262a)] bg-transparent text-[#a1a1aa] hover:border-[var(--accent,#e11d48)] hover:bg-white/5"
+                }`}
+              >
+                {s.title}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex-1 space-y-3">
+          <h3 className="title-lg text-xl font-semibold text-[var(--text-1)]">{current?.title}</h3>
+          {current?.html ? (
+            <div
+              className="prose prose-invert max-w-none text-md text-[var(--text-2)]"
+              dangerouslySetInnerHTML={{ __html: current.html }}
+            />
+          ) : (
+            <p className="text-md text-sm text-[var(--text-3)]">Conteúdo não informado.</p>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -131,13 +168,6 @@ export default function ArtistProfilePage() {
   }, [artist]);
 
   const socialLinks = artist?.socials?.filter((item) => !!item.url);
-
-  const sectionContent = [
-    { title: "Visão Geral", content: artist?.vision },
-    { title: "História", content: artist?.history },
-    { title: "Carreira", content: artist?.career },
-    { title: "Mais", content: artist?.more },
-  ];
 
   if (error) {
     const friendlyMessage = (() => {
@@ -301,11 +331,15 @@ export default function ArtistProfilePage() {
                 </aside>
 
                 <div className="flex flex-col gap-6">
-                  {sectionContent.map((section) => (
-                    <SectionCard key={section.title} title={section.title}>
-                      {renderSection(section.content)}
-                    </SectionCard>
-                  ))}
+                  <SectionTabs
+                    key={artist?.id ?? slug}
+                    sections={[
+                      { title: "Visão Geral", html: artist?.vision ?? "" },
+                      { title: "História", html: artist?.history ?? "" },
+                      { title: "Carreira", html: artist?.career ?? "" },
+                      { title: "Mais", html: artist?.more ?? "" },
+                    ]}
+                  />
                 </div>
               </div>
 
