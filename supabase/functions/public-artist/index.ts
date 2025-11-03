@@ -63,6 +63,30 @@ type ArtistRecord = {
   Partial<Record<ImageCaptionKey, string | null>> &
   Partial<Record<VideoKey, string | null>>;
 
+type EventRecord = {
+  id: string;
+  name: string | null;
+  description: string | null;
+  date: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  place: string | null;
+  cta_link: string | null;
+  banner: string | null;
+};
+
+type ProjectRecord = {
+  id: string;
+  title: string | null;
+  about: string | null;
+  partners: string | null;
+  team_art: string | null;
+  team_tech: string | null;
+  project_sheet: string | null;
+  cover_image: string | null;
+  banner_image: string | null;
+};
+
 function isAbsoluteUrl(value: string) {
   return value.startsWith("http://") || value.startsWith("https://");
 }
@@ -141,6 +165,70 @@ function detectVideoProvider(url: string | null | undefined) {
   return undefined;
 }
 
+async function loadEvents(memberId: string | null | undefined) {
+  if (!memberId) return [] as Array<EventRecord>;
+
+  const { data, error } = await supabase
+    .from("events")
+    .select("id, name, description, date, start_time, end_time, place, cta_link, banner")
+    .eq("member_id", memberId)
+    .eq("status", "published")
+    .order("date", { ascending: true });
+
+  if (error) {
+    console.error("[PUBLIC_ARTIST::EVENTS] Failed to load events", {
+      memberId,
+      error: error.message?.substring(0, 80) || "unknown",
+    });
+    return [];
+  }
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    date: row.date,
+    start_time: row.start_time,
+    end_time: row.end_time,
+    place: row.place,
+    cta_link: row.cta_link,
+    banner: row.banner,
+  }));
+}
+
+async function loadProjects(memberId: string | null | undefined) {
+  if (!memberId) return [] as Array<ProjectRecord>;
+
+  const { data, error } = await supabase
+    .from("projects")
+    .select(
+      "id, title, about, partners, team_art, team_tech, project_sheet, cover_image, banner_image"
+    )
+    .eq("member_id", memberId)
+    .eq("status", "published")
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    console.error("[PUBLIC_ARTIST::PROJECTS] Failed to load projects", {
+      memberId,
+      error: error.message?.substring(0, 80) || "unknown",
+    });
+    return [];
+  }
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    title: row.title,
+    about: row.about,
+    partners: row.partners,
+    team_art: row.team_art,
+    team_tech: row.team_tech,
+    project_sheet: row.project_sheet,
+    cover_image: row.cover_image,
+    banner_image: row.banner_image,
+  }));
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", {
@@ -207,6 +295,39 @@ serve(async (req) => {
         provider: detectVideoProvider(value),
       }));
 
+    const [rawProjects, rawEvents] = await Promise.all([
+      loadProjects(record.member_id),
+      loadEvents(record.member_id),
+    ]);
+
+    const projects = await Promise.all(
+      rawProjects.map(async (project) => ({
+        id: project.id,
+        title: project.title ?? undefined,
+        about: project.about ?? undefined,
+        partners: project.partners ?? undefined,
+        teamArt: project.team_art ?? undefined,
+        teamTech: project.team_tech ?? undefined,
+        projectSheetUrl: await resolveStorageUrl(project.project_sheet),
+        coverUrl: await resolveStorageUrl(project.cover_image),
+        bannerUrl: await resolveStorageUrl(project.banner_image),
+      }))
+    );
+
+    const events = await Promise.all(
+      rawEvents.map(async (event) => ({
+        id: event.id,
+        name: event.name ?? undefined,
+        description: event.description ?? undefined,
+        date: event.date ?? undefined,
+        startTime: event.start_time ?? undefined,
+        endTime: event.end_time ?? undefined,
+        place: event.place ?? undefined,
+        ctaLink: event.cta_link ?? undefined,
+        bannerUrl: await resolveStorageUrl(event.banner),
+      }))
+    );
+
     const avatarUrl = await resolveStorageUrl(record.profile_image);
     const coverUrl = (await resolveStorageUrl(record.video_banner_landscape)) ?? (await resolveStorageUrl(record.video_banner_portrait));
 
@@ -245,6 +366,14 @@ serve(async (req) => {
       socials,
       photos,
       videos,
+      projects: projects.filter(
+        (project) =>
+          project.title || project.about || project.coverUrl || project.bannerUrl || project.projectSheetUrl
+      ),
+      events: events.filter(
+        (event) =>
+          event.name || event.description || event.bannerUrl || event.date || event.place || event.ctaLink
+      ),
     };
 
     return jsonResponse(responseBody);

@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Candinho from "./pages/Candinho";
 import ArtistsIndex from "./pages/public/ArtistsIndex";
 import ArtistProfilePage from "./pages/public/ArtistProfilePage";
+import ArtistProjectPage from "./pages/public/ArtistProjectPage";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import MeuPerfil from "./pages/dashboard/MeuPerfil";
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/candinho" element={<Candinho />} />
             <Route path="/artistas" element={<ArtistsIndex />} />
+            <Route path="/artistas/:slug/projetos/:projectId" element={<ArtistProjectPage />} />
             <Route path="/artistas/:slug" element={<ArtistProfilePage />} />
             <Route path="/login" element={<Auth />} />
             <Route path="/auth" element={<Auth />} />

@@ -3,6 +3,30 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { getSignedUrl } from "@/utils/storage";
 
+export type ArtistProjectPublic = {
+  id: string;
+  title?: string;
+  about?: string;
+  partners?: string;
+  teamArt?: string;
+  teamTech?: string;
+  projectSheetUrl?: string | null;
+  coverUrl?: string | null;
+  bannerUrl?: string | null;
+};
+
+export type ArtistEventPublic = {
+  id: string;
+  name?: string;
+  description?: string;
+  date?: string;
+  startTime?: string;
+  endTime?: string;
+  place?: string;
+  ctaLink?: string;
+  bannerUrl?: string | null;
+};
+
 export type ArtistPublic = {
   id: string;
   slug: string;
@@ -19,6 +43,8 @@ export type ArtistPublic = {
   socials?: { label: string; url: string }[];
   photos?: { url: string; alt?: string }[];
   videos?: { url: string; provider?: "youtube" | "vimeo" | "file" }[];
+  projects?: ArtistProjectPublic[];
+  events?: ArtistEventPublic[];
 };
 
 /* ---------- Helpers de erro/HTTP ---------- */
@@ -204,6 +230,53 @@ async function fetchArtistFromSupabase(slug: string): Promise<ArtistPublic> {
     }
   }
 
+  type ProjectRow = Database["public"]["Tables"]["projects"]["Row"];
+  type EventRow = Database["public"]["Tables"]["events"]["Row"];
+
+  async function loadPublishedProjects(memberId: string | null | undefined) {
+    if (!memberId) return [] as ProjectRow[];
+
+    const { data, error } = await supabase
+      .from("projects")
+      .select(
+        "id, title, about, partners, team_art, team_tech, project_sheet, cover_image, banner_image"
+      )
+      .eq("member_id", memberId)
+      .eq("status", "published")
+      .order("updated_at", { ascending: false });
+
+    if (error) {
+      console.warn("[useArtistPublic] Falha ao carregar projetos publicados", {
+        memberId,
+        error: error.message,
+      });
+      return [];
+    }
+
+    return data ?? [];
+  }
+
+  async function loadPublishedEvents(memberId: string | null | undefined) {
+    if (!memberId) return [] as EventRow[];
+
+    const { data, error } = await supabase
+      .from("events")
+      .select("id, name, description, date, start_time, end_time, place, cta_link, banner")
+      .eq("member_id", memberId)
+      .eq("status", "published")
+      .order("date", { ascending: true });
+
+    if (error) {
+      console.warn("[useArtistPublic] Falha ao carregar eventos publicados", {
+        memberId,
+        error: error.message,
+      });
+      return [];
+    }
+
+    return data ?? [];
+  }
+
   const record = await loadArtistRecord();
 
   if (!record) {
@@ -266,6 +339,39 @@ async function fetchArtistFromSupabase(slug: string): Promise<ArtistPublic> {
     )
   ).filter((video): video is { url: string; provider?: "youtube" | "vimeo" | "file" } => video !== null);
 
+  const [projectRows, eventRows] = await Promise.all([
+    loadPublishedProjects(record.member_id),
+    loadPublishedEvents(record.member_id),
+  ]);
+
+  const projects = await Promise.all(
+    projectRows.map(async (project) => ({
+      id: project.id,
+      title: project.title ?? undefined,
+      about: project.about ?? undefined,
+      partners: project.partners ?? undefined,
+      teamArt: project.team_art ?? undefined,
+      teamTech: project.team_tech ?? undefined,
+      projectSheetUrl: await resolveSignedUrl(project.project_sheet),
+      coverUrl: await resolveSignedUrl(project.cover_image),
+      bannerUrl: await resolveSignedUrl(project.banner_image),
+    }))
+  );
+
+  const events = await Promise.all(
+    eventRows.map(async (event) => ({
+      id: event.id,
+      name: event.name ?? undefined,
+      description: event.description ?? undefined,
+      date: event.date ?? undefined,
+      startTime: event.start_time ?? undefined,
+      endTime: event.end_time ?? undefined,
+      place: event.place ?? undefined,
+      ctaLink: event.cta_link ?? undefined,
+      bannerUrl: await resolveSignedUrl(event.banner),
+    }))
+  );
+
   const socials = [
     { label: "Site oficial", url: record.website },
     { label: "Instagram", url: record.instagram },
@@ -308,6 +414,14 @@ async function fetchArtistFromSupabase(slug: string): Promise<ArtistPublic> {
     socials,
     photos,
     videos,
+    projects: projects.filter(
+      (project) =>
+        project.title || project.about || project.coverUrl || project.bannerUrl || project.projectSheetUrl
+    ),
+    events: events.filter(
+      (event) =>
+        event.name || event.description || event.bannerUrl || event.date || event.place || event.ctaLink
+    ),
   };
 }
 
