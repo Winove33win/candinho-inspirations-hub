@@ -108,11 +108,10 @@ export default function VideosAudios({ artistDetails, onUpsert }: VideosAudiosPr
 
   return (
     <div className="space-y-6">
-      <FormSection title="Áudio" description="Envie um áudio de até 4 MB">
+      <FormSection title="Áudio" description="Envie um áudio para a sua página">
         <Uploader
           id="uploadButton6"
           label="Ouça-me"
-          maxBytes={4 * 1024 * 1024}
           storageFolder="videos"
           accept="audio/*"
           currentPath={formData.audio}
@@ -121,12 +120,11 @@ export default function VideosAudios({ artistDetails, onUpsert }: VideosAudiosPr
         />
       </FormSection>
 
-      <FormSection title="Vídeos Banner" description="Envie vídeos de até 15 MB">
+      <FormSection title="Vídeos Banner" description="Envie vídeos para os banners">
         <div className="grid grid-cols-1 gap-y-4 md:grid-cols-12 md:gap-6">
           <div className="md:col-span-6">
             <Uploader
               label="Vídeo Banner Landscape (Desktop 16:9)"
-              maxBytes={15 * 1024 * 1024}
               storageFolder="videos"
               accept="video/*"
               currentPath={formData.video_banner_landscape}
@@ -138,7 +136,6 @@ export default function VideosAudios({ artistDetails, onUpsert }: VideosAudiosPr
           <div className="md:col-span-6">
             <Uploader
               label="Vídeo Banner Portrait (Mobile 9:16)"
-              maxBytes={15 * 1024 * 1024}
               storageFolder="videos"
               accept="video/*"
               currentPath={formData.video_banner_portrait}

@@ -307,7 +307,6 @@ function DocumentForm({
           <Uploader
             label="Arquivo"
             storageFolder="docs"
-            maxBytes={10 * 1024 * 1024}
             currentPath={formData.file_url || ""}
             onUploaded={(url) =>
               setFormData((prev) => ({ ...prev, file_url: url }))

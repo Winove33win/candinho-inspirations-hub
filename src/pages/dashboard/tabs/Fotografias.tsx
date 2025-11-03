@@ -83,7 +83,7 @@ export default function Fotografias({ artistDetails, onUpsert }: FotografiasProp
     <div className="space-y-6">
       <FormSection
         title="Galeria de Fotografias"
-        description="Adicione até 12 fotografias com legendas (máximo 1 MB cada)"
+        description="Adicione até 12 fotografias com legendas"
       >
         <div className="gallery-grid">
           {photos.map((photo, index) => (
@@ -96,7 +96,6 @@ export default function Fotografias({ artistDetails, onUpsert }: FotografiasProp
               <Uploader
                 id={`uploaderFoto${index + 1}`}
                 label={`Enviar Foto ${index + 1}`}
-                maxBytes={1024 * 1024}
                 storageFolder="photos"
                 accept="image/*"
                 currentPath={photo.image}

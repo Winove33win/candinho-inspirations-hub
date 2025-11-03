@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 
 interface UploaderProps {
   label: string;
-  maxBytes: number;
   storageFolder: "profile" | "photos" | "videos" | "docs";
   accept?: string;
   onUploaded: (path: string) => void;
@@ -25,7 +24,6 @@ interface UploaderProps {
 
 export function Uploader({
   label,
-  maxBytes,
   storageFolder,
   accept = "*/*",
   onUploaded,
@@ -71,15 +69,6 @@ export function Uploader({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (file.size > maxBytes) {
-      toast({
-        title: "Erro",
-        description: `Arquivo muito grande. Tamanho máximo: ${(maxBytes / 1024 / 1024).toFixed(1)}MB`,
-        variant: "destructive",
-      });
-      return;
-    }
 
     setUploading(true);
 

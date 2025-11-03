@@ -97,7 +97,6 @@ export default function BiografiaRedes({ artistDetails, onUpsert }: BiografiaRed
       <FormSection title="Biografia">
         <Uploader
           label="Documento Bio (PDF/DOC)"
-          maxBytes={2 * 1024 * 1024}
           storageFolder="docs"
           accept=".pdf,.doc,.docx"
           currentPath={formData.biography1}

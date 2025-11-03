@@ -187,7 +187,6 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
               <Uploader
                 id="imageX80"
                 label="Foto de Perfil"
-                maxBytes={1024 * 1024}
                 storageFolder="profile"
                 accept="image/*"
                 currentPath={formData.profile_image}
