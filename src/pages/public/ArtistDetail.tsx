@@ -36,6 +36,11 @@ function formatLink(url?: string | null) {
   }
 }
 
+function isVideoUrl(url?: string) {
+  if (!url) return false;
+  return /(\.mp4|\.webm|\.ogg)(\?|$)/i.test(url);
+}
+
 export default function ArtistDetail() {
   const { slug } = useParams<{ slug: string }>();
   const [artist, setArtist] = useState<ArtistRow | null>(null);
@@ -174,7 +179,10 @@ export default function ArtistDetail() {
       .filter((item): item is { src: string; caption: string } => Boolean(item));
   }, [artist, mediaUrls]);
 
-  const heroImage = mediaUrls.profile_image;
+  const heroMedia = mediaUrls.profile_image;
+  const heroIsVideo = isVideoUrl(heroMedia);
+  const heroImage = heroIsVideo ? undefined : heroMedia;
+  const heroVideo = heroIsVideo ? heroMedia : undefined;
   const impactPhrase = artist?.profile_text2 || "Artista integrante da rede SMARTx.";
   const displayName = artist?.artistic_name || artist?.full_name || "Artista SMARTx";
 
@@ -224,12 +232,24 @@ export default function ArtistDetail() {
                   </div>
                 </div>
                 <div className="md:justify-self-end">
-                  {heroImage && (
-                    <img
-                      src={heroImage}
-                      alt={displayName}
+                  {heroVideo ? (
+                    <video
+                      src={heroVideo}
                       className="h-44 w-44 rounded-2xl object-cover shadow-lg"
+                      controls
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
                     />
+                  ) : (
+                    heroImage && (
+                      <img
+                        src={heroImage}
+                        alt={displayName}
+                        className="h-44 w-44 rounded-2xl object-cover shadow-lg"
+                      />
+                    )
                   )}
                 </div>
               </div>
