@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Images, PlayCircle, Send } from "lucide-react";
 import Header from "@/components/Header";
@@ -122,6 +122,7 @@ function renderSection(content?: string | null) {
 export default function ArtistProfilePage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const { data: artist, isLoading, isError, error } = useArtistPublic(slug);
+  const [activeSectionIndex, setActiveSectionIndex] = useState(0);
 
   useArtistSeo(artist);
 
@@ -138,6 +139,12 @@ export default function ArtistProfilePage() {
     { title: "Carreira", content: artist?.career },
     { title: "Mais", content: artist?.more },
   ];
+
+  useEffect(() => {
+    setActiveSectionIndex(0);
+  }, [artist?.id, slug]);
+
+  const activeSection = sectionContent[activeSectionIndex] ?? sectionContent[0];
 
   if (error) {
     const friendlyMessage = (() => {
@@ -301,11 +308,36 @@ export default function ArtistProfilePage() {
                 </aside>
 
                 <div className="flex flex-col gap-6">
-                  {sectionContent.map((section) => (
-                    <SectionCard key={section.title} title={section.title}>
-                      {renderSection(section.content)}
-                    </SectionCard>
-                  ))}
+                  <SectionCard title="Apresentação">
+                    <div className="flex flex-col gap-6 lg:flex-row">
+                      <div className="flex flex-row gap-3 overflow-x-auto pb-2 lg:w-64 lg:flex-col lg:overflow-visible lg:pb-0">
+                        {sectionContent.map((section, index) => {
+                          const isActive = index === activeSectionIndex;
+                          return (
+                            <button
+                              key={section.title}
+                              type="button"
+                              onClick={() => setActiveSectionIndex(index)}
+                              aria-pressed={isActive}
+                              className={`min-w-[160px] flex-1 whitespace-nowrap rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus)] ${
+                                isActive
+                                  ? "border-[var(--brand)] bg-[var(--brand-soft)] text-[var(--text-1)] shadow-[var(--shadow-1)]"
+                                  : "border-[var(--divider)] bg-[var(--surface-2)] text-[var(--text-2)] hover:border-[var(--brand)] hover:bg-[var(--surface)]"
+                              }`}
+                            >
+                              {section.title}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="flex-1 space-y-4">
+                        <h3 className="text-lg font-semibold text-[var(--text-1)]">
+                          {activeSection?.title}
+                        </h3>
+                        {renderSection(activeSection?.content)}
+                      </div>
+                    </div>
+                  </SectionCard>
                 </div>
               </div>
 
