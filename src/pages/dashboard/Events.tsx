@@ -318,7 +318,6 @@ function EventForm({
             <Uploader
               label="Banner do evento"
               storageFolder="photos"
-              maxBytes={5 * 1024 * 1024}
               currentPath={formData.banner || ""}
               onUploaded={(url) => setFormData((prev) => ({ ...prev, banner: url }))}
               accept="image/*"

@@ -272,7 +272,6 @@ function ProjectForm({
             <Uploader
               label="Banner do projeto"
               storageFolder="photos"
-              maxBytes={5 * 1024 * 1024}
               currentPath={formData.banner_image || ""}
               onUploaded={(url) => setFormData((prev) => ({ ...prev, banner_image: url }))}
               accept="image/*"
@@ -284,7 +283,6 @@ function ProjectForm({
             <Uploader
               label="Imagem/Seção do projeto"
               storageFolder="photos"
-              maxBytes={5 * 1024 * 1024}
               currentPath={formData.cover_image || ""}
               onUploaded={(url) => setFormData((prev) => ({ ...prev, cover_image: url }))}
               accept="image/*"
@@ -342,7 +340,6 @@ function ProjectForm({
                     <Uploader
                       label={`Imagem do bloco ${index}`}
                       storageFolder="photos"
-                      maxBytes={5 * 1024 * 1024}
                       currentPath={(formData[imageKey] as string | null) || ""}
                       onUploaded={(url) =>
                         setFormData((prev) => ({ ...prev, [imageKey]: url }))
