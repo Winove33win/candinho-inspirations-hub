@@ -201,12 +201,34 @@ export default function ArtistDetail() {
   const impactPhrase = artist?.profile_text2 || "Artista integrante da rede SMARTx.";
   const displayName = artist?.artistic_name || artist?.full_name || "Artista SMARTx";
 
-  const textSections = [
-    { title: "Visão Geral", content: artist?.visao_geral_titulo },
-    { title: "História", content: artist?.historia_titulo },
-    { title: "Carreira", content: artist?.carreira_titulo },
-    { title: "Mais", content: artist?.mais_titulo },
-  ];
+  const textSections = useMemo(
+    () =>
+      [
+        { id: "visao-geral", title: "Visão Geral", content: artist?.visao_geral_titulo },
+        { id: "historia", title: "História", content: artist?.historia_titulo },
+        { id: "carreira", title: "Carreira", content: artist?.carreira_titulo },
+        { id: "mais", title: "Mais", content: artist?.mais_titulo },
+      ].filter((section) => section.content && getPlainText(section.content).length > 0),
+    [artist]
+  );
+
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (textSections.length === 0) {
+      setActiveSectionId(null);
+      return;
+    }
+
+    setActiveSectionId((current) => {
+      if (current && textSections.some((section) => section.id === current)) {
+        return current;
+      }
+      return textSections[0]?.id ?? null;
+    });
+  }, [textSections]);
+
+  const activeSection = textSections.find((section) => section.id === activeSectionId);
 
   return (
     <div className="min-h-screen bg-[var(--surface-alt)] text-[var(--ink)]">
@@ -317,20 +339,42 @@ export default function ArtistDetail() {
                 </div>
 
                 <div className="md:col-span-2 space-y-6">
-                  {textSections
-                    .filter((section) => section.content && getPlainText(section.content).length > 0)
-                    .map((section) => (
-                      <section
-                        key={section.title}
-                        className="rounded-2xl border border-[var(--elev-border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-1)]"
-                      >
-                        <h2 className="text-lg font-semibold text-[var(--ink)]">{section.title}</h2>
-                        <div
-                          className="prose prose-sm mt-4 max-w-none text-[var(--muted)]"
-                          dangerouslySetInnerHTML={{ __html: section.content ?? "" }}
-                        />
-                      </section>
-                    ))}
+                  {textSections.length > 0 && (
+                    <section className="grid gap-4 md:grid-cols-[220px,1fr] md:items-start">
+                      <nav className="rounded-2xl border border-[var(--elev-border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-1)] md:w-56">
+                        <p className="text-sm font-semibold text-[var(--ink)]">Conteúdo</p>
+                        <ul className="mt-3 space-y-2">
+                          {textSections.map((section) => {
+                            const isActive = section.id === activeSectionId;
+                            return (
+                              <li key={section.id}>
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveSectionId(section.id)}
+                                  className={`w-full rounded-lg px-4 py-2 text-left text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] ${
+                                    isActive
+                                      ? "bg-[var(--brand-soft)] text-[var(--brand)]"
+                                      : "text-[var(--muted)] hover:bg-[var(--surface-alt)] hover:text-[var(--ink)]"
+                                  }`}
+                                >
+                                  {section.title}
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </nav>
+                      <div className="rounded-2xl border border-[var(--elev-border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-1)]">
+                        <h2 className="text-lg font-semibold text-[var(--ink)]">{activeSection?.title}</h2>
+                        {activeSection && (
+                          <div
+                            className="prose prose-sm mt-4 max-w-none text-[var(--muted)]"
+                            dangerouslySetInnerHTML={{ __html: activeSection.content ?? "" }}
+                          />
+                        )}
+                      </div>
+                    </section>
+                  )}
 
                   {(mediaUrls.audio || mediaUrls.video_banner_landscape || mediaUrls.video_banner_portrait || youtubeLinks.length > 0) && (
                     <section className="rounded-2xl border border-[var(--elev-border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-1)]">
