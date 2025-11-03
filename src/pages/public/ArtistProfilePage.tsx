@@ -25,7 +25,9 @@ function useArtistSeo(artist?: ArtistPublic) {
   const plainVision = artist?.vision ? toPlainText(artist.vision) : "";
   const plainHistory = artist?.history ? toPlainText(artist.history) : "";
   const descriptionSource = plainVision || plainHistory;
-  const metaDescription = truncate(descriptionSource || `Conheça ${artist?.stageName ?? "artista"} na rede SMARTx.`);
+  const metaDescription = truncate(
+    descriptionSource || `Conheça ${artist?.stageName ?? "artista"} na rede SMARTx.`
+  );
 
   useEffect(() => {
     if (!artist) return;
@@ -40,7 +42,11 @@ function useArtistSeo(artist?: ArtistPublic) {
       { attr: "property", key: "og:description", content: metaDescription },
       { attr: "property", key: "og:type", content: "profile" },
       { attr: "property", key: "og:image", content: artist.coverUrl ?? artist.avatarUrl ?? "" },
-      { attr: "name", key: "twitter:card", content: artist.coverUrl || artist.avatarUrl ? "summary_large_image" : "summary" },
+      {
+        attr: "name",
+        key: "twitter:card",
+        content: artist.coverUrl || artist.avatarUrl ? "summary_large_image" : "summary",
+      },
       { attr: "name", key: "twitter:title", content: title },
       { attr: "name", key: "twitter:description", content: metaDescription },
       { attr: "name", key: "twitter:image", content: artist.coverUrl ?? artist.avatarUrl ?? "" },
@@ -95,9 +101,7 @@ function useArtistSeo(artist?: ArtistPublic) {
           element.removeAttribute("content");
         }
       });
-      if (jsonLdEl) {
-        jsonLdEl.remove();
-      }
+      if (jsonLdEl) jsonLdEl.remove();
     };
   }, [artist, metaDescription]);
 }
@@ -110,9 +114,7 @@ interface SectionContentProps {
 function SectionContent({ html, clamp }: SectionContentProps) {
   const [expanded, setExpanded] = useState(false);
 
-  if (!html) {
-    return <p className="text-md">Conteúdo não informado.</p>;
-  }
+  if (!html) return <p className="text-md">Conteúdo não informado.</p>;
 
   return (
     <div>
@@ -161,9 +163,7 @@ interface HeroProps {
 
 function Hero({ name, coverUrl, avatarUrl, pills = [], highlight, actions }: HeroProps) {
   const pillItems = [...pills];
-  if (highlight) {
-    pillItems.push(highlight);
-  }
+  if (highlight) pillItems.push(highlight);
 
   return (
     <header className="sticky-hero">
@@ -209,11 +209,7 @@ function Hero({ name, coverUrl, avatarUrl, pills = [], highlight, actions }: Her
                 ))}
               </div>
             )}
-            {actions && (
-              <div className="hero-actions" style={{ marginTop: "14px" }}>
-                {actions}
-              </div>
-            )}
+            {actions && <div className="hero-actions" style={{ marginTop: "14px" }}>{actions}</div>}
           </div>
         </div>
       </div>
@@ -227,9 +223,7 @@ interface StatPillsProps {
 }
 
 function StatPills({ stats, title = "Destaques" }: StatPillsProps) {
-  if (!stats || stats.length === 0) {
-    return null;
-  }
+  if (!stats || stats.length === 0) return null;
 
   return (
     <div className="card section">
@@ -237,7 +231,9 @@ function StatPills({ stats, title = "Destaques" }: StatPillsProps) {
       <div className="pills">
         {stats.map((stat, index) => (
           <span className="pill" key={`${stat.key}-${stat.value}-${index}`}>
-            <strong style={{ color: "#f5f5f6", fontWeight: 700 }}>{stat.value}</strong>
+            <strong style={{ color: "#f5f5f6", fontWeight: 700 }}>
+              {typeof stat.value === "number" ? stat.value.toLocaleString("pt-BR") : stat.value}
+            </strong>
             {stat.key ? ` ${stat.key}` : ""}
           </span>
         ))}
@@ -253,10 +249,7 @@ interface MediaGridProps<T> {
 }
 
 function MediaGrid<T>({ items, renderItem, emptyMessage }: MediaGridProps<T>) {
-  if (!items || items.length === 0) {
-    return <p className="text-md">{emptyMessage}</p>;
-  }
-
+  if (!items || items.length === 0) return <p className="text-md">{emptyMessage}</p>;
   return <div className="media-grid">{items.map((item, index) => renderItem(item, index))}</div>;
 }
 
@@ -269,9 +262,7 @@ function extractYouTubeId(url: string) {
   try {
     const parsed = new URL(url);
     if (parsed.hostname.includes("youtu")) {
-      if (parsed.searchParams.get("v")) {
-        return parsed.searchParams.get("v");
-      }
+      if (parsed.searchParams.get("v")) return parsed.searchParams.get("v");
       const segments = parsed.pathname.split("/").filter(Boolean);
       return segments.pop() ?? null;
     }
@@ -309,9 +300,7 @@ function toEmbedSrc(video: VideoItem) {
     return id ? `https://player.vimeo.com/video/${id}` : null;
   }
 
-  if (provider === "file") {
-    return video.url;
-  }
+  if (provider === "file") return video.url;
 
   const lower = video.url.toLowerCase();
   if (lower.includes("youtu")) {
@@ -322,9 +311,7 @@ function toEmbedSrc(video: VideoItem) {
     const id = extractVimeoId(video.url);
     return id ? `https://player.vimeo.com/video/${id}` : null;
   }
-  if (/(\.mp4|\.webm|\.ogg)(\?.*)?$/.test(lower)) {
-    return video.url;
-  }
+  if (/(\.mp4|\.webm|\.ogg)(\?.*)?$/.test(lower)) return video.url;
 
   return video.url;
 }
@@ -342,12 +329,8 @@ export default function ArtistProfilePage() {
   if (error) {
     const friendlyMessage = (() => {
       const message = (error as Error).message;
-      if (message === "artist_not_found") {
-        return "Artista não encontrado.";
-      }
-      if (message === "internal_error") {
-        return "Erro interno ao carregar o artista.";
-      }
+      if (message === "artist_not_found") return "Artista não encontrado.";
+      if (message === "internal_error") return "Erro interno ao carregar o artista.";
       return message;
     })();
 
@@ -356,9 +339,7 @@ export default function ArtistProfilePage() {
         <main className="container">
           <div className="card">
             <h2 className="title-lg">Ops! Não foi possível carregar o artista.</h2>
-            <p className="text-md" style={{ marginTop: "12px" }}>
-              {friendlyMessage}
-            </p>
+            <p className="text-md" style={{ marginTop: "12px" }}>{friendlyMessage}</p>
           </div>
         </main>
       </div>
@@ -396,11 +377,16 @@ export default function ArtistProfilePage() {
   }
 
   const socialLinks = (artist.socials ?? []).filter((item) => item && item.url);
-  const heroPills = [artist.country, artist.city].filter((item): item is string => !!item && item.trim().length > 0);
-  const stats = (artist.stats ?? []).filter((stat): stat is ArtistStat => stat != null && stat.value != null && `${stat.value}`.toString().trim().length > 0);
+  const heroPills = [artist.country, artist.city].filter(
+    (item): item is string => !!item && item.trim().length > 0
+  );
+  const stats = (artist.stats ?? []).filter(
+    (stat): stat is ArtistStat => stat != null && stat.value != null && `${stat.value}`.toString().trim().length > 0
+  );
   const [primaryStat, ...otherStats] = stats;
   const highlight = primaryStat
-    ? [formatStatValue(primaryStat.value), primaryStat.key].filter(Boolean).join(" · ") || formatStatValue(primaryStat.value)
+    ? [formatStatValue(primaryStat.value), primaryStat.key].filter(Boolean).join(" · ") ||
+      formatStatValue(primaryStat.value)
     : undefined;
   const statPills = otherStats.map((stat) => ({
     key: stat.key,
@@ -412,15 +398,9 @@ export default function ArtistProfilePage() {
 
   const heroActions = (
     <>
-      <button type="button" className="btn btn--accent">
-        Seguir
-      </button>
-      <a className="btn" href="#fotos">
-        Fotos
-      </a>
-      <a className="btn" href="#videos">
-        Vídeos
-      </a>
+      <button type="button" className="btn btn--accent">Seguir</button>
+      <a className="btn" href="#fotos">Fotos</a>
+      <a className="btn" href="#videos">Vídeos</a>
       {primaryContact ? (
         <a className="btn" href={primaryContact.url} target="_blank" rel="noopener noreferrer">
           Contato
@@ -481,7 +461,12 @@ export default function ArtistProfilePage() {
           <StatPills stats={statPills} title="Números & Reconhecimentos" />
 
           {sectionContent.map((section) => (
-            <SectionCard key={section.title} title={section.title} html={section.content} clamp={section.clamp} />
+            <SectionCard
+              key={section.title}
+              title={section.title}
+              html={section.content}
+              clamp={section.clamp}
+            />
           ))}
 
           <div className="section" id="fotos">
