@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useArtistPublic } from "@/hooks/useArtistPublic";
-import type { ArtistPublic } from "@/hooks/useArtistPublic";
+import type { ArtistEventPublic, ArtistPublic } from "@/hooks/useArtistPublic";
 import "@/styles/artist.css";
 import Lightbox, { LightboxItem } from "@/components/media/Lightbox";
 
@@ -18,6 +18,44 @@ function toPlainText(value?: string | null) {
 function truncate(value: string, max = 160) {
   if (value.length <= max) return value;
   return `${value.slice(0, max - 1).trim()}…`;
+}
+
+function formatDateDisplay(value?: string) {
+  if (!value) return undefined;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  try {
+    return new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    }).format(parsed);
+  } catch {
+    return value;
+  }
+}
+
+function formatTimeDisplay(value?: string) {
+  if (!value) return undefined;
+  const isoLike = value.includes("T") ? value : `1970-01-01T${value}`;
+  const parsed = new Date(isoLike);
+  if (Number.isNaN(parsed.getTime())) return value;
+  try {
+    return new Intl.DateTimeFormat("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(parsed);
+  } catch {
+    return value;
+  }
+}
+
+function buildEventSchedule(event: ArtistEventPublic) {
+  const date = formatDateDisplay(event.date);
+  const start = formatTimeDisplay(event.startTime);
+  const end = formatTimeDisplay(event.endTime);
+  const timeRange = start && end ? `${start} – ${end}` : start || end;
+  return [date, timeRange].filter(Boolean).join(" • ");
 }
 
 /* -------------------- SEO + JSON-LD -------------------- */
@@ -410,6 +448,12 @@ export default function ArtistProfilePage() {
   }));
   const photos = (artist.photos ?? []).filter((photo) => photo && photo.url);
   const videos = (artist.videos ?? []).filter((video) => video && video.url) as VideoItem[];
+  const projects = (artist.projects ?? []).filter(
+    (project): project is NonNullable<typeof project> => !!project
+  );
+  const events = (artist.events ?? []).filter(
+    (event): event is NonNullable<typeof event> => !!event
+  );
   const primaryContact = socialLinks[0];
 
   const heroActions = (
@@ -493,6 +537,112 @@ export default function ArtistProfilePage() {
                 { title: "Mais", html: artist.more ?? "" },
               ]}
             />
+
+            {projects.length > 0 && (
+              <div className="section" id="projetos">
+                <h2 className="title-lg">Projetos em destaque</h2>
+                <div className="vertical-list">
+                  {projects.map((project) => {
+                    if (!project) return null;
+                    const hasMeta = project.partners || project.teamArt || project.teamTech;
+                    return (
+                      <article className="card project-card" key={project.id}>
+                        {(project.coverUrl || project.bannerUrl) && (
+                          <div className="project-media">
+                            <img
+                              src={project.coverUrl ?? project.bannerUrl ?? ""}
+                              alt={`Imagem do projeto ${project.title ?? artist.stageName}`}
+                              loading="lazy"
+                            />
+                          </div>
+                        )}
+                        <div className="project-body">
+                          <h3 className="project-title">{project.title ?? "Projeto"}</h3>
+                          {project.about && <p className="text-md">{project.about}</p>}
+                          {hasMeta && (
+                            <ul className="project-meta">
+                              {project.partners && (
+                                <li>
+                                  <strong>Parceiros:</strong> {project.partners}
+                                </li>
+                              )}
+                              {project.teamArt && (
+                                <li>
+                                  <strong>Direção artística:</strong> {project.teamArt}
+                                </li>
+                              )}
+                              {project.teamTech && (
+                                <li>
+                                  <strong>Equipe técnica:</strong> {project.teamTech}
+                                </li>
+                              )}
+                            </ul>
+                          )}
+                          {project.projectSheetUrl && (
+                            <div className="project-actions">
+                              <a
+                                className="btn"
+                                href={project.projectSheetUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Baixar release
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {events.length > 0 && (
+              <div className="section" id="eventos">
+                <h2 className="title-lg">Eventos</h2>
+                <div className="vertical-list">
+                  {events.map((event) => {
+                    if (!event) return null;
+                    const schedule = buildEventSchedule(event);
+                    const hasMeta = schedule || event.place;
+                    return (
+                      <article className="card event-card" key={event.id}>
+                        {event.bannerUrl && (
+                          <div className="event-media">
+                            <img
+                              src={event.bannerUrl}
+                              alt={`Banner do evento ${event.name ?? artist.stageName}`}
+                              loading="lazy"
+                            />
+                          </div>
+                        )}
+                        <div className="event-body">
+                          <h3 className="event-title">{event.name ?? "Evento"}</h3>
+                          {hasMeta && (
+                            <div className="event-meta">
+                              {schedule && <span>{schedule}</span>}
+                              {event.place && <span>{event.place}</span>}
+                            </div>
+                          )}
+                          {event.description && <p className="text-md">{event.description}</p>}
+                          {event.ctaLink && (
+                            <a
+                              className="btn btn--accent"
+                              href={event.ctaLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Saiba mais
+                            </a>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Fotos */}
             <div className="section" id="fotos">
