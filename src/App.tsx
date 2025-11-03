@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Candinho from "./pages/Candinho";
 import ArtistsIndex from "./pages/public/ArtistsIndex";
-import ArtistDetail from "./pages/public/ArtistDetail";
 import ArtistProfilePage from "./pages/public/ArtistProfilePage";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -35,7 +34,6 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/candinho" element={<Candinho />} />
             <Route path="/artistas" element={<ArtistsIndex />} />
-            <Route path="/artista/:slug" element={<ArtistDetail />} />
             <Route path="/artistas/:slug" element={<ArtistProfilePage />} />
             <Route path="/login" element={<Auth />} />
             <Route path="/auth" element={<Auth />} />
