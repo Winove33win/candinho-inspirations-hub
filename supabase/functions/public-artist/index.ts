@@ -89,7 +89,12 @@ async function resolveStorageUrl(path: string | null | undefined) {
     .createSignedUrl(objectPath, 3600);
 
   if (error) {
-    console.error("[PUBLIC_ARTIST::SIGN]", error);
+    // Log sanitized error without exposing internal details
+    console.error("[PUBLIC_ARTIST::SIGN] Failed to create signed URL", {
+      bucket,
+      hasPath: !!objectPath,
+      errorCode: error.message?.substring(0, 50) || "unknown"
+    });
     return null;
   }
 
@@ -98,31 +103,31 @@ async function resolveStorageUrl(path: string | null | undefined) {
 
 async function loadArtist(slug: string) {
   const { data: bySlug, error: slugError } = await supabase
-    .from<ArtistRecord>("artist_details_public")
+    .from("artist_details_public")
     .select("*")
     .eq("slug", slug)
     .maybeSingle();
 
   if (slugError && slugError.code !== "PGRST116") throw slugError;
-  if (bySlug) return bySlug;
+  if (bySlug) return bySlug as ArtistRecord;
 
   const { data: byId, error: idError } = await supabase
-    .from<ArtistRecord>("artist_details_public")
+    .from("artist_details_public")
     .select("*")
     .eq("id", slug)
     .maybeSingle();
 
   if (idError && idError.code !== "PGRST116") throw idError;
-  if (byId) return byId;
+  if (byId) return byId as ArtistRecord;
 
   const { data: byMember, error: memberError } = await supabase
-    .from<ArtistRecord>("artist_details_public")
+    .from("artist_details_public")
     .select("*")
     .eq("member_id", slug)
     .maybeSingle();
 
   if (memberError && memberError.code !== "PGRST116") throw memberError;
-  if (byMember) return byMember;
+  if (byMember) return byMember as ArtistRecord;
 
   return null;
 }
@@ -244,7 +249,12 @@ serve(async (req) => {
 
     return jsonResponse(responseBody);
   } catch (err) {
-    console.error("[PUBLIC_ARTIST::ERROR]", err);
+    // Log sanitized error without exposing database structure
+    console.error("[PUBLIC_ARTIST::ERROR]", {
+      slug,
+      errorType: err instanceof Error ? err.constructor.name : typeof err,
+      timestamp: new Date().toISOString()
+    });
     return jsonResponse({ error: "internal_error" }, { status: 500 });
   }
 });
