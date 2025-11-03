@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { useArtistPublic } from "@/hooks/useArtistPublic";
 import type { ArtistPublic } from "@/hooks/useArtistPublic";
 import "@/styles/artist.css";
+import Lightbox, { LightboxItem } from "@/components/media/Lightbox";
 
 type ArtistStat = NonNullable<ArtistPublic["stats"]>[number];
 
@@ -231,14 +232,16 @@ function Hero({ name, coverUrl, avatarUrl, pills = [], highlight, actions }: Her
             <h1 className="hero-name">{name}</h1>
 
             {/* chips país/cidade + destaque */}
-            {pills?.length > 0 && (
-              <div className="pills" style={{ marginTop: 10 }}>
-                {pills.map((item, i) => (
-                  <span className="pill" key={`${item}-${i}`}>{item}</span>
+            {(pills?.length || highlight) ? (
+              <div className="pills" style={{ marginTop: 8 }}>
+                {pills?.map((item, i) => (
+                  <span className="pill" key={`${item}-${i}`}>
+                    {item}
+                  </span>
                 ))}
                 {highlight && <span className="pill">{highlight}</span>}
               </div>
-            )}
+            ) : null}
 
             {/* CTA principais */}
             <div className="hero-actions">
@@ -346,6 +349,14 @@ export default function ArtistProfilePage() {
 
   useArtistSeo(artist);
 
+  const [lbItems, setLbItems] = useState<LightboxItem[] | null>(null);
+  const [lbIndex, setLbIndex] = useState<number>(0);
+  const openLightbox = (items: LightboxItem[], index = 0) => {
+    setLbItems(items);
+    setLbIndex(index);
+  };
+  const closeLightbox = () => setLbItems(null);
+
   const renderStatus = (title: string, message: string) => (
     <ArtistPageShell>
       <div className="mx-auto max-w-2xl rounded-2xl border border-[var(--elev-border)] bg-[var(--surface)] p-8 text-[var(--ink)] shadow-[var(--shadow-1)]">
@@ -418,6 +429,18 @@ export default function ArtistProfilePage() {
     </>
   );
 
+  const photoItems: LightboxItem[] = photos.map((p) => ({
+    type: "image",
+    src: p.url,
+    alt: p.alt && p.alt.trim().length > 0 ? p.alt : artist.stageName,
+  }));
+
+  const videoItems: LightboxItem[] = videos.map((v, i) => ({
+    type: "video",
+    src: toEmbedSrc(v) || v.url,
+    title: `Vídeo ${i + 1} — ${artist.stageName}`,
+  }));
+
   return (
     <ArtistPageShell>
       <div className="artist-page overflow-hidden rounded-[32px] border border-[rgba(255,255,255,0.08)] bg-[#0f0f10] shadow-[0_32px_120px_rgba(12,10,10,0.6)]">
@@ -474,22 +497,29 @@ export default function ArtistProfilePage() {
             {/* Fotos */}
             <div className="section" id="fotos">
               <h2 className="title-lg">Galeria de Fotos</h2>
-              {photos.length > 0 ? (
-                <div className="photo-grid">
-                  {photos.map((photo, index) => (
-                    <figure className="photo" key={`${photo.url}-${index}`}>
+            {photos.length > 0 ? (
+              <div className="photo-grid">
+                {photos.map((photo, index) => (
+                  <figure className="photo" key={`${photo.url}-${index}`}>
+                    <button
+                      type="button"
+                      className="photo-hit"
+                      onClick={() => openLightbox(photoItems, index)}
+                      aria-label="Ampliar foto"
+                    >
                       <img
                         src={photo.url}
                         alt={photo.alt && photo.alt.trim().length > 0 ? photo.alt : artist.stageName}
                         loading="lazy"
                       />
-                    </figure>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-md">Nenhuma fotografia enviada.</p>
-              )}
-            </div>
+                    </button>
+                  </figure>
+                ))}
+              </div>
+            ) : (
+              <p className="text-md">Nenhuma fotografia enviada.</p>
+            )}
+          </div>
 
             {/* Vídeos */}
             <div className="section" id="videos">
@@ -514,18 +544,36 @@ export default function ArtistProfilePage() {
                       </div>
                     );
                   }
+                  const handleClick = () => openLightbox(videoItems, index);
                   if (/(\.mp4|\.webm|\.ogg)(\?.*)?$/i.test(src)) {
                     return (
-                      <div className="media" key={key}>
-                        <video controls style={{ width: "100%", height: "100%", objectFit: "cover", backgroundColor: "#000" }}>
+                      <button
+                        type="button"
+                        className="media"
+                        key={key}
+                        onClick={handleClick}
+                        aria-label={`Assistir ${artist.stageName}`}
+                      >
+                        <video
+                          style={{ width: "100%", height: "100%", objectFit: "cover", backgroundColor: "#000" }}
+                          preload="metadata"
+                          muted
+                          playsInline
+                          controls={false}
+                        >
                           <source src={src} />
-                          Seu navegador não suporta reprodução de vídeo.
                         </video>
-                      </div>
+                      </button>
                     );
                   }
                   return (
-                    <div className="media" key={key}>
+                    <button
+                      type="button"
+                      className="media"
+                      key={key}
+                      onClick={handleClick}
+                      aria-label={`Assistir ${artist.stageName}`}
+                    >
                       <iframe
                         src={src}
                         title={`Vídeo ${index + 1} de ${artist.stageName}`}
@@ -533,8 +581,9 @@ export default function ArtistProfilePage() {
                         frameBorder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
+                        style={{ pointerEvents: "none" }}
                       />
-                    </div>
+                    </button>
                   );
                 }}
               />
@@ -542,6 +591,7 @@ export default function ArtistProfilePage() {
           </section>
         </div>
       </div>
+      {lbItems && <Lightbox items={lbItems} startIndex={lbIndex} onClose={closeLightbox} />}
     </ArtistPageShell>
   );
 }
