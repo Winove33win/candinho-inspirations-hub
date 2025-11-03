@@ -12,6 +12,9 @@ import { Uploader } from "@/components/dashboard/Uploader";
 import { RichTextEditor } from "@/components/dashboard/RichTextEditor";
 import type { Database } from "@/integrations/supabase/types";
 import { getSignedUrl } from "@/utils/storage";
+import { eventSchema } from "@/lib/validation";
+import { sanitizeHtml } from "@/lib/sanitize";
+import { z } from "zod";
 
 type Event = Database["public"]["Tables"]["events"]["Row"];
 
@@ -197,7 +200,10 @@ function EventForm({
 
     setSaving(true);
     try {
-      const sanitized = normalizeEventPayload(formData);
+      // Validate with zod schema
+      const validated = eventSchema.parse(formData);
+      
+      const sanitized = normalizeEventPayload(validated);
       const payload = {
         ...sanitized,
         member_id: user.id,
@@ -220,11 +226,20 @@ function EventForm({
       toast({ title: "Evento salvo com sucesso!" });
       onClose();
     } catch (error) {
-      console.error(error);
-      toast({
-        title: "Erro ao salvar",
-        variant: "destructive",
-      });
+      if (error instanceof z.ZodError) {
+        const firstError = error.errors[0];
+        toast({
+          title: "Erro de validação",
+          description: firstError.message,
+          variant: "destructive",
+        });
+      } else {
+        console.error(error);
+        toast({
+          title: "Erro ao salvar",
+          variant: "destructive",
+        });
+      }
     } finally {
       setSaving(false);
     }
@@ -418,7 +433,7 @@ function EventPreview({
         {event.description && (
           <div
             className="prose prose-sm max-w-none text-[var(--muted)] line-clamp-3"
-            dangerouslySetInnerHTML={{ __html: event.description }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(event.description) }}
           />
         )}
 

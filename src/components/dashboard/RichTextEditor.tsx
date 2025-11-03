@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 interface RichTextEditorProps {
   value: string;
@@ -34,13 +35,19 @@ export function RichTextEditor({ value, onChange, placeholder, id }: RichTextEdi
     "link",
   ];
 
+  // Sanitize content before passing to parent
+  const handleChange = useCallback((content: string) => {
+    const sanitized = sanitizeHtml(content);
+    onChange(sanitized);
+  }, [onChange]);
+
   return (
     <div className="rich-text-editor">
       <ReactQuill
         id={id}
         theme="snow"
         value={value}
-        onChange={onChange}
+        onChange={handleChange}
         modules={modules}
         formats={formats}
         placeholder={placeholder}

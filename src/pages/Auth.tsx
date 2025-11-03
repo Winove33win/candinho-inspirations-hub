@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { authSchema } from "@/lib/validation";
+import { z } from "zod";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -27,29 +29,28 @@ export default function Auth() {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      toast({
-        title: "Erro",
-        description: "Preencha todos os campos",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (password.length < 6) {
-      toast({
-        title: "Erro",
-        description: "A senha deve ter no mínimo 6 caracteres",
-        variant: "destructive",
-      });
-      return;
+    // Validate input with zod schema
+    try {
+      authSchema.parse({ email, password });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const firstError = error.errors[0];
+        toast({
+          title: "Erro de validação",
+          description: firstError.message,
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     setLoading(true);
 
     try {
+      const trimmedEmail = email.trim();
+      
       if (isLogin) {
-        const { error } = await signIn(email.trim(), password);
+        const { error } = await signIn(trimmedEmail, password);
         if (error) throw error;
 
         toast({
@@ -57,7 +58,7 @@ export default function Auth() {
           description: "Login realizado com sucesso!",
         });
       } else {
-        const { error } = await signUp(email.trim(), password);
+        const { error } = await signUp(trimmedEmail, password);
         if (error) throw error;
 
         toast({

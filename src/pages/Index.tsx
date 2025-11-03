@@ -20,6 +20,7 @@ import {
 } from "@/data/homepage";
 import { useFollowedArtists } from "@/hooks/useFollowedArtists";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AUTH_STORAGE_KEY = "smartx-demo-auth";
 
@@ -28,6 +29,7 @@ const Index = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toggleFollow, isFollowed } = useFollowedArtists();
+  const { user } = useAuth();
 
   const [selectedChip, setSelectedChip] = useState<DiscoveryChip>(discoveryChips[0]);
   const [isLoading, setIsLoading] = useState(true);
@@ -155,11 +157,9 @@ const Index = () => {
     const wasFollowing = isFollowed(artist.id);
     toggleFollow(artist.id);
 
-    const isLogged = typeof window !== "undefined" && window.localStorage.getItem(AUTH_STORAGE_KEY) === "1";
-
     toast({
       title: wasFollowing ? `Você removeu ${artist.name}` : `Seguindo ${artist.name}`,
-      description: isLogged
+      description: user
         ? "Sincronizado com o Portal do Artista."
         : "Salvo localmente. Faça login para sincronizar com o portal.",
     });
