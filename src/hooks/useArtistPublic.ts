@@ -242,13 +242,25 @@ async function fetchArtistFromSupabase(slug: string): Promise<ArtistPublic> {
     "link_to_video10",
   ];
 
-  const videos = videoKeys
-    .map((key) => record[key])
-    .filter((value): value is string => typeof value === "string" && value.length > 0)
-    .map((value) => ({
-      url: value,
-      provider: detectVideoProvider(value),
-    }));
+  const videos = (
+    await Promise.all(
+      videoKeys
+        .map((key) => record[key])
+        .filter((value): value is string => typeof value === "string" && value.length > 0)
+        .map(async (value) => {
+          const provider = detectVideoProvider(value);
+          const isAbsoluteUrl = /^https?:\/\//i.test(value);
+
+          if (provider === "file" || !isAbsoluteUrl) {
+            const signed = await resolveSignedUrl(value);
+            if (!signed) return null;
+            return { url: signed, provider: "file" as const };
+          }
+
+          return { url: value, provider };
+        })
+    )
+  ).filter((video): video is { url: string; provider?: "youtube" | "vimeo" | "file" } => video !== null);
 
   const socials = [
     { label: "Site oficial", url: record.website },
