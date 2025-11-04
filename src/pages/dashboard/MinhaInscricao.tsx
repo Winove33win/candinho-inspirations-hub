@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Circle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDashboardContext } from "./context";
 
 export default function MinhaInscricao() {
@@ -64,13 +64,18 @@ export default function MinhaInscricao() {
   return (
     <div className="site-container space-y-6 pb-16">
       <Card className="p-6 md:p-8">
-        <div className="space-y-2">
-          <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">
-            Minha Inscrição
-          </h2>
-          <p className="text-sm text-[var(--muted)] md:text-base">
-            Acompanhe o status da sua inscrição no programa SMARTx.
-          </p>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-2">
+            <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">
+              Minha Inscrição
+            </h2>
+            <p className="text-sm text-[var(--muted)] md:text-base">
+              Acompanhe o status da sua inscrição no programa SMARTx.
+            </p>
+          </div>
+          <Button asChild className="w-full md:w-auto" variant="secondary">
+            <Link to="/store">Confira nossos produtos</Link>
+          </Button>
         </div>
       </Card>
 
