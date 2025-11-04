@@ -172,31 +172,52 @@ async function fetchArtistFromPrimary(slug: string): Promise<ArtistPublic> {
 }
 
 async function fetchArtistFromSupabase(slug: string): Promise<ArtistPublic> {
-  type ArtistRecord = Database["public"]["Views"]["artist_details_public"]["Row"];
+  // Simplified type to avoid deep instantiation issues
+  type ArtistRecord = {
+    id: string | null;
+    slug: string | null;
+    member_id: string | null;
+    artistic_name: string | null;
+    full_name: string | null;
+    country_residence: string | null;
+    city: string | null;
+    profile_image: string | null;
+    video_banner_landscape: string | null;
+    video_banner_portrait: string | null;
+    visao_geral_titulo: string | null;
+    historia_titulo: string | null;
+    carreira_titulo: string | null;
+    mais_titulo: string | null;
+    profile_text2: string | null;
+    website: string | null;
+    instagram: string | null;
+    facebook: string | null;
+    youtube_channel: string | null;
+    music_spotify_apple: string | null;
+    [key: string]: any; // For dynamic image/video fields
+  };
 
   async function loadArtistRecord(): Promise<ArtistRecord | null> {
-    const lookups: Array<{
-      column: keyof ArtistRecord;
-      value: string;
-    }> = [
+    const lookups = [
       { column: "slug", value: slug },
       { column: "id", value: slug },
       { column: "member_id", value: slug },
     ];
 
     for (const lookup of lookups) {
-      const { data, error } = await supabase
+      // Cast supabase to any to avoid deep type instantiation
+      const result: any = await (supabase as any)
         .from("artist_details_public")
         .select("*")
-        .eq(lookup.column as string, lookup.value)
+        .eq(lookup.column, lookup.value)
         .maybeSingle();
 
-      if (error && error.code !== "PGRST116") {
-        throw error;
+      if (result.error && result.error.code !== "PGRST116") {
+        throw result.error;
       }
 
-      if (data) {
-        return data;
+      if (result.data) {
+        return result.data as ArtistRecord;
       }
     }
 
@@ -303,7 +324,7 @@ async function fetchArtistFromSupabase(slug: string): Promise<ArtistPublic> {
   });
 
   const photos = (await Promise.all(photosPromises)).filter(
-    (photo): photo is { url: string; alt?: string } => photo !== null
+    (photo): photo is NonNullable<typeof photo> => photo !== null
   );
 
   const videoKeys: Array<keyof ArtistRecord> = [
@@ -337,7 +358,7 @@ async function fetchArtistFromSupabase(slug: string): Promise<ArtistPublic> {
           return { url: value, provider };
         })
     )
-  ).filter((video): video is { url: string; provider?: "youtube" | "vimeo" | "file" } => video !== null);
+  ).filter((video): video is NonNullable<typeof video> => video !== null);
 
   const [projectRows, eventRows] = await Promise.all([
     loadPublishedProjects(record.member_id),

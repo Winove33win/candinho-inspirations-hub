@@ -39,6 +39,7 @@ type VideoKey = "link_to_video" | `link_to_video${VideoIndex}`;
 type ArtistRecord = {
   id: string | null;
   slug: string | null;
+  member_id: string | null;
   artistic_name: string | null;
   full_name: string | null;
   country_residence: string | null;

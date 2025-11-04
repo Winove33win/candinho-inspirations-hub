@@ -370,6 +370,40 @@ export default function ArtistProfilePage() {
   };
   const closeLightbox = () => setLbItems(null);
 
+  // Derive data for hooks (must be before any conditional returns)
+  const projects = (artist?.projects ?? []).filter(
+    (project): project is NonNullable<typeof project> => !!project
+  );
+  const events = (artist?.events ?? []).filter(
+    (event): event is NonNullable<typeof event> => !!event
+  );
+
+  // Hooks must be called unconditionally
+  const {
+    visible: projectsVisible,
+    canLoadMore: projectsCanMore,
+    loadMore: projectsMore,
+    sentinelRef: projectsSentinel,
+    busy: projectsBusy,
+    ioSupported: projectsIOSupported,
+    reset: projectsReset,
+  } = useInfiniteChunk({ items: projects, batch: 6 });
+
+  const {
+    visible: eventsVisible,
+    canLoadMore: eventsCanMore,
+    loadMore: eventsMore,
+    sentinelRef: eventsSentinel,
+    busy: eventsBusy,
+    ioSupported: eventsIOSupported,
+    reset: eventsReset,
+  } = useInfiniteChunk({ items: events, batch: 6 });
+
+  useEffect(() => {
+    projectsReset();
+    eventsReset();
+  }, [artist?.id, projectsReset, eventsReset]);
+
   const renderStatus = (title: string, message: string) => (
     <ArtistPageShell>
       <div className="mx-auto max-w-2xl rounded-2xl border border-[var(--elev-border)] bg-[var(--surface)] p-8 text-[var(--ink)] shadow-[var(--shadow-1)]">
@@ -421,40 +455,9 @@ export default function ArtistProfilePage() {
     key: stat.key,
     value: formatStatValue(stat.value),
   }));
-  const photos = (artist.photos ?? []).filter((photo) => photo && photo.url);
-  const videos = (artist.videos ?? []).filter((video) => video && video.url) as VideoItem[];
-  const projects = (artist.projects ?? []).filter(
-    (project): project is NonNullable<typeof project> => !!project
-  );
-  const events = (artist.events ?? []).filter(
-    (event): event is NonNullable<typeof event> => !!event
-  );
+  const photos = (artist?.photos ?? []).filter((photo) => photo && photo.url);
+  const videos = (artist?.videos ?? []).filter((video) => video && video.url) as VideoItem[];
   const primaryContact = socialLinks[0];
-
-  const {
-    visible: projectsVisible,
-    canLoadMore: projectsCanMore,
-    loadMore: projectsMore,
-    sentinelRef: projectsSentinel,
-    busy: projectsBusy,
-    ioSupported: projectsIOSupported,
-    reset: projectsReset,
-  } = useInfiniteChunk({ items: projects, batch: 6 });
-
-  const {
-    visible: eventsVisible,
-    canLoadMore: eventsCanMore,
-    loadMore: eventsMore,
-    sentinelRef: eventsSentinel,
-    busy: eventsBusy,
-    ioSupported: eventsIOSupported,
-    reset: eventsReset,
-  } = useInfiniteChunk({ items: events, batch: 6 });
-
-  useEffect(() => {
-    projectsReset();
-    eventsReset();
-  }, [artist?.id]);
 
   const heroActions = (
     <>
