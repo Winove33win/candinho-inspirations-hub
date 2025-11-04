@@ -1,73 +1,61 @@
-# Welcome to your Lovable project
+# SMARTx — Hub integrado de conteúdo e e-commerce B2B
 
-## Project info
+SMARTx reúne o blog público, a loja profissional e o painel do músico em uma única experiência.
 
-**URL**: https://lovable.dev/projects/80af99a0-9a42-4774-821e-5680d3e409c6
+## Stack principal
 
-## How can I edit this code?
+- **Frontend**: React 18 + TypeScript, Vite, Tailwind (dark mode), shadcn/ui, React Router, React Query.
+- **Backend**: Supabase (Auth, Postgres com RLS, Storage, Edge Functions).
+- **Editor**: React Quill para CMS e formulários com React Hook Form.
 
-There are several ways of editing your application.
+## Configuração
 
-**Use Lovable**
+1. Instale dependências:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/80af99a0-9a42-4774-821e-5680d3e409c6) and start prompting.
+```bash
+npm install
+```
 
-Changes made via Lovable will be committed automatically to this repo.
+2. Configure o arquivo `.env` com as credenciais Supabase:
 
-**Use your preferred IDE**
+```bash
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+3. Rode o ambiente de desenvolvimento:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+4. Para build de produção:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm run build
+```
 
-**Use GitHub Codespaces**
+## Módulos principais
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- **/blog** – listagem com SEO, página de post com JSON-LD e CMS completo em `/admin/blog`.
+- **/store** – catálogo público; preços e checkout apenas para profissionais aprovados.
+- **/dashboard** – painel do músico com atualização do perfil artístico e solicitação de verificação.
+- **/admin** – gestão de verificações, produtos, pedidos e conteúdo editorial.
 
-## What technologies are used for this project?
+## Supabase
 
-This project is built with:
+- Migrações SQL em `supabase/migrations` criam tabelas, RLS e RPCs.
+- Edge Function `request-professional-verification` trata upload de anexos e upsert de solicitações.
+- Buckets de Storage: `verifications` (privado), `blog` e `products` (públicos).
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Scripts úteis
 
-## How can I deploy this project?
+| Comando | Descrição |
+| --- | --- |
+| `npm run dev` | Servidor local com hot reload |
+| `npm run build` | Build de produção |
+| `npm run preview` | Pré-visualização do build |
 
-Simply open [Lovable](https://lovable.dev/projects/80af99a0-9a42-4774-821e-5680d3e409c6) and click on Share -> Publish.
+## Licença
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Projeto interno SMARTx. Ajuste conforme políticas do seu time antes de publicar.
