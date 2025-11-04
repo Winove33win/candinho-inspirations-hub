@@ -4,7 +4,11 @@ import { Link, useParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useArtistPublic } from "@/hooks/useArtistPublic";
-import type { ArtistEventPublic, ArtistPublic } from "@/hooks/useArtistPublic";
+import type { ArtistPublic } from "@/hooks/useArtistPublic";
+import { useInfiniteChunk } from "@/hooks/useInfiniteChunk";
+import LoadMore from "@/components/common/LoadMore";
+import ProjectMiniCard, { ProjectMini } from "@/components/artist/ProjectMiniCard";
+import EventMiniCard, { EventMini } from "@/components/artist/EventMiniCard";
 import "@/styles/artist.css";
 import Lightbox, { LightboxItem } from "@/components/media/Lightbox";
 
@@ -18,44 +22,6 @@ function toPlainText(value?: string | null) {
 function truncate(value: string, max = 160) {
   if (value.length <= max) return value;
   return `${value.slice(0, max - 1).trim()}…`;
-}
-
-function formatDateDisplay(value?: string) {
-  if (!value) return undefined;
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-  try {
-    return new Intl.DateTimeFormat("pt-BR", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    }).format(parsed);
-  } catch {
-    return value;
-  }
-}
-
-function formatTimeDisplay(value?: string) {
-  if (!value) return undefined;
-  const isoLike = value.includes("T") ? value : `1970-01-01T${value}`;
-  const parsed = new Date(isoLike);
-  if (Number.isNaN(parsed.getTime())) return value;
-  try {
-    return new Intl.DateTimeFormat("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(parsed);
-  } catch {
-    return value;
-  }
-}
-
-function buildEventSchedule(event: ArtistEventPublic) {
-  const date = formatDateDisplay(event.date);
-  const start = formatTimeDisplay(event.startTime);
-  const end = formatTimeDisplay(event.endTime);
-  const timeRange = start && end ? `${start} – ${end}` : start || end;
-  return [date, timeRange].filter(Boolean).join(" • ");
 }
 
 /* -------------------- SEO + JSON-LD -------------------- */
@@ -465,6 +431,31 @@ export default function ArtistProfilePage() {
   );
   const primaryContact = socialLinks[0];
 
+  const {
+    visible: projectsVisible,
+    canLoadMore: projectsCanMore,
+    loadMore: projectsMore,
+    sentinelRef: projectsSentinel,
+    busy: projectsBusy,
+    ioSupported: projectsIOSupported,
+    reset: projectsReset,
+  } = useInfiniteChunk({ items: projects, batch: 6 });
+
+  const {
+    visible: eventsVisible,
+    canLoadMore: eventsCanMore,
+    loadMore: eventsMore,
+    sentinelRef: eventsSentinel,
+    busy: eventsBusy,
+    ioSupported: eventsIOSupported,
+    reset: eventsReset,
+  } = useInfiniteChunk({ items: events, batch: 6 });
+
+  useEffect(() => {
+    projectsReset();
+    eventsReset();
+  }, [artist?.id]);
+
   const heroActions = (
     <>
       <button type="button" className="btn btn--accent">Seguir</button>
@@ -550,123 +541,65 @@ export default function ArtistProfilePage() {
             {projects.length > 0 && (
               <div className="section" id="projetos">
                 <h2 className="title-lg">Projetos em destaque</h2>
-                <div className="vertical-list">
-                  {projects.map((project) => {
-                    if (!project) return null;
-
-                    const previewAbout = project.about ? truncate(toPlainText(project.about), 200) : undefined;
-                    const projectSlug = artist.slug || slug;
-                    const projectHref = `/artistas/${projectSlug}/projetos/${project.id}`;
-                    const hasMeta = project.partners || project.teamArt || project.teamTech;
-
-                    return (
-                      <article className="card project-card" key={project.id}>
-                        {(project.coverUrl || project.bannerUrl) && (
-                          <div className="project-media">
-                            <img
-                              src={project.coverUrl ?? project.bannerUrl ?? ""}
-                              alt={`Imagem do projeto ${project.title ?? artist.stageName}`}
-                              loading="lazy"
-                            />
-                          </div>
-                        )}
-                        <div className="project-body">
-                          <h3 className="project-title">{project.title ?? "Projeto"}</h3>
-
-                          {previewAbout ? (
-                            <p className="text-md">{previewAbout}</p>
-                          ) : project.about ? (
-                            <p className="text-md">{toPlainText(project.about)}</p>
-                          ) : (
-                            <p className="text-md">Conheça os detalhes deste projeto no perfil completo.</p>
-                          )}
-
-                          {hasMeta && (
-                            <ul className="project-meta">
-                              {project.partners && (
-                                <li>
-                                  <strong>Parceiros:</strong> {project.partners}
-                                </li>
-                              )}
-                              {project.teamArt && (
-                                <li>
-                                  <strong>Direção artística:</strong> {project.teamArt}
-                                </li>
-                              )}
-                              {project.teamTech && (
-                                <li>
-                                  <strong>Equipe técnica:</strong> {project.teamTech}
-                                </li>
-                              )}
-                            </ul>
-                          )}
-
-                          <div className="project-actions">
-                            <Link className="btn btn--accent" to={projectHref}>
-                              Ver projeto completo
-                            </Link>
-                            {project.projectSheetUrl && (
-                              <a
-                                className="btn"
-                                href={project.projectSheetUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                Baixar release
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      </article>
-                    );
+                <div className="mini-list">
+                  {projectsVisible.map((project) => {
+                    const href = `/artistas/${artist.slug || slug}/projetos/${project.id}`;
+                    const mini: ProjectMini = {
+                      id: project.id,
+                      title: project.title,
+                      coverUrl: project.coverUrl,
+                      bannerUrl: project.bannerUrl,
+                      about: project.about,
+                      partners: project.partners,
+                      teamArt: project.teamArt,
+                      teamTech: project.teamTech,
+                      projectSheetUrl: project.projectSheetUrl,
+                      href,
+                    };
+                    return <ProjectMiniCard key={project.id} project={mini} />;
                   })}
                 </div>
+
+                <div ref={projectsSentinel} className="sentinel" aria-hidden="true" />
+
+                <LoadMore
+                  onClick={projectsMore}
+                  busy={projectsBusy}
+                  hidden={!projectsCanMore || (projectsIOSupported && !projectsBusy)}
+                  label="Ver mais projetos"
+                />
               </div>
             )}
 
             {events.length > 0 && (
               <div className="section" id="eventos">
                 <h2 className="title-lg">Eventos</h2>
-                <div className="vertical-list">
-                  {events.map((event) => {
-                    if (!event) return null;
-                    const schedule = buildEventSchedule(event);
-                    const hasMeta = schedule || event.place;
-                    return (
-                      <article className="card event-card" key={event.id}>
-                        {event.bannerUrl && (
-                          <div className="event-media">
-                            <img
-                              src={event.bannerUrl}
-                              alt={`Banner do evento ${event.name ?? artist.stageName}`}
-                              loading="lazy"
-                            />
-                          </div>
-                        )}
-                        <div className="event-body">
-                          <h3 className="event-title">{event.name ?? "Evento"}</h3>
-                          {hasMeta && (
-                            <div className="event-meta">
-                              {schedule && <span>{schedule}</span>}
-                              {event.place && <span>{event.place}</span>}
-                            </div>
-                          )}
-                          {event.description && <p className="text-md">{event.description}</p>}
-                          {event.ctaLink && (
-                            <a
-                              className="btn btn--accent"
-                              href={event.ctaLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Saiba mais
-                            </a>
-                          )}
-                        </div>
-                      </article>
-                    );
+                <div className="mini-list">
+                  {eventsVisible.map((event) => {
+                    const href = event.ctaLink || `/artistas/${artist.slug || slug}/eventos/${event.id}`;
+                    const mini: EventMini = {
+                      id: event.id,
+                      name: event.name,
+                      bannerUrl: event.bannerUrl,
+                      date: event.date,
+                      startTime: event.startTime,
+                      endTime: event.endTime,
+                      place: event.place,
+                      description: event.description,
+                      href,
+                    };
+                    return <EventMiniCard key={event.id} event={mini} />;
                   })}
                 </div>
+
+                <div ref={eventsSentinel} className="sentinel" aria-hidden="true" />
+
+                <LoadMore
+                  onClick={eventsMore}
+                  busy={eventsBusy}
+                  hidden={!eventsCanMore || (eventsIOSupported && !eventsBusy)}
+                  label="Ver mais eventos"
+                />
               </div>
             )}
 
