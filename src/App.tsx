@@ -2,28 +2,25 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Index from "./pages/Index";
+import Candinho from "./pages/Candinho";
+import ArtistsIndex from "./pages/public/ArtistsIndex";
+import ArtistProfilePage from "./pages/public/ArtistProfilePage";
+import ArtistProjectPage from "./pages/public/ArtistProjectPage";
 import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
+import MeuPerfil from "./pages/dashboard/MeuPerfil";
+import Projects from "./pages/dashboard/Projects";
+import Events from "./pages/dashboard/Events";
+import Documents from "./pages/dashboard/Documents";
+import MinhaInscricao from "./pages/dashboard/MinhaInscricao";
+import Suporte from "./pages/dashboard/Suporte";
+import CadastroPersonalizado from "./pages/dashboard/CadastroPersonalizado";
+import ImportArtists from "./pages/dashboard/ImportArtists";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/routes/ProtectedRoute";
-import { CartProvider } from "@/contexts/CartContext";
-import { RootLayout } from "@/routes/RootLayout";
-import Home from "@/pages/Home";
-import BlogIndexPage from "@/pages/blog/BlogIndexPage";
-import BlogPostPage from "@/pages/blog/BlogPostPage";
-import StoreIndexPage from "@/pages/store/StoreIndexPage";
-import ProductDetailPage from "@/pages/store/ProductDetailPage";
-import CheckoutPage from "@/pages/store/CheckoutPage";
-import DashboardLayout from "@/pages/dashboard/DashboardLayout";
-import ProfilePage from "@/pages/dashboard/ProfilePage";
-import OrdersPage from "@/pages/dashboard/OrdersPage";
-import AdminLayout from "@/pages/admin/AdminLayout";
-import AdminRoute from "@/routes/AdminRoute";
-import AdminVerificationsPage from "@/pages/admin/AdminVerificationsPage";
-import AdminProductsPage from "@/pages/admin/AdminProductsPage";
-import AdminOrdersPage from "@/pages/admin/AdminOrdersPage";
-import AdminBlogPage from "@/pages/blog/AdminBlogPage";
 
 const queryClient = new QueryClient();
 
@@ -34,53 +31,27 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <CartProvider>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route element={<RootLayout />}>
-                <Route index element={<Home />} />
-                <Route path="blog" element={<BlogIndexPage />} />
-                <Route path="blog/:slug" element={<BlogPostPage />} />
-                <Route path="store" element={<StoreIndexPage />} />
-                <Route path="store/:slug" element={<ProductDetailPage />} />
-                <Route
-                  path="checkout"
-                  element={
-                    <ProtectedRoute>
-                      <CheckoutPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardLayout />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route index element={<Navigate to="profile" replace />} />
-                  <Route path="profile" element={<ProfilePage />} />
-                  <Route path="orders" element={<OrdersPage />} />
-                </Route>
-                <Route
-                  path="admin"
-                  element={
-                    <AdminRoute>
-                      <AdminLayout />
-                    </AdminRoute>
-                  }
-                >
-                  <Route index element={<Navigate to="verifications" replace />} />
-                  <Route path="verifications" element={<AdminVerificationsPage />} />
-                  <Route path="products" element={<AdminProductsPage />} />
-                  <Route path="orders" element={<AdminOrdersPage />} />
-                  <Route path="blog" element={<AdminBlogPage />} />
-                </Route>
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </CartProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/candinho" element={<Candinho />} />
+            <Route path="/artistas" element={<ArtistsIndex />} />
+            <Route path="/artistas/:slug/projetos/:projectId" element={<ArtistProjectPage />} />
+            <Route path="/artistas/:slug" element={<ArtistProfilePage />} />
+            <Route path="/login" element={<Auth />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}>
+              <Route index element={<MeuPerfil />} />
+              <Route path="projetos" element={<Projects />} />
+              <Route path="eventos" element={<Events />} />
+              <Route path="documentos" element={<Documents />} />
+              <Route path="inscricao" element={<MinhaInscricao />} />
+              <Route path="suporte" element={<Suporte />} />
+              <Route path="personalizado" element={<CadastroPersonalizado />} />
+              <Route path="importar-artistas" element={<ImportArtists />} />
+            </Route>
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
