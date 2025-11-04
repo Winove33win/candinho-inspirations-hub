@@ -584,11 +584,6 @@ export default function ArtistProfilePage() {
                       id: event.id,
                       name: event.name,
                       bannerUrl: event.bannerUrl,
-                      date: event.date,
-                      startTime: event.startTime,
-                      endTime: event.endTime,
-                      place: event.place,
-                      description: event.description,
                       href,
                     };
                     return <EventMiniCard key={event.id} event={mini} />;
