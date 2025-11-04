@@ -1,6 +1,5 @@
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 const tabs = [
   { to: "/dashboard/profile", label: "Perfil do Músico" },
@@ -10,16 +9,11 @@ const tabs = [
 export default function DashboardLayout() {
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold text-white">Painel do Músico</h1>
-          <p className="text-sm text-zinc-400">
-            Atualize sua presença artística, acompanhe pedidos e gerencie sua verificação profissional.
-          </p>
-        </div>
-        <Button asChild className="w-full md:w-auto">
-          <Link to="/store">Acessar e-commerce do artista</Link>
-        </Button>
+      <div>
+        <h1 className="text-3xl font-semibold text-white">Painel do Músico</h1>
+        <p className="text-sm text-zinc-400">
+          Atualize sua presença artística, acompanhe pedidos e gerencie sua verificação profissional.
+        </p>
       </div>
       <div className="flex flex-wrap gap-3">
         {tabs.map((tab) => (
