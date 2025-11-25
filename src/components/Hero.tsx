@@ -1,7 +1,5 @@
-import { useMemo } from "react";
 import { ArrowDownRight, ArrowRightCircle } from "lucide-react";
 
-import heroBg from "@/assets/hero-bg.jpg";
 import type { DiscoveryChip, SearchEntry } from "@/data/homepage";
 import GlobalSearch from "@/components/GlobalSearch";
 import { Button } from "@/components/ui/button";
@@ -13,21 +11,21 @@ interface HeroProps {
 }
 
 const Hero = ({ onExplore, onSuggestionSelect, onChipSelect }: HeroProps) => {
-  const backgroundStyle = useMemo(
-    () => ({
-      backgroundImage: `linear-gradient(110deg, rgba(8, 0, 0, 0.78), rgba(8, 0, 0, 0.35)), url(${heroBg})`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-    }),
-    [],
-  );
-
   return (
     <section
       id="hero"
       className="relative flex min-h-[70vh] items-center overflow-hidden pt-28 pb-24"
     >
-      <div className="absolute inset-0" style={backgroundStyle} aria-hidden />
+      <div className="absolute inset-0" aria-hidden>
+        <video
+          className="h-full w-full object-cover"
+          src="https://video.wixstatic.com/video/7b859e_c353b2557d364f57844baf1735c230be/720p/mp4/file.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+        />
+      </div>
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[rgba(18,0,0,0.55)] to-[rgba(8,0,0,0.92)]" aria-hidden />
 
       <div className="site-container relative z-10 grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,0.6fr)] lg:items-center">

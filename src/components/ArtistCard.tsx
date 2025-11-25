@@ -30,7 +30,7 @@ const ArtistCard = ({ artist, isFollowed, onFollowToggle }: ArtistCardProps) => 
       <HoverCardTrigger asChild>
         <article
           className={cn(
-            "group relative flex h-full flex-col overflow-hidden rounded-[14px] border border-white/5 bg-[rgba(24,4,4,0.72)]",
+            "group relative flex h-full min-h-[520px] flex-col overflow-hidden rounded-[14px] border border-white/5 bg-[rgba(24,4,4,0.72)]",
             "shadow-[var(--shadow-card)] transition-transform transition-soft",
             "hover:-translate-y-1 hover:shadow-[var(--shadow-card-hover)] focus-within:-translate-y-1 focus-within:shadow-[var(--shadow-card-hover)]",
           )}
@@ -56,7 +56,7 @@ const ArtistCard = ({ artist, isFollowed, onFollowToggle }: ArtistCardProps) => 
             )}
           </div>
 
-          <div className="flex flex-1 flex-col justify-between p-4">
+          <div className="relative flex flex-1 flex-col justify-between p-4 pb-16">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-lg font-semibold text-[var(--ink)]">{artist.name}</h3>
