@@ -64,6 +64,27 @@ This project is built with:
 
 Simply open [Lovable](https://lovable.dev/projects/80af99a0-9a42-4774-821e-5680d3e409c6) and click on Share -> Publish.
 
+## Deploying on a Node.js host (e.g. Plesk)
+
+The repo now includes a minimal `server.js` that serves the built Vite assets from the `dist` folder. This is useful for platforms such as Plesk that expect a startup file.
+
+1. Install dependencies and build the static assets:
+   ```sh
+   npm ci
+   npm run build
+   ```
+2. Start the production server locally with:
+   ```sh
+   npm run start
+   ```
+   The server respects the `PORT` environment variable (falls back to `4173`).
+3. On Plesk (or similar hosts):
+   - Set **Application Root** to the project folder.
+   - Set **Document Root** to `dist` (created after the build step).
+   - Set **Startup File** to `server.js` and **Application Mode** to `production`.
+   - Ensure a `PORT` environment variable is configured if your host requires a specific port.
+   - Reinstall dependencies (`npm ci`) and run the build command once, then restart the app.
+
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!
