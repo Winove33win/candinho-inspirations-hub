@@ -10,6 +10,7 @@ import WorldMusicSection from "@/components/WorldMusicSection";
 import CandinhoSection from "@/components/CandinhoSection";
 import FeaturedArtist from "@/components/FeaturedArtist";
 import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
 import type { ArtistCardData, CarouselSectionKey, DiscoveryChip, SearchEntry } from "@/data/homepage";
 import {
   artistsLibrary,
