@@ -44,37 +44,58 @@ const Candinho = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-[#0b0204] via-[#110408] to-background text-white">
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+      <header className="fixed top-0 w-full z-50 border-b border-white/10 bg-[rgba(10,2,4,0.92)]/95 backdrop-blur-xl">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <ArrowLeft className="h-5 w-5" />
-              <span className="text-sm font-medium">Voltar</span>
-            </Link>
-            <h1 className="text-2xl font-bold tracking-tight">
-              SMART<span className="text-primary">x</span>
-            </h1>
-            <Button size="sm">
-              Comprar Ingressos
-            </Button>
+          <div className="flex items-center justify-between h-20 gap-6">
+            <div className="flex items-center gap-4">
+              <Link to="/" className="flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-sm font-semibold uppercase tracking-[0.22em] text-white transition hover:bg-white/10">
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
+              </Link>
+              <div className="h-10 w-px bg-white/10" aria-hidden />
+              <h1 className="text-2xl font-bold tracking-[0.26em] text-white">
+                SMART<span className="text-primary">x</span>
+              </h1>
+            </div>
+
+            <nav className="hidden items-center gap-6 text-xs font-semibold uppercase tracking-[0.28em] text-white/80 md:flex">
+              <a href="#sobre" className="transition hover:text-primary">Sobre</a>
+              <a href="#sinopse" className="transition hover:text-primary">Sinopse</a>
+              <a href="#cronograma" className="transition hover:text-primary">Cronograma</a>
+              <a href="#projetos" className="transition hover:text-primary">Projetos</a>
+              <a href="#eventos" className="transition hover:text-primary">Eventos</a>
+            </nav>
+
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-white/30 bg-white/10 text-white hover:border-primary hover:bg-primary/10"
+              >
+                Saiba mais
+              </Button>
+              <Button size="sm" className="shadow-[0_10px_30px_rgba(220,20,60,0.4)]">
+                Comprar Ingressos
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="pt-20">
+      <main className="pt-24">
         {/* Hero Section */}
         <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
-          <div 
+          <div
             className="absolute inset-0 z-0"
             style={{
-              backgroundImage: `linear-gradient(135deg, rgba(220, 20, 60, 0.85), rgba(18, 18, 18, 0.85)), url(${candinhoScene})`,
+              backgroundImage: `linear-gradient(120deg, rgba(12, 2, 4, 0.9), rgba(144, 8, 11, 0.72)), url(${candinhoScene})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
           />
-          
+
           <div className="container mx-auto px-4 lg:px-8 relative z-10">
             <div className="max-w-4xl mx-auto text-center animate-fade-in-up">
               <div className="mb-8">
@@ -88,7 +109,7 @@ const Candinho = () => {
               <p className="text-xl md:text-2xl text-primary-foreground/90 mb-8 leading-relaxed">
                 Uma experiência única que celebra a biodiversidade brasileira através da música e da arte
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" className="text-lg px-8 py-6">
                   <Ticket className="mr-2 h-5 w-5" />
@@ -108,23 +129,23 @@ const Candinho = () => {
         </section>
 
         {/* About Section */}
-        <section className="py-20 bg-background">
+        <section id="sobre" className="py-20 bg-background/60">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <h2 className="text-4xl md:text-5xl font-bold mb-12 text-center animate-fade-in">
                 Sobre o Projeto
               </h2>
-              
+
               <div className="grid md:grid-cols-2 gap-12 items-center">
-                <div className="space-y-6 text-foreground/80">
+                <div className="space-y-6 text-white/80">
                   <p className="text-lg leading-relaxed">
-                    <strong className="text-foreground">Candinho: Uma Ópera para Todos</strong> é uma produção inovadora que une música clássica, elementos da cultura popular brasileira e uma mensagem poderosa sobre a preservação ambiental e a biodiversidade.
+                    <strong className="text-white">Candinho: Uma Ópera para Todos</strong> é uma produção inovadora que une música clássica, elementos da cultura popular brasileira e uma mensagem poderosa sobre a preservação ambiental e a biodiversidade.
                   </p>
-                  
+
                   <p className="text-lg leading-relaxed">
                     Através da história de Candinho, um personagem que simboliza a conexão entre o ser humano e a natureza, a ópera explora temas universais como identidade, pertencimento e responsabilidade ambiental.
                   </p>
-                  
+
                   <p className="text-lg leading-relaxed">
                     A produção conta com um elenco excepcional, cenografia inspirada na fauna e flora brasileira, e uma trilha sonora que mescla tradição operística com ritmos brasileiros.
                   </p>
@@ -143,7 +164,7 @@ const Candinho = () => {
         </section>
 
         {/* Synopsis Section */}
-        <section className="py-20 bg-[hsl(45,40%,90%)]">
+        <section id="sinopse" className="py-20 bg-[rgba(26,12,14,0.88)]">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <h2 className="text-4xl md:text-5xl font-bold mb-12 text-center animate-fade-in">
@@ -169,15 +190,15 @@ const Candinho = () => {
                   />
                 </div>
                 
-                <div className="space-y-6 text-foreground/80">
+                <div className="space-y-6 text-white/80">
                   <p className="text-lg leading-relaxed">
                     A ópera retrata a jornada de Candinho, um jovem que vive em harmonia com a natureza e descobre o impacto da ação humana no meio ambiente. Através de sua trajetória, ele se torna um símbolo de resistência e esperança.
                   </p>
-                  
+
                   <p className="text-lg leading-relaxed">
                     A narrativa combina elementos do folclore brasileiro com questões contemporâneas sobre sustentabilidade, levando o público a refletir sobre sua relação com o planeta.
                   </p>
-                  
+
                   <p className="text-lg leading-relaxed">
                     Com músicas originais que transitam entre árias clássicas e ritmos populares brasileiros, a produção oferece uma experiência única que emociona e conscientiza.
                   </p>
@@ -188,19 +209,19 @@ const Candinho = () => {
         </section>
 
         {/* Locations Section */}
-        <section className="py-20 bg-[hsl(200,30%,85%)]">
+        <section className="py-20 bg-[rgba(12,16,24,0.9)]">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <h2 className="text-4xl md:text-5xl font-bold mb-12 text-center animate-fade-in">
                 Locais de Realização
               </h2>
-              
+
               <div className="grid md:grid-cols-2 gap-12 items-start">
-                <div className="space-y-6 text-foreground/80">
+                <div className="space-y-6 text-white/80">
                   <p className="text-lg leading-relaxed">
                     O projeto Candinho percorre as principais cidades brasileiras, levando cultura e arte para diversos públicos. As apresentações acontecem em teatros históricos e espaços culturais renomados.
                   </p>
-                  
+
                   <p className="text-lg leading-relaxed">
                     Além das apresentações, o projeto inclui atividades educativas e workshops com a comunidade local, promovendo a democratização do acesso à ópera.
                   </p>
@@ -249,7 +270,7 @@ const Candinho = () => {
         </section>
 
         {/* Activities and Timeline Section */}
-        <section className="py-20 bg-[hsl(80,35%,88%)]">
+        <section id="cronograma" className="py-20 bg-[rgba(10,22,14,0.9)]">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <h2 className="text-4xl md:text-5xl font-bold mb-12 text-center animate-fade-in">
@@ -257,43 +278,43 @@ const Candinho = () => {
               </h2>
               
               <div className="grid md:grid-cols-2 gap-12">
-                <div className="rounded-2xl border border-[var(--elev-border)] bg-[var(--surface)] p-8 shadow-[var(--shadow-1)]">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-8 shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
                   <h3 className="text-2xl font-bold mb-6 text-center">Cronograma 2025</h3>
                   <div className="space-y-4">
-                    <div className="flex justify-between items-center rounded-lg border border-[var(--elev-border)] bg-[var(--surface-2)] p-4">
+                    <div className="flex justify-between items-center rounded-lg border border-white/10 bg-white/5 p-4">
                       <span className="font-semibold">Janeiro - Fevereiro</span>
                       <span className="text-muted-foreground">Ensaios e Preparação</span>
                     </div>
-                    <div className="flex justify-between items-center rounded-lg border border-[var(--elev-border)] bg-[var(--surface-2)] p-4">
+                    <div className="flex justify-between items-center rounded-lg border border-white/10 bg-white/5 p-4">
                       <span className="font-semibold">Março</span>
                       <span className="text-muted-foreground">Estreia em São Paulo</span>
                     </div>
-                    <div className="flex justify-between items-center rounded-lg border border-[var(--elev-border)] bg-[var(--surface-2)] p-4">
+                    <div className="flex justify-between items-center rounded-lg border border-white/10 bg-white/5 p-4">
                       <span className="font-semibold">Abril - Maio</span>
                       <span className="text-muted-foreground">Turnê Nacional</span>
                     </div>
-                    <div className="flex justify-between items-center rounded-lg border border-[var(--elev-border)] bg-[var(--surface-2)] p-4">
+                    <div className="flex justify-between items-center rounded-lg border border-white/10 bg-white/5 p-4">
                       <span className="font-semibold">Junho</span>
                       <span className="text-muted-foreground">Workshops e Oficinas</span>
                     </div>
                   </div>
                 </div>
-                
-                <div className="space-y-6 text-foreground/80">
+
+                <div className="space-y-6 text-white/80">
                   <p className="text-lg leading-relaxed">
-                    <strong className="text-foreground">Workshops Educativos:</strong> Sessões interativas com artistas e educadores sobre música, teatro e meio ambiente.
+                    <strong className="text-white">Workshops Educativos:</strong> Sessões interativas com artistas e educadores sobre música, teatro e meio ambiente.
                   </p>
-                  
+
                   <p className="text-lg leading-relaxed">
-                    <strong className="text-foreground">Apresentações Escolares:</strong> Versões adaptadas da ópera para estudantes, promovendo educação ambiental através da arte.
+                    <strong className="text-white">Apresentações Escolares:</strong> Versões adaptadas da ópera para estudantes, promovendo educação ambiental através da arte.
                   </p>
-                  
+
                   <p className="text-lg leading-relaxed">
-                    <strong className="text-foreground">Debates e Palestras:</strong> Encontros com especialistas em biodiversidade e sustentabilidade após as apresentações.
+                    <strong className="text-white">Debates e Palestras:</strong> Encontros com especialistas em biodiversidade e sustentabilidade após as apresentações.
                   </p>
-                  
+
                   <p className="text-lg leading-relaxed">
-                    <strong className="text-foreground">Exposições:</strong> Mostras fotográficas e artísticas sobre a fauna e flora brasileira nos foyers dos teatros.
+                    <strong className="text-white">Exposições:</strong> Mostras fotográficas e artísticas sobre a fauna e flora brasileira nos foyers dos teatros.
                   </p>
                 </div>
               </div>
@@ -301,30 +322,99 @@ const Candinho = () => {
           </div>
         </section>
 
+        {/* Projects Section */}
+        <section id="projetos" className="py-20 bg-background/70">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="max-w-6xl mx-auto">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="space-y-3">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
+                    Projetos
+                  </span>
+                  <h2 className="text-4xl md:text-5xl font-bold">Experiências expandidas</h2>
+                  <p className="max-w-3xl text-white/80">
+                    Além das apresentações, Candinho ativa iniciativas que aproximam comunidades, pesquisadores e artistas convidados em ações colaborativas.
+                  </p>
+                </div>
+                <Button variant="ghost" className="text-white hover:text-primary" asChild>
+                  <Link to="/artistas">Ver artistas envolvidos</Link>
+                </Button>
+              </div>
+
+              <div className="mt-10 grid gap-6 lg:grid-cols-3">
+                <Card className="bg-white/5 text-white border-white/10 shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
+                  <CardContent className="space-y-3 p-6">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.24em] text-white/80">
+                      Imersão
+                    </div>
+                    <h3 className="text-2xl font-semibold">Laboratório de Voz e Corpo</h3>
+                    <p className="text-sm text-white/75">
+                      Oficinas guiadas pelo elenco principal exploram respiração, canto coletivo e movimento cênico.
+                    </p>
+                    <div className="flex items-center gap-2 text-sm text-primary">
+                      <Users className="h-4 w-4" /> 80 vagas por ciclo
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white/5 text-white border-white/10 shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
+                  <CardContent className="space-y-3 p-6">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.24em] text-white/80">
+                      Social
+                    </div>
+                    <h3 className="text-2xl font-semibold">Ações com Escolas Públicas</h3>
+                    <p className="text-sm text-white/75">
+                      Versões compactas da ópera percorrem escolas da rede municipal com material pedagógico complementar.
+                    </p>
+                    <div className="flex items-center gap-2 text-sm text-primary">
+                      <Music className="h-4 w-4" /> 12 cidades atendidas
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white/5 text-white border-white/10 shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
+                  <CardContent className="space-y-3 p-6">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.24em] text-white/80">
+                      Legado
+                    </div>
+                    <h3 className="text-2xl font-semibold">Residência Criativa</h3>
+                    <p className="text-sm text-white/75">
+                      Duas semanas de mentoria para compositores explorarem novas narrativas sobre biodiversidade.
+                    </p>
+                    <div className="flex items-center gap-2 text-sm text-primary">
+                      <Calendar className="h-4 w-4" /> Inscrições abertas
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Innovation and Impact Section */}
-        <section className="py-20 bg-background">
+        <section className="py-20 bg-background/70">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <h2 className="text-4xl md:text-5xl font-bold mb-12 text-center animate-fade-in">
                 Inovação e Impacto
               </h2>
-              
+
               <div className="grid md:grid-cols-2 gap-12 items-center">
-                <div className="space-y-6 text-foreground/80">
+                <div className="space-y-6 text-white/80">
                   <p className="text-lg leading-relaxed">
-                    <strong className="text-foreground">Candinho</strong> representa uma inovação no cenário operístico brasileiro ao unir tradição e contemporaneidade, tornando a ópera acessível a todos os públicos.
+                    <strong className="text-white">Candinho</strong> representa uma inovação no cenário operístico brasileiro ao unir tradição e contemporaneidade, tornando a ópera acessível a todos os públicos.
                   </p>
-                  
+
                   <p className="text-lg leading-relaxed">
                     O projeto utiliza tecnologia de ponta em cenografia digital, projeções imersivas e recursos multimídia que transportam o público para os ecossistemas brasileiros.
                   </p>
-                  
+
                   <p className="text-lg leading-relaxed">
-                    <strong className="text-foreground">Impacto Social:</strong> Mais de 10.000 estudantes beneficiados com atividades educativas gratuitas.
+                    <strong className="text-white">Impacto Social:</strong> Mais de 10.000 estudantes beneficiados com atividades educativas gratuitas.
                   </p>
-                  
+
                   <p className="text-lg leading-relaxed">
-                    <strong className="text-foreground">Sustentabilidade:</strong> 100% dos materiais cenográficos são reutilizáveis e parte da renda é destinada a projetos de conservação ambiental.
+                    <strong className="text-white">Sustentabilidade:</strong> 100% dos materiais cenográficos são reutilizáveis e parte da renda é destinada a projetos de conservação ambiental.
                   </p>
                 </div>
                 
@@ -540,28 +630,28 @@ const Candinho = () => {
         </section>
 
         {/* Performances Section */}
-        <section className="py-20 bg-secondary text-secondary-foreground">
+        <section id="eventos" className="py-20 bg-[rgba(18,6,8,0.92)] text-white">
           <div className="container mx-auto px-4 lg:px-8">
             <h2 className="text-4xl md:text-5xl font-bold mb-12 text-center animate-fade-in">
               Próximas Apresentações
             </h2>
-            
+
             <div className="max-w-4xl mx-auto space-y-4">
               {performances.map((performance, index) => (
-                <Card key={index} className="border-2 hover:border-primary/40 transition-all duration-300 animate-fade-in-up">
+                <Card key={index} className="border-white/15 bg-white/5 text-white transition-all duration-300 hover:border-primary/60 animate-fade-in-up">
                   <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="space-y-2 flex-1">
                         <div className="flex items-center gap-2 text-primary">
                           <Calendar className="h-5 w-5" />
                           <span className="font-bold text-lg">{performance.date}</span>
-                          <span className="text-muted-foreground">• {performance.time}</span>
+                          <span className="text-white/70">• {performance.time}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <MapPin className="h-5 w-5 text-muted-foreground" />
+                          <MapPin className="h-5 w-5 text-white/70" />
                           <div>
                             <p className="font-semibold">{performance.venue}</p>
-                            <p className="text-sm text-muted-foreground">{performance.city}</p>
+                            <p className="text-sm text-white/70">{performance.city}</p>
                           </div>
                         </div>
                       </div>
