@@ -69,13 +69,6 @@ const Header = () => {
             SMART<span className="text-[var(--brand)]">x</span>
           </Link>
           <nav aria-label="Navegação principal" className="hidden items-center gap-6 text-sm font-semibold uppercase tracking-[0.24em] text-[rgba(250,250,252,0.75)] lg:flex">
-            <button
-              type="button"
-              className="border-none bg-transparent transition hover:text-[var(--brand)]"
-              onClick={() => navigateToSection("hero")}
-            >
-              Home
-            </button>
             <Link to="/artistas" className="transition hover:text-[var(--brand)]">
               Artistas
             </Link>
@@ -86,9 +79,6 @@ const Header = () => {
             >
               Categorias
             </button>
-            <Link to="/auth?mode=signup" className="transition hover:text-[var(--brand)]">
-              Cadastro
-            </Link>
             <Link to="/dashboard" className="transition hover:text-[var(--brand)]">
               Portal do Artista
             </Link>

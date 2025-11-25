@@ -16,7 +16,7 @@ const Hero = ({ onExplore, onSuggestionSelect, onChipSelect }: HeroProps) => {
       id="hero"
       className="relative flex min-h-[70vh] items-center overflow-hidden pt-28 pb-24"
     >
-      <div className="absolute inset-0" aria-hidden>
+      <div className="absolute inset-0 overflow-hidden" aria-hidden>
         <video
           className="h-full w-full object-cover"
           src="https://video.wixstatic.com/video/7b859e_c353b2557d364f57844baf1735c230be/720p/mp4/file.mp4"
@@ -25,6 +25,7 @@ const Hero = ({ onExplore, onSuggestionSelect, onChipSelect }: HeroProps) => {
           loop
           playsInline
         />
+        <div className="absolute inset-0 bg-black/55" />
       </div>
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[rgba(18,0,0,0.55)] to-[rgba(8,0,0,0.92)]" aria-hidden />
 

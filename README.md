@@ -1,22 +1,22 @@
-# Welcome to your Lovable project
+# Welcome to your Winove project
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/80af99a0-9a42-4774-821e-5680d3e409c6
+**URL**: https://winove.dev/projects/80af99a0-9a42-4774-821e-5680d3e409c6
 
 ## How can I edit this code?
 
 There are several ways of editing your application.
 
-**Use Lovable**
+**Use Winove**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/80af99a0-9a42-4774-821e-5680d3e409c6) and start prompting.
+Simply visit the [Winove Project](https://winove.dev/projects/80af99a0-9a42-4774-821e-5680d3e409c6) and start prompting.
 
-Changes made via Lovable will be committed automatically to this repo.
+Changes made via Winove will be committed automatically to this repo.
 
 **Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Winove.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
@@ -62,7 +62,7 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/80af99a0-9a42-4774-821e-5680d3e409c6) and click on Share -> Publish.
+Simply open [Winove](https://winove.dev/projects/80af99a0-9a42-4774-821e-5680d3e409c6) and click on Share -> Publish.
 
 ## Deploying on a Node.js host (e.g. Plesk)
 
@@ -85,10 +85,10 @@ The repo now includes a minimal `server.js` that serves the built Vite assets fr
    - Ensure a `PORT` environment variable is configured if your host requires a specific port.
    - Reinstall dependencies (`npm ci`) and run the build command once, then restart the app.
 
-## Can I connect a custom domain to my Lovable project?
+## Can I connect a custom domain to my Winove project?
 
 Yes, you can!
 
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Read more here: [Setting up a custom domain](https://docs.winove.dev/features/custom-domain#custom-domain)
