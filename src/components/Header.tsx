@@ -59,16 +59,19 @@ const Header = () => {
       id="siteHeader"
       className={`fixed inset-x-0 top-0 z-50 transition-all transition-soft ${
         isScrolled
-          ? "bg-[rgba(18,0,0,0.85)]/90 backdrop-blur-xl shadow-[0_12px_45px_rgba(0,0,0,0.45)]"
-          : "bg-transparent"
+          ? "bg-[rgba(18,0,0,0.9)]/95 backdrop-blur-xl shadow-[0_12px_45px_rgba(0,0,0,0.45)]"
+          : "bg-gradient-to-b from-[rgba(18,0,0,0.85)] via-[rgba(18,0,0,0.55)] to-transparent"
       }`}
     >
       <div className="site-container flex h-20 items-center justify-between gap-6">
         <div className="flex items-center gap-10">
-          <Link to="/" className="flex items-baseline gap-1 text-2xl font-extrabold tracking-[0.24em] text-[var(--ink)]">
+          <Link to="/" className="flex items-baseline gap-1 text-2xl font-extrabold tracking-[0.24em] text-white">
             SMART<span className="text-[var(--brand)]">x</span>
           </Link>
-          <nav aria-label="Navegação principal" className="hidden items-center gap-6 text-sm font-semibold uppercase tracking-[0.24em] text-[rgba(250,250,252,0.75)] lg:flex">
+          <nav
+            aria-label="Navegação principal"
+            className="hidden items-center gap-6 text-sm font-semibold uppercase tracking-[0.24em] text-[rgba(250,250,252,0.85)] lg:flex"
+          >
             <Link to="/artistas" className="transition hover:text-[var(--brand)]">
               Artistas
             </Link>
@@ -79,9 +82,20 @@ const Header = () => {
             >
               Categorias
             </button>
-            <Link to="/dashboard" className="transition hover:text-[var(--brand)]">
-              Portal do Artista
-            </Link>
+            <button
+              type="button"
+              className="border-none bg-transparent transition hover:text-[var(--brand)]"
+              onClick={() => navigateToSection("blockProjetos")}
+            >
+              Projetos
+            </button>
+            <button
+              type="button"
+              className="border-none bg-transparent transition hover:text-[var(--brand)]"
+              onClick={() => navigateToSection("blockEventos")}
+            >
+              Eventos
+            </button>
             <button
               type="button"
               className="border-none bg-transparent transition hover:text-[var(--brand)]"
