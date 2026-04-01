@@ -9,18 +9,26 @@ import type { DashboardContextValue } from "../context";
 interface TrajetoriaPessoalProps {
   artistDetails: ArtistDetails | null;
   onUpsert: DashboardContextValue["upsertArtistDetails"];
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
-export default function TrajetoriaPessoal({ artistDetails, onUpsert }: TrajetoriaPessoalProps) {
+export default function TrajetoriaPessoal({ artistDetails, onUpsert, onDirtyChange }: TrajetoriaPessoalProps) {
   const [saving, setSaving] = useState(false);
   const [content, setContent] = useState("");
+  const [savedContent, setSavedContent] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
     if (artistDetails) {
-      setContent(artistDetails.historia_titulo || "");
+      const val = artistDetails.historia_titulo || "";
+      setContent(val);
+      setSavedContent(val);
     }
   }, [artistDetails]);
+
+  useEffect(() => {
+    onDirtyChange?.(content !== savedContent);
+  }, [content, savedContent, onDirtyChange]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -32,6 +40,7 @@ export default function TrajetoriaPessoal({ artistDetails, onUpsert }: Trajetori
         throw response?.error || new Error("Não foi possível salvar a trajetória pessoal");
       }
 
+      setSavedContent(content);
       toast({
         title: "Sucesso",
         description: "Trajetória pessoal publicada com sucesso!",

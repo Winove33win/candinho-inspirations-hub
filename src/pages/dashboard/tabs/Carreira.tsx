@@ -9,18 +9,26 @@ import type { DashboardContextValue } from "../context";
 interface CarreiraProps {
   artistDetails: ArtistDetails | null;
   onUpsert: DashboardContextValue["upsertArtistDetails"];
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
-export default function Carreira({ artistDetails, onUpsert }: CarreiraProps) {
+export default function Carreira({ artistDetails, onUpsert, onDirtyChange }: CarreiraProps) {
   const [saving, setSaving] = useState(false);
   const [content, setContent] = useState("");
+  const [savedContent, setSavedContent] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
     if (artistDetails) {
-      setContent(artistDetails.carreira_titulo || "");
+      const val = artistDetails.carreira_titulo || "";
+      setContent(val);
+      setSavedContent(val);
     }
   }, [artistDetails]);
+
+  useEffect(() => {
+    onDirtyChange?.(content !== savedContent);
+  }, [content, savedContent, onDirtyChange]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -32,6 +40,7 @@ export default function Carreira({ artistDetails, onUpsert }: CarreiraProps) {
         throw response?.error || new Error("Não foi possível salvar a carreira");
       }
 
+      setSavedContent(content);
       toast({
         title: "Sucesso",
         description: "Carreira publicada com sucesso!",

@@ -11,15 +11,17 @@ import type { DashboardContextValue } from "../context";
 interface FotografiasProps {
   artistDetails: ArtistDetails | null;
   onUpsert: DashboardContextValue["upsertArtistDetails"];
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
-export default function Fotografias({ artistDetails, onUpsert }: FotografiasProps) {
+export default function Fotografias({ artistDetails, onUpsert, onDirtyChange }: FotografiasProps) {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
   const [photos, setPhotos] = useState<Array<{ image: string; text: string }>>(
     Array.from({ length: 12 }, () => ({ image: "", text: "" }))
   );
+  const [savedPhotos, setSavedPhotos] = useState(photos);
 
   useEffect(() => {
     if (artistDetails) {
@@ -30,9 +32,15 @@ export default function Fotografias({ artistDetails, onUpsert }: FotografiasProp
           text: artistDetails[`image${position}_text` as keyof ArtistDetails] as string | null || "",
         };
       });
-      setPhotos(photoData.map((item) => ({ image: item.image, text: item.text })));
+      const mapped = photoData.map((item) => ({ image: item.image, text: item.text }));
+      setPhotos(mapped);
+      setSavedPhotos(mapped);
     }
   }, [artistDetails]);
+
+  useEffect(() => {
+    onDirtyChange?.(JSON.stringify(photos) !== JSON.stringify(savedPhotos));
+  }, [photos, savedPhotos, onDirtyChange]);
 
   const updatePhoto = (index: number, field: "image" | "text", value: string) => {
     setPhotos((current) => {
@@ -60,6 +68,7 @@ export default function Fotografias({ artistDetails, onUpsert }: FotografiasProp
         throw response?.error || new Error("Não foi possível salvar fotografias");
       }
 
+      setSavedPhotos(photos);
       toast({
         title: "Sucesso",
         description: "Fotografias publicadas com sucesso!",

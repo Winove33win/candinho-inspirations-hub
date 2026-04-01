@@ -9,18 +9,26 @@ import type { DashboardContextValue } from "../context";
 interface MaisProps {
   artistDetails: ArtistDetails | null;
   onUpsert: DashboardContextValue["upsertArtistDetails"];
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
-export default function Mais({ artistDetails, onUpsert }: MaisProps) {
+export default function Mais({ artistDetails, onUpsert, onDirtyChange }: MaisProps) {
   const [saving, setSaving] = useState(false);
   const [content, setContent] = useState("");
+  const [savedContent, setSavedContent] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
     if (artistDetails) {
-      setContent(artistDetails.mais_titulo || "");
+      const val = artistDetails.mais_titulo || "";
+      setContent(val);
+      setSavedContent(val);
     }
   }, [artistDetails]);
+
+  useEffect(() => {
+    onDirtyChange?.(content !== savedContent);
+  }, [content, savedContent, onDirtyChange]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -32,6 +40,7 @@ export default function Mais({ artistDetails, onUpsert }: MaisProps) {
         throw response?.error || new Error("Não foi possível salvar o conteúdo adicional");
       }
 
+      setSavedContent(content);
       toast({
         title: "Sucesso",
         description: "Conteúdo publicado com sucesso!",

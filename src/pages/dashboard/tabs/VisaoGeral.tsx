@@ -9,18 +9,26 @@ import type { DashboardContextValue } from "../context";
 interface VisaoGeralProps {
   artistDetails: ArtistDetails | null;
   onUpsert: DashboardContextValue["upsertArtistDetails"];
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
-export default function VisaoGeral({ artistDetails, onUpsert }: VisaoGeralProps) {
+export default function VisaoGeral({ artistDetails, onUpsert, onDirtyChange }: VisaoGeralProps) {
   const [saving, setSaving] = useState(false);
   const [content, setContent] = useState("");
+  const [savedContent, setSavedContent] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
     if (artistDetails) {
-      setContent(artistDetails.visao_geral_titulo || "");
+      const val = artistDetails.visao_geral_titulo || "";
+      setContent(val);
+      setSavedContent(val);
     }
   }, [artistDetails]);
+
+  useEffect(() => {
+    onDirtyChange?.(content !== savedContent);
+  }, [content, savedContent, onDirtyChange]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -32,6 +40,7 @@ export default function VisaoGeral({ artistDetails, onUpsert }: VisaoGeralProps)
         throw response?.error || new Error("Não foi possível salvar a visão geral");
       }
 
+      setSavedContent(content);
       toast({
         title: "Sucesso",
         description: "Visão Geral publicada com sucesso!",

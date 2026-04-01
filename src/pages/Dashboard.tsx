@@ -1,5 +1,5 @@
 // src/pages/Dashboard.tsx
-import { useEffect, useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Outlet, NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,9 @@ import {
   HelpCircle,
   Settings,
   LogOut,
+  ExternalLink,
+  Copy,
+  Check,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +39,7 @@ type QuickAction = MenuItem & {
 export default function Dashboard() {
   const { toast } = useToast();
   const { user, loading: userLoading, signOut } = useAuth();
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const {
     artistDetails,
@@ -171,6 +175,50 @@ export default function Dashboard() {
                   </Item>
                 ))}
               </nav>
+
+              {/* Public profile link */}
+              {artistDetails?.slug && (
+                <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-4 space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted)]">
+                    Meu perfil público
+                  </p>
+                  <p className="text-xs text-[var(--muted)] break-all">
+                    /artistas/{artistDetails.slug}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 gap-1 text-xs"
+                    >
+                      <a
+                        href={`/artistas/${artistDetails.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Ver
+                      </a>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 gap-1 text-xs"
+                      onClick={() => {
+                        const url = `${window.location.origin}/artistas/${artistDetails.slug}`;
+                        navigator.clipboard.writeText(url).then(() => {
+                          setCopiedLink(true);
+                          setTimeout(() => setCopiedLink(false), 2000);
+                        });
+                      }}
+                    >
+                      {copiedLink ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                      {copiedLink ? 'Copiado!' : 'Copiar'}
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               <Button
                 variant="ghost"

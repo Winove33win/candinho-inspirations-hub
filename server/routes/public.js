@@ -18,14 +18,51 @@ function detectVideoProvider(url) {
   return undefined;
 }
 
-// GET /api/public/artists  — list all published artists
+// GET /api/public/artists  — list published artists with search + pagination
+// Query params: q (name search), country, page (1-based), limit (default 24)
 router.get('/artists', async (req, res) => {
   try {
+    const q       = (req.query.q || '').trim();
+    const country = (req.query.country || '').trim();
+    const page    = Math.max(1, parseInt(req.query.page) || 1);
+    const limit   = Math.min(100, Math.max(1, parseInt(req.query.limit) || 24));
+    const offset  = (page - 1) * limit;
+
+    const conditions = ['perfil_completo = 1'];
+    const params = [];
+
+    if (q) {
+      conditions.push('(artistic_name LIKE ? OR full_name LIKE ?)');
+      params.push(`%${q}%`, `%${q}%`);
+    }
+    if (country) {
+      conditions.push('country_residence = ?');
+      params.push(country);
+    }
+
+    const where = conditions.join(' AND ');
+
+    const [[{ total }]] = await db.query(
+      `SELECT COUNT(*) AS total FROM artist_details WHERE ${where}`,
+      params
+    );
+
     const [rows] = await db.query(
-      `SELECT id, slug, member_id, artistic_name, full_name, country_residence, city, profile_image
+      `SELECT id, slug, member_id, artistic_name, full_name,
+              country_residence, city, profile_image, profile_text2
        FROM artist_details
-       WHERE perfil_completo = 1
-       ORDER BY updated_at DESC`
+       WHERE ${where}
+       ORDER BY updated_at DESC
+       LIMIT ? OFFSET ?`,
+      [...params, limit, offset]
+    );
+
+    // Distinct countries for filter dropdown
+    const [countryRows] = await db.query(
+      `SELECT DISTINCT country_residence
+       FROM artist_details
+       WHERE perfil_completo = 1 AND country_residence IS NOT NULL
+       ORDER BY country_residence ASC`
     );
 
     const baseUrl = `${req.protocol}://${req.get('host')}`;
@@ -36,9 +73,17 @@ router.get('/artists', async (req, res) => {
       country:     r.country_residence,
       city:        r.city,
       avatarUrl:   resolveFileUrl(r.profile_image, baseUrl),
+      impactPhrase: r.profile_text2 || null,
     }));
 
-    return res.json({ data: artists });
+    return res.json({
+      data:      artists,
+      total:     Number(total),
+      page,
+      limit,
+      pages:     Math.ceil(Number(total) / limit),
+      countries: countryRows.map(r => r.country_residence).filter(Boolean),
+    });
   } catch (err) {
     console.error('[PUBLIC::ARTISTS]', err);
     return res.status(500).json({ error: 'Erro ao buscar artistas' });

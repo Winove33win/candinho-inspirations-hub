@@ -1,5 +1,5 @@
 // src/pages/dashboard/MeuPerfil.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
@@ -20,6 +20,19 @@ export default function MeuPerfil() {
   const location = useLocation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dados-pessoais");
+  const [dirtyTabs, setDirtyTabs] = useState<Record<string, boolean>>({});
+
+  const tabDirtyHandlers = useMemo(() => {
+    const tabs = ["dados-pessoais", "visao-geral", "trajetoria", "carreira", "mais", "biografia", "videos", "fotografias"] as const;
+    return Object.fromEntries(
+      tabs.map((tab) => [
+        tab,
+        (isDirty: boolean) =>
+          setDirtyTabs((prev) => (prev[tab] === isDirty ? prev : { ...prev, [tab]: isDirty })),
+      ])
+    ) as Record<string, (isDirty: boolean) => void>;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // navegação programática para uma aba específica (vinda de outra rota)
   useEffect(() => {
@@ -62,88 +75,63 @@ export default function MeuPerfil() {
           aria-label="Navegação do perfil"
           className="sticky top-20 z-30 site-container -mx-6 flex h-auto gap-2 overflow-x-auto rounded-xl border border-[var(--elev-border)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] px-2 py-2 backdrop-blur supports-[overflow:clip]:[overflow:clip] [scrollbar-gutter:stable] md:-mx-8"
         >
-          <TabsTrigger
-            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
-            value="dados-pessoais"
-          >
-            Dados pessoais
-          </TabsTrigger>
-          <TabsTrigger
-            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
-            value="visao-geral"
-          >
-            Visão Geral
-          </TabsTrigger>
-          <TabsTrigger
-            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
-            value="trajetoria"
-          >
-            Trajetória Pessoal
-          </TabsTrigger>
-          <TabsTrigger
-            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
-            value="carreira"
-          >
-            Carreira
-          </TabsTrigger>
-          <TabsTrigger
-            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
-            value="mais"
-          >
-            Mais
-          </TabsTrigger>
-          <TabsTrigger
-            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
-            value="biografia"
-          >
-            Biografia e redes
-          </TabsTrigger>
-          <TabsTrigger
-            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
-            value="videos"
-          >
-            Vídeos e Áudios
-          </TabsTrigger>
-          <TabsTrigger
-            className="inline-flex min-w-[150px] items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
-            value="fotografias"
-          >
-            Fotografias
-          </TabsTrigger>
+          {(
+            [
+              { value: "dados-pessoais", label: "Dados pessoais" },
+              { value: "visao-geral",    label: "Visão Geral" },
+              { value: "trajetoria",     label: "Trajetória Pessoal" },
+              { value: "carreira",       label: "Carreira" },
+              { value: "mais",           label: "Mais" },
+              { value: "biografia",      label: "Biografia e redes" },
+              { value: "videos",         label: "Vídeos e Áudios" },
+              { value: "fotografias",    label: "Fotografias" },
+            ] as const
+          ).map(({ value, label }) => (
+            <TabsTrigger
+              key={value}
+              value={value}
+              className="relative inline-flex min-w-[150px] items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold text-[var(--text-3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]/40 data-[state=active]:bg-[var(--brand)] data-[state=active]:text-white data-[state=inactive]:hover:bg-[var(--brand-soft)] data-[state=inactive]:hover:text-[var(--text-1)]"
+            >
+              {label}
+              {dirtyTabs[value] && (
+                <span className={`h-2 w-2 shrink-0 rounded-full ${activeTab === value ? "bg-white/80" : "bg-amber-400"}`} />
+              )}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <div className="site-container">
           <Card className="p-4 md:p-8">
             <TabsContent value="dados-pessoais" className="mt-0 focus-visible:outline-none">
-              <DadosPessoais artistDetails={details} onUpsert={upsertArtistDetails} />
+              <DadosPessoais artistDetails={details} onUpsert={upsertArtistDetails} onDirtyChange={tabDirtyHandlers["dados-pessoais"]} />
             </TabsContent>
 
             <TabsContent value="visao-geral" className="mt-0 focus-visible:outline-none">
-              <VisaoGeral artistDetails={details} onUpsert={upsertArtistDetails} />
+              <VisaoGeral artistDetails={details} onUpsert={upsertArtistDetails} onDirtyChange={tabDirtyHandlers["visao-geral"]} />
             </TabsContent>
 
             <TabsContent value="trajetoria" className="mt-0 focus-visible:outline-none">
-              <TrajetoriaPessoal artistDetails={details} onUpsert={upsertArtistDetails} />
+              <TrajetoriaPessoal artistDetails={details} onUpsert={upsertArtistDetails} onDirtyChange={tabDirtyHandlers["trajetoria"]} />
             </TabsContent>
 
             <TabsContent value="carreira" className="mt-0 focus-visible:outline-none">
-              <Carreira artistDetails={details} onUpsert={upsertArtistDetails} />
+              <Carreira artistDetails={details} onUpsert={upsertArtistDetails} onDirtyChange={tabDirtyHandlers["carreira"]} />
             </TabsContent>
 
             <TabsContent value="mais" className="mt-0 focus-visible:outline-none">
-              <Mais artistDetails={details} onUpsert={upsertArtistDetails} />
+              <Mais artistDetails={details} onUpsert={upsertArtistDetails} onDirtyChange={tabDirtyHandlers["mais"]} />
             </TabsContent>
 
             <TabsContent value="biografia" className="mt-0 focus-visible:outline-none">
-              <BiografiaRedes artistDetails={details} onUpsert={upsertArtistDetails} />
+              <BiografiaRedes artistDetails={details} onUpsert={upsertArtistDetails} onDirtyChange={tabDirtyHandlers["biografia"]} />
             </TabsContent>
 
             <TabsContent value="videos" className="mt-0 focus-visible:outline-none">
-              <VideosAudios artistDetails={details} onUpsert={upsertArtistDetails} />
+              <VideosAudios artistDetails={details} onUpsert={upsertArtistDetails} onDirtyChange={tabDirtyHandlers["videos"]} />
             </TabsContent>
 
             <TabsContent value="fotografias" className="mt-0 focus-visible:outline-none">
-              <Fotografias artistDetails={details} onUpsert={upsertArtistDetails} />
+              <Fotografias artistDetails={details} onUpsert={upsertArtistDetails} onDirtyChange={tabDirtyHandlers["fotografias"]} />
             </TabsContent>
           </Card>
         </div>

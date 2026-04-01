@@ -22,9 +22,10 @@ import { computeProfileCompletion } from "@/utils/profileCompletion";
 interface DadosPessoaisProps {
   artistDetails: ArtistDetails | null;
   onUpsert: DashboardContextValue["upsertArtistDetails"];
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
-export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoaisProps) {
+export default function DadosPessoais({ artistDetails, onUpsert, onDirtyChange }: DadosPessoaisProps) {
   const [saving, setSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const { toast } = useToast();
@@ -47,10 +48,11 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
     accepted_terms1: false,
     accepted_terms2: false,
   });
+  const [savedData, setSavedData] = useState(formData);
 
   useEffect(() => {
     if (artistDetails) {
-      setFormData({
+      const data = {
         artistic_name: artistDetails.artistic_name || "",
         profile_image: artistDetails.profile_image || "",
         full_name: artistDetails.full_name || "",
@@ -67,9 +69,15 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
         country_residence: artistDetails.country_residence || "",
         accepted_terms1: artistDetails.accepted_terms1 || false,
         accepted_terms2: artistDetails.accepted_terms2 || false,
-      });
+      };
+      setFormData(data);
+      setSavedData(data);
     }
   }, [artistDetails]);
+
+  useEffect(() => {
+    onDirtyChange?.(JSON.stringify(formData) !== JSON.stringify(savedData));
+  }, [formData, savedData, onDirtyChange]);
 
   const validateForm = () => {
     if (!formData.artistic_name || !formData.full_name) {
@@ -129,6 +137,7 @@ export default function DadosPessoais({ artistDetails, onUpsert }: DadosPessoais
         throw response?.error || new Error("Não foi possível salvar os dados");
       }
 
+      setSavedData(formData);
       toast({
         title: "Sucesso",
         description: "Dados pessoais salvos com sucesso!",

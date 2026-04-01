@@ -11,9 +11,10 @@ import type { DashboardContextValue } from "../context";
 interface BiografiaRedesProps {
   artistDetails: ArtistDetails | null;
   onUpsert: DashboardContextValue["upsertArtistDetails"];
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
-export default function BiografiaRedes({ artistDetails, onUpsert }: BiografiaRedesProps) {
+export default function BiografiaRedes({ artistDetails, onUpsert, onDirtyChange }: BiografiaRedesProps) {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
@@ -25,19 +26,26 @@ export default function BiografiaRedes({ artistDetails, onUpsert }: BiografiaRed
     youtube_channel: "",
     website: "",
   });
+  const [savedData, setSavedData] = useState(formData);
 
   useEffect(() => {
     if (artistDetails) {
-      setFormData({
+      const data = {
         biography1: artistDetails.biography1 || "",
         facebook: artistDetails.facebook || "",
         instagram: artistDetails.instagram || "",
         music_spotify_apple: artistDetails.music_spotify_apple || "",
         youtube_channel: artistDetails.youtube_channel || "",
         website: artistDetails.website || "",
-      });
+      };
+      setFormData(data);
+      setSavedData(data);
     }
   }, [artistDetails]);
+
+  useEffect(() => {
+    onDirtyChange?.(JSON.stringify(formData) !== JSON.stringify(savedData));
+  }, [formData, savedData, onDirtyChange]);
 
   const validateUrls = () => {
     const urlFields = [
@@ -73,6 +81,7 @@ export default function BiografiaRedes({ artistDetails, onUpsert }: BiografiaRed
         throw response?.error || new Error("Não foi possível salvar a biografia e redes");
       }
 
+      setSavedData(formData);
       toast({
         title: "Sucesso",
         description: "Biografia e redes sociais publicadas com sucesso!",

@@ -69,13 +69,14 @@ function isHttpUrl(url?: string | null) {
 interface VideosAudiosProps {
   artistDetails: ArtistDetails | null;
   onUpsert: DashboardContextValue["upsertArtistDetails"];
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
-export default function VideosAudios({ artistDetails, onUpsert }: VideosAudiosProps) {
+export default function VideosAudios({ artistDetails, onUpsert, onDirtyChange }: VideosAudiosProps) {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  const [formData, setFormData] = useState<VideosAudiosFormData>({
+  const emptyFormData: VideosAudiosFormData = {
     audio: "",
     link_to_video: "",
     link_to_video2: "",
@@ -87,35 +88,24 @@ export default function VideosAudios({ artistDetails, onUpsert }: VideosAudiosPr
     link_to_video8: "",
     link_to_video9: "",
     link_to_video10: "",
-  });
-  const [bannerContent, setBannerContent] = useState({
-    landscape: createEmptyBannerContent(),
-    portrait: createEmptyBannerContent(),
-  });
+  };
+  const emptyBanner = { landscape: createEmptyBannerContent(), portrait: createEmptyBannerContent() };
+
+  const [formData, setFormData] = useState<VideosAudiosFormData>(emptyFormData);
+  const [bannerContent, setBannerContent] = useState(emptyBanner);
+  const [savedFormData, setSavedFormData] = useState(emptyFormData);
+  const [savedBannerContent, setSavedBannerContent] = useState(emptyBanner);
 
   useEffect(() => {
     if (!artistDetails) {
-      setFormData({
-        audio: "",
-        link_to_video: "",
-        link_to_video2: "",
-        link_to_video3: "",
-        link_to_video4: "",
-        link_to_video5: "",
-        link_to_video6: "",
-        link_to_video7: "",
-        link_to_video8: "",
-        link_to_video9: "",
-        link_to_video10: "",
-      });
-      setBannerContent({
-        landscape: createEmptyBannerContent(),
-        portrait: createEmptyBannerContent(),
-      });
+      setFormData(emptyFormData);
+      setBannerContent(emptyBanner);
+      setSavedFormData(emptyFormData);
+      setSavedBannerContent(emptyBanner);
       return;
     }
 
-    setFormData({
+    const fd: VideosAudiosFormData = {
       audio: artistDetails.audio || "",
       link_to_video: artistDetails.link_to_video || "",
       link_to_video2: artistDetails.link_to_video2 || "",
@@ -127,13 +117,24 @@ export default function VideosAudios({ artistDetails, onUpsert }: VideosAudiosPr
       link_to_video8: artistDetails.link_to_video8 || "",
       link_to_video9: artistDetails.link_to_video9 || "",
       link_to_video10: artistDetails.link_to_video10 || "",
-    });
-
-    setBannerContent({
+    };
+    const bc = {
       landscape: createBannerContent(artistDetails.video_banner_landscape),
       portrait: createBannerContent(artistDetails.video_banner_portrait),
-    });
+    };
+    setFormData(fd);
+    setBannerContent(bc);
+    setSavedFormData(fd);
+    setSavedBannerContent(bc);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [artistDetails]);
+
+  useEffect(() => {
+    const isDirty =
+      JSON.stringify(formData) !== JSON.stringify(savedFormData) ||
+      JSON.stringify(bannerContent) !== JSON.stringify(savedBannerContent);
+    onDirtyChange?.(isDirty);
+  }, [formData, bannerContent, savedFormData, savedBannerContent, onDirtyChange]);
 
   const validateYoutubeLinks = () => {
     const videoLinks = [
@@ -222,6 +223,8 @@ export default function VideosAudios({ artistDetails, onUpsert }: VideosAudiosPr
         throw response?.error || new Error("Não foi possível salvar vídeos e áudios");
       }
 
+      setSavedFormData(formData);
+      setSavedBannerContent(bannerContent);
       toast({
         title: "Sucesso",
         description: "Vídeos e áudios publicados com sucesso!",
