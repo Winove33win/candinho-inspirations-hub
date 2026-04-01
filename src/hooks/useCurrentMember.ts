@@ -1,32 +1,4 @@
-import { useEffect, useState } from "react";
-import type { User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
-
-export function useCurrentMember() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!isMounted) return;
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!isMounted) return;
-      setUser(session?.user ?? null);
-    });
-
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  return { user, loading };
-}
+// Replaced by useAuth from AuthContext — kept for backward compatibility.
+// Any file that imports useCurrentMember should migrate to:
+//   import { useAuth } from '@/contexts/AuthContext';
+export { useAuth as useCurrentMember } from '@/contexts/AuthContext';

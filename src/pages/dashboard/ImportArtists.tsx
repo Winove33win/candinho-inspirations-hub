@@ -1,16 +1,14 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/apiClient";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { KNOWN_BUCKETS, getBucketForFolder } from "@/config/storage";
 
 export default function ImportArtists() {
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const { toast } = useToast();
-  const videoBucket = getBucketForFolder("videos");
 
   const parseCSVLine = (line: string): string[] => {
     const result: string[] = [];
@@ -120,19 +118,6 @@ export default function ImportArtists() {
           // Use member ID from CSV or generate new UUID
           const userId = memberId || crypto.randomUUID();
 
-          // Check if artist already exists
-          const { data: existing } = await supabase
-            .from('new_artist_details')
-            .select('id')
-            .eq('member_id', userId)
-            .maybeSingle();
-
-          if (existing) {
-            skipped++;
-            setProgress({ current: i + 1, total: dataLines.length });
-            continue;
-          }
-
           // Map CSV fields to database columns
           const videoPortrait = normalizeVideoBanner(cleanValue(cols[17]));
           const videoLandscape = normalizeVideoBanner(cleanValue(cols[18]));
@@ -208,13 +193,18 @@ export default function ImportArtists() {
             youtube_channel: cleanValue(cols[91]),
           };
 
-          const { error } = await supabase
-            .from('new_artist_details')
-            .insert([artistData]);
+          const result = await api.post<{ status: string }>(
+            '/api/admin/artists/import',
+            artistData
+          ).catch((err) => {
+            console.error(`Error importing ${artisticName}:`, err);
+            return null;
+          });
 
-          if (error) {
-            console.error(`Error importing ${artisticName}:`, error);
+          if (!result) {
             errors++;
+          } else if (result.status === 'skipped') {
+            skipped++;
           } else {
             imported++;
           }

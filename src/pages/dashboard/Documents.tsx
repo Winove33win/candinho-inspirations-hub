@@ -1,114 +1,72 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useDashboardContext } from "./context";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, FileText, Download } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { FormSection } from "@/components/dashboard/FormSection";
-import { Uploader } from "@/components/dashboard/Uploader";
-import type { Database } from "@/integrations/supabase/types";
+import { useState, useEffect } from 'react';
+import { api } from '@/lib/apiClient';
+import { getSignedUrl } from '@/utils/storage';
+import { useDashboardContext } from './context';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { Plus, Trash2, FileText, Download } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { FormSection } from '@/components/dashboard/FormSection';
+import { Uploader } from '@/components/dashboard/Uploader';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { getSignedUrl } from "@/utils/storage";
-
-type Document = Database["public"]["Tables"]["documents"]["Row"];
-type DocumentKind = Database["public"]["Enums"]["document_kind"];
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import type { Document, DocumentKind } from '@/types/api';
 
 export default function Documents() {
   const { user } = useDashboardContext();
   const { toast } = useToast();
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [documents, setDocuments]     = useState<Document[]>([]);
+  const [loading, setLoading]         = useState(true);
+  const [editingId, setEditingId]     = useState<string | null>(null);
   const [downloadUrls, setDownloadUrls] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    loadDocuments();
-  }, [user?.id]);
+  useEffect(() => { loadDocuments(); }, [user?.id]);
 
   useEffect(() => {
     let active = true;
-
     (async () => {
       const next: Record<string, string> = {};
-
       for (const doc of documents) {
         if (!doc.file_url) continue;
         try {
-          const url = await getSignedUrl(doc.file_url);
-          next[doc.id] = url;
-        } catch (error) {
-          console.error("[DOCUMENT::SIGNED_URL]", error);
+          next[doc.id] = await getSignedUrl(doc.file_url);
+        } catch {
+          /* skip */
         }
       }
-
-      if (active) {
-        setDownloadUrls(next);
-      }
+      if (active) setDownloadUrls(next);
     })();
-
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [documents]);
 
   async function loadDocuments() {
     if (!user?.id) return;
-
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("documents")
-        .select("*")
-        .eq("member_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
+      const { data } = await api.get<{ data: Document[] }>('/api/documents');
       setDocuments(data || []);
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar os documentos",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: 'Erro', description: 'Não foi possível carregar os documentos', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Deseja realmente excluir este documento?")) return;
-
+    if (!confirm('Deseja realmente excluir este documento?')) return;
     try {
-      const { error } = await supabase.from("documents").delete().eq("id", id);
-
-      if (error) throw error;
-
-      toast({ title: "Documento excluído com sucesso" });
+      await api.delete(`/api/documents/${id}`);
+      toast({ title: 'Documento excluído com sucesso' });
       loadDocuments();
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Erro ao excluir",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: 'Erro ao excluir', variant: 'destructive' });
     }
   }
 
-  const kindLabels: Record<string, string> = {
-    contrato: "Contrato",
-    termo: "Termo",
-    outro: "Outro",
-  };
+  const kindLabels: Record<string, string> = { contrato: 'Contrato', termo: 'Termo', outro: 'Outro' };
 
   if (loading) {
     return (
@@ -124,27 +82,19 @@ export default function Documents() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-3xl font-['League_Spartan'] font-semibold text-[var(--ink)]">Documentos</h2>
-            <p className="mt-1 text-sm text-[var(--muted)] md:text-base">
-              Envie materiais oficiais, press kits e arquivos exclusivos
-            </p>
+            <p className="mt-1 text-sm text-[var(--muted)] md:text-base">Envie materiais oficiais, press kits e arquivos exclusivos</p>
           </div>
-          <Button onClick={() => setEditingId("new")} className="gap-2 self-start md:self-auto">
-            <Plus className="h-4 w-4" />
-            Novo documento
+          <Button onClick={() => setEditingId('new')} className="gap-2 self-start md:self-auto">
+            <Plus className="h-4 w-4" /> Novo documento
           </Button>
         </div>
       </Card>
 
       {editingId && (
-        <div className="space-y-6">
-          <DocumentForm
-            documentId={editingId === "new" ? null : editingId}
-            onClose={() => {
-              setEditingId(null);
-              loadDocuments();
-            }}
-          />
-        </div>
+        <DocumentForm
+          documentId={editingId === 'new' ? null : editingId}
+          onClose={() => { setEditingId(null); loadDocuments(); }}
+        />
       )}
 
       <Card className="p-6 md:p-8">
@@ -157,21 +107,15 @@ export default function Documents() {
                     <FileText className="h-6 w-6" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-base font-semibold">
-                      {doc.title || "Sem título"}
-                    </h3>
-                    <p className="text-sm text-[var(--muted)]">
-                      {kindLabels[doc.kind || "outro"]}
-                    </p>
+                    <h3 className="truncate text-base font-semibold">{doc.title || 'Sem título'}</h3>
+                    <p className="text-sm text-[var(--muted)]">{kindLabels[doc.kind || 'outro']}</p>
                   </div>
                 </div>
-
                 <div className="flex gap-2">
                   {doc.file_url && downloadUrls[doc.id] && (
                     <Button variant="outline" size="sm" asChild className="flex-1">
                       <a href={downloadUrls[doc.id]} target="_blank" rel="noopener noreferrer">
-                        <Download className="mr-2 h-4 w-4" />
-                        Baixar
+                        <Download className="mr-2 h-4 w-4" /> Baixar
                       </a>
                     </Button>
                   )}
@@ -197,73 +141,30 @@ export default function Documents() {
   );
 }
 
-function DocumentForm({
-  documentId,
-  onClose,
-}: {
-  documentId: string | null;
-  onClose: () => void;
-}) {
-  const { user } = useDashboardContext();
+function DocumentForm({ documentId, onClose }: { documentId: string | null; onClose: () => void }) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState<Partial<Document>>({
-    title: "",
-    file_url: "",
-    kind: "outro",
-  });
+  const [formData, setFormData] = useState<Partial<Document>>({ title: '', file_url: '', kind: 'outro' });
 
   useEffect(() => {
     if (documentId) {
-      loadDocument();
+      // Documents API does not have GET /:id — reload from list not needed for edit
+      // (documents can only be deleted, not edited after creation)
     }
   }, [documentId]);
 
-  async function loadDocument() {
-    if (!documentId) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("documents")
-        .select("*")
-        .eq("id", documentId)
-        .single();
-
-      if (error) throw error;
-      setFormData(data);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   async function handleSave() {
-    if (!user?.id) return;
-
     setSaving(true);
     try {
-      const payload = { ...formData, member_id: user.id };
-
-      if (documentId) {
-        const { error } = await supabase
-          .from("documents")
-          .update(payload)
-          .eq("id", documentId);
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("documents").insert([payload]);
-
-        if (error) throw error;
-      }
-
-      toast({ title: "Documento salvo com sucesso!" });
-      onClose();
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Erro ao salvar",
-        variant: "destructive",
+      await api.post('/api/documents', {
+        title:    formData.title,
+        file_url: formData.file_url,
+        kind:     formData.kind || 'outro',
       });
+      toast({ title: 'Documento salvo com sucesso!' });
+      onClose();
+    } catch (err) {
+      toast({ title: 'Erro ao salvar', description: err instanceof Error ? err.message : undefined, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -271,31 +172,19 @@ function DocumentForm({
 
   return (
     <Card className="p-6">
-      <FormSection title={documentId ? "Editar Documento" : "Novo Documento"}>
+      <FormSection title="Novo Documento">
         <div className="space-y-4">
           <div>
             <Label htmlFor="title">Título do documento</Label>
-            <Input
-              id="title"
-              value={formData.title || ""}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, title: e.target.value }))
-              }
-              placeholder="Ex: Press Kit 2024"
-            />
+            <Input id="title" value={formData.title || ''}
+              onChange={(e) => setFormData((p) => ({ ...p, title: e.target.value }))}
+              placeholder="Ex: Press Kit 2024" />
           </div>
-
           <div>
             <Label htmlFor="kind">Tipo de documento</Label>
-            <Select
-              value={formData.kind || "outro"}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, kind: value as DocumentKind }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
+            <Select value={formData.kind || 'outro'}
+              onValueChange={(v) => setFormData((p) => ({ ...p, kind: v as DocumentKind }))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="contrato">Contrato</SelectItem>
                 <SelectItem value="termo">Termo</SelectItem>
@@ -303,29 +192,15 @@ function DocumentForm({
               </SelectContent>
             </Select>
           </div>
-
-          <Uploader
-            label="Arquivo"
-            storageFolder="docs"
-            currentPath={formData.file_url || ""}
-            onUploaded={(url) =>
-              setFormData((prev) => ({ ...prev, file_url: url }))
-            }
-            accept=".pdf,.doc,.docx,.txt"
-            nameHint="documento"
-          />
-
+          <Uploader label="Arquivo" storageFolder="docs"
+            currentPath={formData.file_url || ''}
+            onUploaded={(url) => setFormData((p) => ({ ...p, file_url: url }))}
+            accept=".pdf,.doc,.docx,.txt" nameHint="documento" />
           <div className="flex gap-2 pt-4">
-            <Button
-              onClick={handleSave}
-              disabled={saving || !formData.title || !formData.file_url}
-              className="flex-1"
-            >
-              {saving ? "Salvando..." : "Salvar documento"}
+            <Button onClick={handleSave} disabled={saving || !formData.title || !formData.file_url} className="flex-1">
+              {saving ? 'Salvando...' : 'Salvar documento'}
             </Button>
-            <Button variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
+            <Button variant="outline" onClick={onClose}>Cancelar</Button>
           </div>
         </div>
       </FormSection>

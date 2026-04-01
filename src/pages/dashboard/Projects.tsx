@@ -1,95 +1,65 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useDashboardContext } from "./context";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Image as ImageIcon } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { FormSection } from "@/components/dashboard/FormSection";
-import { Uploader } from "@/components/dashboard/Uploader";
-import { RichTextEditor } from "@/components/dashboard/RichTextEditor";
-import type { Database } from "@/integrations/supabase/types";
-import { getSignedUrl } from "@/utils/storage";
-
-type Project = Database["public"]["Tables"]["projects"]["Row"];
+import { useState, useEffect } from 'react';
+import { api } from '@/lib/apiClient';
+import { getSignedUrl } from '@/utils/storage';
+import { useDashboardContext } from './context';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { FormSection } from '@/components/dashboard/FormSection';
+import { Uploader } from '@/components/dashboard/Uploader';
+import { RichTextEditor } from '@/components/dashboard/RichTextEditor';
+import type { Project } from '@/types/api';
 
 const blockIndexes = [1, 2, 3, 4, 5] as const;
 
 const getPlainText = (value?: string | null) =>
-  value ? value.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").trim() : "";
+  value ? value.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim() : '';
 
-const normalizeProjectPayload = (data: Partial<Project>): Partial<Project> => {
-  const result: any = {};
-  
-  for (const [key, value] of Object.entries(data)) {
-    if (typeof value === "string") {
-      const trimmed = value.trim();
-      result[key] = trimmed.length > 0 ? trimmed : null;
+function pickStrings(data: Partial<Project>): Partial<Project> {
+  const result: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(data)) {
+    if (typeof v === 'string') {
+      result[k] = v.trim() === '' ? null : v.trim();
     } else {
-      result[key] = value;
+      result[k] = v;
     }
   }
-  
   return result as Partial<Project>;
-};
+}
 
 export default function Projects() {
   const { user } = useDashboardContext();
   const { toast } = useToast();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]   = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadProjects();
-  }, [user?.id]);
+  useEffect(() => { loadProjects(); }, [user?.id]);
 
   async function loadProjects() {
     if (!user?.id) return;
-    
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("projects")
-        .select("*")
-        .eq("member_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
+      const { data } = await api.get<{ data: Project[] }>('/api/projects');
       setProjects(data || []);
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar os projetos",
-        variant: "destructive",
-      });
+    } catch (err) {
+      toast({ title: 'Erro', description: 'Não foi possível carregar os projetos', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Deseja realmente excluir este projeto?")) return;
-
+    if (!confirm('Deseja realmente excluir este projeto?')) return;
     try {
-      const { error } = await supabase
-        .from("projects")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-
-      toast({ title: "Projeto excluído com sucesso" });
+      await api.delete(`/api/projects/${id}`);
+      toast({ title: 'Projeto excluído com sucesso' });
       loadProjects();
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Erro ao excluir",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: 'Erro ao excluir', variant: 'destructive' });
     }
   }
 
@@ -111,7 +81,7 @@ export default function Projects() {
               Gerencie seu portfólio de trabalhos e colaborações artísticas.
             </p>
           </div>
-          <Button onClick={() => setEditingId("new")} className="gap-2 self-start md:self-auto">
+          <Button onClick={() => setEditingId('new')} className="gap-2 self-start md:self-auto">
             <Plus className="h-4 w-4" />
             Novo projeto
           </Button>
@@ -119,15 +89,10 @@ export default function Projects() {
       </Card>
 
       {editingId && (
-        <div className="space-y-6">
-          <ProjectForm
-            projectId={editingId === "new" ? null : editingId}
-            onClose={() => {
-              setEditingId(null);
-              loadProjects();
-            }}
-          />
-        </div>
+        <ProjectForm
+          projectId={editingId === 'new' ? null : editingId}
+          onClose={() => { setEditingId(null); loadProjects(); }}
+        />
       )}
 
       <Card className="p-6 md:p-8">
@@ -155,96 +120,38 @@ export default function Projects() {
   );
 }
 
-function ProjectForm({
-  projectId,
-  onClose,
-}: {
-  projectId: string | null;
-  onClose: () => void;
-}) {
-  const { user } = useDashboardContext();
+function ProjectForm({ projectId, onClose }: { projectId: string | null; onClose: () => void }) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<Partial<Project>>({
-    title: "",
-    about: "",
-    cover_image: "",
-    banner_image: "",
-    block1_title: "",
-    block1_image: "",
-    block2_title: "",
-    block2_image: "",
-    block3_title: "",
-    block3_image: "",
-    block4_title: "",
-    block4_image: "",
-    block5_title: "",
-    block5_image: "",
-    team_tech: "",
-    team_art: "",
-    project_sheet: "",
-    partners: "",
-    status: "draft",
+    title: '', about: '', cover_image: '', banner_image: '',
+    block1_title: '', block1_image: '', block2_title: '', block2_image: '',
+    block3_title: '', block3_image: '', block4_title: '', block4_image: '',
+    block5_title: '', block5_image: '',
+    team_tech: '', team_art: '', project_sheet: '', partners: '', status: 'draft',
   });
 
   useEffect(() => {
     if (projectId) {
-      loadProject();
+      api.get<{ data: Project }>(`/api/projects/${projectId}`)
+        .then(({ data }) => setFormData(data))
+        .catch(console.error);
     }
   }, [projectId]);
 
-  async function loadProject() {
-    if (!projectId) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("projects")
-        .select("*")
-        .eq("id", projectId)
-        .single();
-
-      if (error) throw error;
-      setFormData(data);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   async function handleSave() {
-    if (!user?.id) return;
-
     setSaving(true);
     try {
-      const sanitized = normalizeProjectPayload(formData);
-      const payload = {
-        ...sanitized,
-        member_id: user.id,
-        status: "published" as Project["status"],
-      };
-
+      const payload = { ...pickStrings(formData), status: 'published' as const };
       if (projectId) {
-        const { error } = await supabase
-          .from("projects")
-          .update(payload)
-          .eq("id", projectId);
-
-        if (error) throw error;
+        await api.put(`/api/projects/${projectId}`, payload);
       } else {
-        const { error } = await supabase
-          .from("projects")
-          .insert([payload]);
-
-        if (error) throw error;
+        await api.post('/api/projects', payload);
       }
-
-      toast({ title: "Projeto salvo com sucesso!" });
+      toast({ title: 'Projeto salvo com sucesso!' });
       onClose();
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Erro ao salvar",
-        variant: "destructive",
-      });
+    } catch (err) {
+      toast({ title: 'Erro ao salvar', description: err instanceof Error ? err.message : undefined, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -253,7 +160,7 @@ function ProjectForm({
   return (
     <div className="space-y-6">
       <FormSection
-        title={projectId ? "Editar projeto" : "Novo projeto"}
+        title={projectId ? 'Editar projeto' : 'Novo projeto'}
         description="Organize os detalhes visuais e editoriais do seu projeto."
       >
         <div className="grid grid-cols-12 gap-4 md:gap-6">
@@ -261,92 +168,58 @@ function ProjectForm({
             <Label htmlFor="projectTitle">Nome do projeto *</Label>
             <Input
               id="projectTitle"
-              value={formData.title || ""}
-              onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+              value={formData.title || ''}
+              onChange={(e) => setFormData((p) => ({ ...p, title: e.target.value }))}
               placeholder="Digite o nome do projeto"
               required
             />
           </div>
 
           <div className="col-span-12">
-            <Uploader
-              label="Banner do projeto"
-              storageFolder="photos"
-              currentPath={formData.banner_image || ""}
-              onUploaded={(url) => setFormData((prev) => ({ ...prev, banner_image: url }))}
-              accept="image/*"
-              nameHint="projeto-banner"
-            />
+            <Uploader label="Banner do projeto" storageFolder="photos"
+              currentPath={formData.banner_image || ''}
+              onUploaded={(url) => setFormData((p) => ({ ...p, banner_image: url }))}
+              accept="image/*" nameHint="projeto-banner" />
           </div>
 
           <div className="col-span-12">
-            <Uploader
-              label="Imagem/Seção do projeto"
-              storageFolder="photos"
-              currentPath={formData.cover_image || ""}
-              onUploaded={(url) => setFormData((prev) => ({ ...prev, cover_image: url }))}
-              accept="image/*"
-              nameHint="projeto-capa"
-            />
+            <Uploader label="Imagem/Seção do projeto" storageFolder="photos"
+              currentPath={formData.cover_image || ''}
+              onUploaded={(url) => setFormData((p) => ({ ...p, cover_image: url }))}
+              accept="image/*" nameHint="projeto-capa" />
           </div>
         </div>
       </FormSection>
 
-      <FormSection
-        title="Sobre o projeto"
-        description="Contextualize o projeto com um texto envolvente."
-      >
-        <RichTextEditor
-          id="projectAbout"
-          value={formData.about || ""}
-          onChange={(value) => setFormData((prev) => ({ ...prev, about: value }))}
-          placeholder="Descreva o projeto, objetivos e inspirações."
-        />
+      <FormSection title="Sobre o projeto" description="Contextualize o projeto com um texto envolvente.">
+        <RichTextEditor id="projectAbout" value={formData.about || ''}
+          onChange={(v) => setFormData((p) => ({ ...p, about: v }))}
+          placeholder="Descreva o projeto, objetivos e inspirações." />
       </FormSection>
 
-      <FormSection
-        title="Blocos de conteúdo"
-        description="Estruture até cinco seções com textos e imagens complementares."
-      >
+      <FormSection title="Blocos de conteúdo" description="Estruture até cinco seções com textos e imagens.">
         <div className="space-y-6">
           {blockIndexes.map((index) => {
             const titleKey = `block${index}_title` as keyof Project;
             const imageKey = `block${index}_image` as keyof Project;
             return (
-              <div
-                key={index}
-                className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-alt)] p-4 md:p-6"
-              >
+              <div key={index} className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-alt)] p-4 md:p-6">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-[var(--ink)]">
-                    Conteúdo {index}
-                  </p>
-                  <span className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">
-                    Bloco {index}
-                  </span>
+                  <p className="text-sm font-semibold text-[var(--ink)]">Conteúdo {index}</p>
+                  <span className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Bloco {index}</span>
                 </div>
                 <div className="mt-4 grid grid-cols-12 gap-4 md:gap-6">
                   <div className="col-span-12">
-                    <RichTextEditor
-                      id={`projectBlock${index}`}
-                      value={(formData[titleKey] as string | null) || ""}
-                      onChange={(value) =>
-                        setFormData((prev) => ({ ...prev, [titleKey]: value }))
-                      }
-                      placeholder={`Conteúdo do bloco ${index}`}
-                    />
+                    <RichTextEditor id={`projectBlock${index}`}
+                      value={(formData[titleKey] as string | null) || ''}
+                      onChange={(v) => setFormData((p) => ({ ...p, [titleKey]: v }))}
+                      placeholder={`Conteúdo do bloco ${index}`} />
                   </div>
                   <div className="col-span-12 md:col-span-6">
-                    <Uploader
-                      label={`Imagem do bloco ${index}`}
-                      storageFolder="photos"
-                      currentPath={(formData[imageKey] as string | null) || ""}
-                      onUploaded={(url) =>
-                        setFormData((prev) => ({ ...prev, [imageKey]: url }))
-                      }
-                      accept="image/*"
-                      nameHint={`projeto-bloco-${index}`}
-                    />
+                    <Uploader label={`Imagem do bloco ${index}`} storageFolder="photos"
+                      currentPath={(formData[imageKey] as string | null) || ''}
+                      onUploaded={(url) => setFormData((p) => ({ ...p, [imageKey]: url }))}
+                      accept="image/*" nameHint={`projeto-bloco-${index}`} />
                   </div>
                 </div>
               </div>
@@ -355,166 +228,83 @@ function ProjectForm({
         </div>
       </FormSection>
 
-      <FormSection
-        title="Ficha técnica e parcerias"
-        description="Detalhe equipes envolvidas, ficha artística e parcerias estratégicas."
-      >
+      <FormSection title="Ficha técnica e parcerias" description="Detalhe equipes e parcerias.">
         <div className="grid grid-cols-12 gap-4 md:gap-6">
-          <div className="col-span-12">
-            <Label htmlFor="teamTech">Equipe técnica</Label>
-            <RichTextEditor
-              id="teamTech"
-              value={formData.team_tech || ""}
-              onChange={(value) => setFormData((prev) => ({ ...prev, team_tech: value }))}
-              placeholder="Liste equipe técnica, funções e destaques."
-            />
-          </div>
-
-          <div className="col-span-12">
-            <Label htmlFor="teamArt">Equipe artística</Label>
-            <RichTextEditor
-              id="teamArt"
-              value={formData.team_art || ""}
-              onChange={(value) => setFormData((prev) => ({ ...prev, team_art: value }))}
-              placeholder="Detalhe artistas envolvidos, participações especiais e colaborações."
-            />
-          </div>
-
-          <div className="col-span-12">
-            <Label htmlFor="projectSheet">Ficha artística</Label>
-            <RichTextEditor
-              id="projectSheet"
-              value={formData.project_sheet || ""}
-              onChange={(value) => setFormData((prev) => ({ ...prev, project_sheet: value }))}
-              placeholder="Inclua ficha técnica, duração, classificação e outras informações relevantes."
-            />
-          </div>
-
-          <div className="col-span-12">
-            <Label htmlFor="partners">Parcerias</Label>
-            <RichTextEditor
-              id="partners"
-              value={formData.partners || ""}
-              onChange={(value) => setFormData((prev) => ({ ...prev, partners: value }))}
-              placeholder="Cite instituições, marcas e apoiadores do projeto."
-            />
-          </div>
+          {(['team_tech', 'team_art', 'project_sheet', 'partners'] as const).map((field) => (
+            <div className="col-span-12" key={field}>
+              <Label htmlFor={field}>
+                {{ team_tech: 'Equipe técnica', team_art: 'Equipe artística', project_sheet: 'Ficha artística', partners: 'Parcerias' }[field]}
+              </Label>
+              <RichTextEditor id={field} value={(formData[field] as string) || ''}
+                onChange={(v) => setFormData((p) => ({ ...p, [field]: v }))}
+                placeholder="" />
+            </div>
+          ))}
         </div>
       </FormSection>
 
       <div className="flex flex-wrap justify-end gap-3">
-        <Button type="button" variant="secondary" onClick={onClose} className="min-w-[160px]">
-          Cancelar
-        </Button>
-        <Button
-          type="button"
-          onClick={handleSave}
-          disabled={saving || !formData.title}
-          className="min-w-[180px]"
-        >
+        <Button type="button" variant="secondary" onClick={onClose} className="min-w-[160px]">Cancelar</Button>
+        <Button type="button" onClick={handleSave} disabled={saving || !formData.title} className="min-w-[180px]">
           {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-          {projectId ? "Atualizar projeto" : "Publicar projeto"}
+          {projectId ? 'Atualizar projeto' : 'Publicar projeto'}
         </Button>
       </div>
     </div>
   );
 }
 
-function ProjectPreview({
-  project,
-  onEdit,
-  onDelete,
-}: {
-  project: Project;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
+function ProjectPreview({ project, onEdit, onDelete }: { project: Project; onEdit: () => void; onDelete: () => void }) {
   const coverImage = project.banner_image || project.cover_image;
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!coverImage) { setCoverUrl(null); return; }
     let active = true;
-
-    if (!coverImage) {
-      setCoverUrl(null);
-      return () => {
-        active = false;
-      };
-    }
-
-    (async () => {
-      try {
-        const url = await getSignedUrl(coverImage);
-        if (active) setCoverUrl(url);
-      } catch (error) {
-        console.error("[PROJECT::SIGNED_URL]", error);
-        if (active) setCoverUrl(null);
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
+    getSignedUrl(coverImage)
+      .then((url) => { if (active) setCoverUrl(url); })
+      .catch(() => { if (active) setCoverUrl(null); });
+    return () => { active = false; };
   }, [coverImage]);
+
   const chips = blockIndexes
-    .map((index) => {
-      const value = project[`block${index}_title` as keyof Project] as string | null;
-      const label = getPlainText(value);
+    .map((i) => {
+      const val = project[`block${i}_title` as keyof Project] as string | null;
+      const label = getPlainText(val);
       if (!label) return null;
-      const truncated = label.length > 48 ? `${label.slice(0, 45)}…` : label;
-      return { id: index as typeof index, label: truncated };
+      return { id: i, label: label.length > 48 ? `${label.slice(0, 45)}…` : label };
     })
-    .filter((chip): chip is { id: 1 | 2 | 3 | 4 | 5; label: string } => chip !== null);
+    .filter((c): c is { id: number; label: string } => c !== null);
 
   return (
     <Card className="group overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
       {coverUrl && (
         <div className="relative h-48 w-full overflow-hidden">
-          <img
-            src={coverUrl}
-            alt={project.title || "Capa do projeto"}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          <img src={coverUrl} alt={project.title || 'Capa do projeto'}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/30 to-transparent" aria-hidden="true" />
         </div>
       )}
-
       <div className="space-y-4 p-6 md:p-8">
         <div className="space-y-2">
-          <h3 className="text-xl font-semibold text-[var(--ink)]">
-            {project.title || "Projeto sem título"}
-          </h3>
+          <h3 className="text-xl font-semibold text-[var(--ink)]">{project.title || 'Projeto sem título'}</h3>
           {project.about && (
-            <div
-              className="prose prose-sm max-w-none text-[var(--muted)] line-clamp-3"
-              dangerouslySetInnerHTML={{ __html: project.about }}
-            />
+            <div className="prose prose-sm max-w-none text-[var(--muted)] line-clamp-3"
+              dangerouslySetInnerHTML={{ __html: project.about }} />
           )}
         </div>
-
         {chips.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {chips.map((chip) => (
-              <span
-                key={chip.id}
-                className="rounded-full bg-[var(--brand-soft)] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[var(--brand)]"
-              >
+              <span key={chip.id} className="rounded-full bg-[var(--brand-soft)] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[var(--brand)]">
                 {chip.label}
               </span>
             ))}
           </div>
         )}
-
         <div className="flex items-center gap-2 pt-2">
-          <Button variant="secondary" size="sm" className="flex-1" onClick={onEdit}>
-            Editar
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={onDelete}
-            aria-label={`Excluir ${project.title ?? "projeto"}`}
-          >
+          <Button variant="secondary" size="sm" className="flex-1" onClick={onEdit}>Editar</Button>
+          <Button variant="destructive" size="sm" onClick={onDelete} aria-label={`Excluir ${project.title ?? 'projeto'}`}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>

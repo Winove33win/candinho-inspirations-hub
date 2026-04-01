@@ -101,10 +101,7 @@ export default function Dashboard() {
     refreshArtistDetails: reloadDetails,
     upsertArtistDetails: async (payload) => {
       const result = await upsertArtistDetails(payload);
-      return {
-        data: result.data,
-        error: result.error instanceof Error ? null : result.error,
-      };
+      return { data: result.data, error: result.error };
     },
   };
 

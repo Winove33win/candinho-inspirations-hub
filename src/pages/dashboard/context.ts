@@ -1,15 +1,13 @@
-import { useOutletContext } from "react-router-dom";
-import type { PostgrestError } from "@supabase/supabase-js";
-import type { User } from "@supabase/supabase-js";
-import type { ArtistDetails } from "@/hooks/useArtistDetails";
+import { useOutletContext } from 'react-router-dom';
+import type { AuthUser, ArtistDetails } from '@/types/api';
 
 export interface DashboardContextValue {
-  user: User;
+  user: AuthUser;
   artistDetails: ArtistDetails | null;
   refreshArtistDetails: () => Promise<void>;
   upsertArtistDetails: (
     payload: Partial<ArtistDetails>
-  ) => Promise<{ data: ArtistDetails | null; error: PostgrestError | null }>;
+  ) => Promise<{ data: ArtistDetails | null; error: Error | null }>;
 }
 
 export function useDashboardContext() {
