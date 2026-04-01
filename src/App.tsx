@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import Index from "./pages/Index";
 import Candinho from "./pages/Candinho";
 import ArtistsIndex from "./pages/public/ArtistsIndex";
@@ -37,6 +37,9 @@ const App = () => (
             <Route path="/artistas" element={<ArtistsIndex />} />
             <Route path="/artistas/:slug/projetos/:projectId" element={<ArtistProjectPage />} />
             <Route path="/artistas/:slug" element={<ArtistProfilePage />} />
+            {/* Redirect singular form → plural */}
+            <Route path="/artista/:slug/projetos/:projectId" element={<RedirectArtist />} />
+            <Route path="/artista/:slug" element={<RedirectArtist />} />
             <Route path="/login" element={<Auth />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}>
@@ -57,5 +60,11 @@ const App = () => (
     </AuthProvider>
   </QueryClientProvider>
 );
+
+function RedirectArtist() {
+  const { slug, projectId } = useParams<{ slug: string; projectId?: string }>();
+  if (projectId) return <Navigate to={`/artistas/${slug}/projetos/${projectId}`} replace />;
+  return <Navigate to={`/artistas/${slug}`} replace />;
+}
 
 export default App;

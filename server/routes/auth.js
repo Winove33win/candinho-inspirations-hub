@@ -53,7 +53,7 @@ router.post('/register', async (req, res) => {
     return res.status(201).json({ token, user: { id, email: email.trim().toLowerCase(), role: 'member' } });
   } catch (err) {
     console.error('[AUTH::REGISTER]', err);
-    return res.status(500).json({ error: 'Erro interno ao criar conta' });
+    return res.status(500).json({ error: 'Erro interno ao criar conta', detail: err.message });
   }
 });
 
@@ -85,7 +85,7 @@ router.post('/login', async (req, res) => {
     return res.json({ token, user: { id: user.id, email: user.email, role: user.role } });
   } catch (err) {
     console.error('[AUTH::LOGIN]', err);
-    return res.status(500).json({ error: 'Erro interno ao fazer login' });
+    return res.status(500).json({ error: 'Erro interno ao fazer login', detail: err.message });
   }
 });
 

@@ -50,7 +50,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   if (!res.ok) {
-    const message = (body as { error?: string })?.error || `HTTP ${res.status}`;
+    const b = body as { error?: string; detail?: string } | undefined;
+    const message = b?.detail ? `${b.error}: ${b.detail}` : (b?.error || `HTTP ${res.status}`);
     throw new ApiError(message, res.status);
   }
 

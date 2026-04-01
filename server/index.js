@@ -4,6 +4,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import db            from './db.js';
 import authRoutes     from './routes/auth.js';
 import artistRoutes   from './routes/artists.js';
 import projectRoutes  from './routes/projects.js';
@@ -55,6 +56,18 @@ app.use('/api/admin',     adminRoutes);
 
 // ── Health check ─────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
+
+app.get('/api/health/db', async (_req, res) => {
+  try {
+    const [pingRows] = await db.query('SELECT 1 AS ping');
+    const [tableRows] = await db.query(
+      "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME"
+    );
+    return res.json({ ok: true, ping: pingRows[0].ping, tables: tableRows.map(t => t.TABLE_NAME) });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
 
 // ── Serve React SPA ──────────────────────────────────────────────
 app.use(express.static(DIST_DIR));
