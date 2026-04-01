@@ -8,6 +8,7 @@ import ArtistsSection from "@/components/ArtistsSection";
 import DirectorsSection from "@/components/DirectorsSection";
 import WorldMusicSection from "@/components/WorldMusicSection";
 import CandinhoSection from "@/components/CandinhoSection";
+import LiveArtistsSection from "@/components/LiveArtistsSection";
 import FeaturedArtist from "@/components/FeaturedArtist";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -214,6 +215,8 @@ const Index = () => {
           onFollowToggle={handleFollowToggle}
           isFollowed={isFollowed}
         />
+        <LiveArtistsSection />
+
         <section id="blockProjetos" className="site-container space-y-16">
           <CandinhoSection />
         </section>
