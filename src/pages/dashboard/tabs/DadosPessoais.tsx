@@ -206,24 +206,6 @@ export default function DadosPessoais({ artistDetails, onUpsert, onDirtyChange }
             </div>
 
             <div className="md:col-span-6">
-              <Label htmlFor="dropdown2">Como se define</Label>
-              <Select
-                value={formData.how_is_it_defined1}
-                onValueChange={(value) => setFormData({ ...formData, how_is_it_defined1: value })}
-              >
-                <SelectTrigger id="dropdown2">
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="artista">Artista</SelectItem>
-                  <SelectItem value="musico">Músico</SelectItem>
-                  <SelectItem value="produtor">Produtor</SelectItem>
-                  <SelectItem value="outro">Outro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="md:col-span-6">
               <Label htmlFor="input98">Categoria artística</Label>
               <Select
                 value={formData.how_is_it_defined}
