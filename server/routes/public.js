@@ -28,7 +28,7 @@ router.get('/artists', async (req, res) => {
     const limit   = Math.min(100, Math.max(1, parseInt(req.query.limit) || 24));
     const offset  = (page - 1) * limit;
 
-    const conditions = ['perfil_completo = 1'];
+    const conditions = ['(perfil_completo = 1 OR artistic_name IS NOT NULL)'];
     const params = [];
 
     if (q) {
@@ -61,7 +61,7 @@ router.get('/artists', async (req, res) => {
     const [countryRows] = await db.query(
       `SELECT DISTINCT country_residence
        FROM artist_details
-       WHERE perfil_completo = 1 AND country_residence IS NOT NULL
+       WHERE (perfil_completo = 1 OR artistic_name IS NOT NULL) AND country_residence IS NOT NULL
        ORDER BY country_residence ASC`
     );
 
