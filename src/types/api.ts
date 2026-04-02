@@ -158,6 +158,7 @@ export interface ArtistPublic {
   stageName: string;
   country?: string | null;
   city?: string | null;
+  category?: string | null;
   avatarUrl?: string | null;
   coverUrl?: string | null;
   stats?: { key: string; value: string | number }[];

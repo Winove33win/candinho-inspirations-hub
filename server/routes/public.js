@@ -190,6 +190,7 @@ router.get('/artists/:slug', async (req, res) => {
       stageName: record.artistic_name || record.full_name || 'Artista SMARTx',
       country:   record.country_residence,
       city:      record.city,
+      category:  record.how_is_it_defined || null,
       avatarUrl,
       coverUrl,
       stats,

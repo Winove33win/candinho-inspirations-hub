@@ -1,6 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
+import {
+  Globe, Instagram, Facebook, Youtube, Music2,
+  MapPin, ChevronDown, Play, ArrowLeft,
+} from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useArtistPublic } from "@/hooks/useArtistPublic";
@@ -9,353 +13,191 @@ import { useInfiniteChunk } from "@/hooks/useInfiniteChunk";
 import LoadMore from "@/components/common/LoadMore";
 import ProjectMiniCard, { ProjectMini } from "@/components/artist/ProjectMiniCard";
 import EventMiniCard, { EventMini } from "@/components/artist/EventMiniCard";
-import "@/styles/artist.css";
 import Lightbox, { LightboxItem } from "@/components/media/Lightbox";
+import "@/styles/artist.css";
 
-type ArtistStat = NonNullable<ArtistPublic["stats"]>[number];
-
-/* -------------------- utils -------------------- */
+/* ── utils ──────────────────────────────────────────────────────── */
 function toPlainText(value?: string | null) {
   if (!value) return "";
   return value.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
 }
 function truncate(value: string, max = 160) {
-  if (value.length <= max) return value;
-  return `${value.slice(0, max - 1).trim()}…`;
+  return value.length <= max ? value : `${value.slice(0, max - 1).trim()}…`;
 }
 
-/* -------------------- SEO + JSON-LD -------------------- */
+/* ── SEO ─────────────────────────────────────────────────────────── */
 function useArtistSeo(artist?: ArtistPublic) {
   const plainVision = artist?.vision ? toPlainText(artist.vision) : "";
   const plainHistory = artist?.history ? toPlainText(artist.history) : "";
-  const descriptionSource = plainVision || plainHistory;
   const metaDescription = truncate(
-    descriptionSource || `Conheça ${artist?.stageName ?? "artista"} na rede SMARTx.`
+    plainVision || plainHistory || `Conheça ${artist?.stageName ?? "artista"} na rede SMARTx.`
   );
 
   useEffect(() => {
     if (!artist) return;
-
-    const previousTitle = document.title;
+    const prev = document.title;
     const title = `${artist.stageName} | SMARTx`;
     document.title = title;
 
-    const metaConfigs = [
+    const metas = [
       { attr: "name", key: "description", content: metaDescription },
       { attr: "property", key: "og:title", content: title },
       { attr: "property", key: "og:description", content: metaDescription },
       { attr: "property", key: "og:type", content: "profile" },
       { attr: "property", key: "og:image", content: artist.coverUrl ?? artist.avatarUrl ?? "" },
-      {
-        attr: "name",
-        key: "twitter:card",
-        content: artist.coverUrl || artist.avatarUrl ? "summary_large_image" : "summary",
-      },
+      { attr: "name", key: "twitter:card", content: artist.coverUrl || artist.avatarUrl ? "summary_large_image" : "summary" },
       { attr: "name", key: "twitter:title", content: title },
       { attr: "name", key: "twitter:description", content: metaDescription },
       { attr: "name", key: "twitter:image", content: artist.coverUrl ?? artist.avatarUrl ?? "" },
     ];
 
-    const previousMeta = metaConfigs.map((config) => {
-      const selector = `meta[${config.attr}='${config.key}']`;
-      let element = document.head.querySelector(selector) as HTMLMetaElement | null;
+    const saved = metas.map(({ attr, key, content }) => {
+      const sel = `meta[${attr}='${key}']`;
+      let el = document.head.querySelector(sel) as HTMLMetaElement | null;
       let created = false;
-      if (!element) {
-        element = document.createElement("meta");
-        element.setAttribute(config.attr, config.key);
-        document.head.appendChild(element);
-        created = true;
-      }
-      const previousContent = element.getAttribute("content");
-      if (config.content) element.setAttribute("content", config.content);
-      else element.removeAttribute("content");
-      return { element, previousContent, created };
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); created = true; }
+      const prev = el.getAttribute("content");
+      if (content) el.setAttribute("content", content); else el.removeAttribute("content");
+      return { el, prev, created };
     });
 
     const scriptId = "artist-profile-jsonld";
-    let jsonLdEl = document.getElementById(scriptId) as HTMLScriptElement | null;
-    const jsonLdData = {
-      "@context": "https://schema.org",
-      "@type": "Person",
-      name: artist.stageName,
-      url: window.location.href,
-      sameAs: artist.socials?.map((item) => item.url).filter(Boolean),
+    let ld = document.getElementById(scriptId) as HTMLScriptElement | null;
+    if (!ld) { ld = document.createElement("script"); ld.type = "application/ld+json"; ld.id = scriptId; document.head.appendChild(ld); }
+    ld.textContent = JSON.stringify({
+      "@context": "https://schema.org", "@type": "Person",
+      name: artist.stageName, url: window.location.href,
+      sameAs: artist.socials?.map(s => s.url).filter(Boolean),
       image: artist.avatarUrl ?? artist.coverUrl ?? undefined,
-    };
-
-    if (!jsonLdEl) {
-      jsonLdEl = document.createElement("script");
-      jsonLdEl.type = "application/ld+json";
-      jsonLdEl.id = scriptId;
-      document.head.appendChild(jsonLdEl);
-    }
-    jsonLdEl.textContent = JSON.stringify(jsonLdData);
+    });
 
     return () => {
-      document.title = previousTitle;
-      previousMeta.forEach(({ element, previousContent, created }) => {
-        if (created) element.remove();
-        else if (previousContent) element.setAttribute("content", previousContent);
-        else element.removeAttribute("content");
+      document.title = prev;
+      saved.forEach(({ el, prev: p, created }) => {
+        if (created) el.remove();
+        else if (p) el.setAttribute("content", p);
+        else el.removeAttribute("content");
       });
-      if (jsonLdEl) jsonLdEl.remove();
+      ld?.remove();
     };
   }, [artist, metaDescription]);
 }
 
-function ArtistPageShell({ children }: { children: ReactNode }) {
+/* ── Social icon helper ──────────────────────────────────────────── */
+function SocialIcon({ label }: { label: string }) {
+  const l = label.toLowerCase();
+  if (l.includes("instagram")) return <Instagram className="h-4 w-4" />;
+  if (l.includes("facebook")) return <Facebook className="h-4 w-4" />;
+  if (l.includes("youtube")) return <Youtube className="h-4 w-4" />;
+  if (l.includes("spotify") || l.includes("apple") || l.includes("music")) return <Music2 className="h-4 w-4" />;
+  return <Globe className="h-4 w-4" />;
+}
+
+/* ── Video helpers ───────────────────────────────────────────────── */
+interface VideoItem { url: string; provider?: "youtube" | "vimeo" | "file" }
+
+function extractYouTubeId(url: string) {
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes("youtu")) {
+      if (u.searchParams.get("v")) return u.searchParams.get("v");
+      return u.pathname.split("/").filter(Boolean).pop() ?? null;
+    }
+  } catch { /* noop */ }
+  return null;
+}
+function extractVimeoId(url: string) {
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes("vimeo")) return u.pathname.split("/").filter(Boolean).pop() ?? null;
+  } catch { /* noop */ }
+  return null;
+}
+function toEmbedSrc(v: VideoItem): string | null {
+  if (!v.url) return null;
+  const p = v.provider;
+  const lower = v.url.toLowerCase();
+  if (p === "youtube" || lower.includes("youtu")) { const id = extractYouTubeId(v.url); return id ? `https://www.youtube.com/embed/${id}` : null; }
+  if (p === "vimeo" || lower.includes("vimeo")) { const id = extractVimeoId(v.url); return id ? `https://player.vimeo.com/video/${id}` : null; }
+  if (/(\.mp4|\.webm|\.ogg)(\?.*)?$/.test(lower) || p === "file") return v.url;
+  return v.url;
+}
+function getYouTubeThumbnail(url: string) {
+  const id = extractYouTubeId(url);
+  return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
+}
+
+/* ── Expandable bio section ──────────────────────────────────────── */
+function BioSection({ title, html }: { title: string; html?: string | null }) {
+  const [open, setOpen] = useState(true);
+  if (!html) return null;
   return (
-    <div className="min-h-screen bg-[var(--surface-alt)] text-[var(--ink)]">
+    <div className="ap-bio-block">
+      <button
+        type="button"
+        className="ap-bio-header"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+      >
+        <span className="ap-bio-title">{title}</span>
+        <ChevronDown className={`ap-bio-chevron${open ? " ap-bio-chevron--open" : ""}`} />
+      </button>
+      {open && (
+        <div
+          className="ap-bio-body prose-artist"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ── Anchor nav ──────────────────────────────────────────────────── */
+function AnchorNav({ hasPhotos, hasVideos, hasProjects, hasEvents, hasSocials }: {
+  hasPhotos: boolean; hasVideos: boolean; hasProjects: boolean; hasEvents: boolean; hasSocials: boolean;
+}) {
+  const items = [
+    { href: "#sobre", label: "Sobre" },
+    hasPhotos && { href: "#fotos", label: "Fotos" },
+    hasVideos && { href: "#videos", label: "Vídeos" },
+    hasProjects && { href: "#projetos", label: "Projetos" },
+    hasEvents && { href: "#eventos", label: "Eventos" },
+    hasSocials && { href: "#contato", label: "Contato" },
+  ].filter(Boolean) as { href: string; label: string }[];
+
+  return (
+    <nav className="ap-nav" aria-label="Seções do perfil">
+      <div className="ap-nav__inner">
+        {items.map(item => (
+          <a key={item.href} href={item.href} className="ap-nav__link">
+            {item.label}
+          </a>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
+/* ── Status page ─────────────────────────────────────────────────── */
+function StatusPage({ title, message }: { title: string; message: string }) {
+  return (
+    <div className="min-h-screen bg-[#0f0f10] text-white">
       <Header />
-      <main className="pt-24 pb-20">
-        <div className="site-container">{children}</div>
+      <main className="flex min-h-[60vh] items-center justify-center pt-24 pb-20">
+        <div className="mx-auto max-w-lg rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center">
+          <h2 className="text-xl font-bold text-white">{title}</h2>
+          <p className="mt-3 text-sm text-white/50">{message}</p>
+          <Link to="/artistas" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#e11d48]">
+            <ArrowLeft className="h-4 w-4" /> Ver todos os artistas
+          </Link>
+        </div>
       </main>
       <Footer />
     </div>
   );
 }
 
-/* -------------------- SectionTabs (guias laterais) -------------------- */
-function SectionTabs({
-  sections,
-  initialIndex = 0,
-}: {
-  sections: { title: string; html?: string | null }[];
-  initialIndex?: number;
-}) {
-  const [active, setActive] = useState(initialIndex);
-  const currentIndex = sections.length > 0 ? Math.min(active, sections.length - 1) : 0;
-  const current = sections[currentIndex];
-
-  return (
-    <div className="card section">
-      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[220px,1fr] lg:items-start">
-        <nav className="flex flex-row gap-3 overflow-x-auto pb-2 lg:flex-col lg:gap-2 lg:overflow-visible lg:pb-0">
-          {sections.map((s, i) => {
-            const isActive = i === currentIndex;
-            return (
-              <button
-                key={s.title}
-                type="button"
-                onClick={() => setActive(i)}
-                aria-pressed={isActive}
-                className={`w-full min-w-[160px] rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent,#e11d48)] ${
-                  isActive
-                    ? "border-[var(--accent,#e11d48)] bg-white/5 text-white shadow"
-                    : "border-[var(--border,#26262a)] bg-transparent text-[#a1a1aa] hover:border-[var(--accent,#e11d48)] hover:bg-white/5"
-                }`}
-              >
-                {s.title}
-              </button>
-            );
-          })}
-        </nav>
-        <div className="flex-1 space-y-3">
-          <h3 className="title-lg">{current?.title}</h3>
-          {current?.html ? (
-            <div className="text-md" dangerouslySetInnerHTML={{ __html: current.html }} />
-          ) : (
-            <p className="text-md">Conteúdo não informado.</p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------- SectionCard util -------------------- */
-interface SectionContentProps {
-  html?: string | null;
-  clamp?: boolean;
-}
-function SectionContent({ html, clamp }: SectionContentProps) {
-  const [expanded, setExpanded] = useState(false);
-  if (!html) return <p className="text-md">Conteúdo não informado.</p>;
-  return (
-    <div>
-      <div
-        className={`text-md${clamp && !expanded ? " clamp-8" : ""}`}
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
-      {clamp && !expanded && (
-        <button type="button" className="btn" style={{ marginTop: "12px" }} onClick={() => setExpanded(true)}>
-          Ler mais
-        </button>
-      )}
-    </div>
-  );
-}
-interface SectionCardProps {
-  title: string;
-  html?: string | null;
-  clamp?: boolean;
-  children?: ReactNode;
-}
-function SectionCard({ title, html, clamp, children }: SectionCardProps) {
-  return (
-    <div className="card section">
-      <h2 className="title-lg">{title}</h2>
-      {html !== undefined ? <SectionContent html={html} clamp={clamp} /> : children}
-    </div>
-  );
-}
-
-/* -------------------- Hero -------------------- */
-interface HeroProps {
-  name: string;
-  coverUrl?: string | null;
-  avatarUrl?: string | null;
-  pills?: string[];
-  highlight?: string;
-  actions?: ReactNode;
-}
-function Hero({ name, coverUrl, avatarUrl, pills = [], highlight, actions }: HeroProps) {
-  return (
-    <header className="sticky-hero">
-      <div className="container hero">
-        <div className="hero-media" aria-hidden={coverUrl ? undefined : true}>
-          {coverUrl ? (
-            <img src={coverUrl} alt={`Capa de ${name}`} />
-          ) : (
-            <div
-              style={{
-                width: "100%",
-                height: "100%",
-                background:
-                  "radial-gradient(circle at 15% 0%, rgba(225,29,72,.35), transparent 60%), #121214",
-              }}
-            />
-          )}
-        </div>
-
-        <div className="hero-overlay">
-          <div className="hero-avatar">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={`Retrato de ${name}`} />
-            ) : (
-              <div
-                aria-hidden="true"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  background:
-                    "linear-gradient(135deg, rgba(225,29,72,.45), rgba(30,30,35,.95))",
-                }}
-              />
-            )}
-          </div>
-
-          <div>
-            <h1 className="hero-name">{name}</h1>
-
-            {(pills?.length || highlight) ? (
-              <div className="pills" style={{ marginTop: 8 }}>
-                {pills?.map((item, i) => (
-                  <span className="pill" key={`${item}-${i}`}>
-                    {item}
-                  </span>
-                ))}
-                {highlight && <span className="pill">{highlight}</span>}
-              </div>
-            ) : null}
-
-            <div className="hero-actions">{actions}</div>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-/* -------------------- Stats + Media helpers -------------------- */
-interface StatPillsProps {
-  stats?: { key: string; value: number | string }[];
-  title?: string;
-}
-function StatPills({ stats, title = "Destaques" }: StatPillsProps) {
-  if (!stats || stats.length === 0) return null;
-  return (
-    <div className="card section">
-      <h2 className="title-lg">{title}</h2>
-      <div className="pills">
-        {stats.map((stat, index) => (
-          <span className="pill" key={`${stat.key}-${stat.value}-${index}`}>
-            <strong style={{ color: "#f5f5f6", fontWeight: 700 }}>
-              {typeof stat.value === "number" ? stat.value.toLocaleString("pt-BR") : stat.value}
-            </strong>
-            {stat.key ? ` ${stat.key}` : ""}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-interface MediaGridProps<T> {
-  items?: T[];
-  renderItem: (item: T, index: number) => ReactNode;
-  emptyMessage: string;
-}
-function MediaGrid<T>({ items, renderItem, emptyMessage }: MediaGridProps<T>) {
-  if (!items || items.length === 0) return <p className="text-md">{emptyMessage}</p>;
-  return <div className="media-grid">{items.map((item, index) => renderItem(item, index))}</div>;
-}
-
-interface VideoItem {
-  url: string;
-  provider?: "youtube" | "vimeo" | "file";
-}
-function extractYouTubeId(url: string) {
-  try {
-    const parsed = new URL(url);
-    if (parsed.hostname.includes("youtu")) {
-      if (parsed.searchParams.get("v")) return parsed.searchParams.get("v");
-      const segments = parsed.pathname.split("/").filter(Boolean);
-      return segments.pop() ?? null;
-    }
-  } catch {}
-  return null;
-}
-function extractVimeoId(url: string) {
-  try {
-    const parsed = new URL(url);
-    if (parsed.hostname.includes("vimeo")) {
-      const segments = parsed.pathname.split("/").filter(Boolean);
-      return segments.pop() ?? null;
-    }
-  } catch {}
-  return null;
-}
-function toEmbedSrc(video: VideoItem) {
-  if (!video.url) return null;
-  const provider = video.provider;
-  if (provider === "youtube") {
-    const id = extractYouTubeId(video.url);
-    return id ? `https://www.youtube.com/embed/${id}` : null;
-  }
-  if (provider === "vimeo") {
-    const id = extractVimeoId(video.url);
-    return id ? `https://player.vimeo.com/video/${id}` : null;
-  }
-  if (provider === "file") return video.url;
-
-  const lower = video.url.toLowerCase();
-  if (lower.includes("youtu")) {
-    const id = extractYouTubeId(video.url);
-    return id ? `https://www.youtube.com/embed/${id}` : null;
-  }
-  if (lower.includes("vimeo")) {
-    const id = extractVimeoId(video.url);
-    return id ? `https://player.vimeo.com/video/${id}` : null;
-  }
-  if (/(\.mp4|\.webm|\.ogg)(\?.*)?$/.test(lower)) return video.url;
-  return video.url;
-}
-function formatStatValue(value: string | number) {
-  return typeof value === "number" ? value.toLocaleString("pt-BR") : value;
-}
-
-/* -------------------- Page -------------------- */
+/* ── Page ────────────────────────────────────────────────────────── */
 export default function ArtistProfilePage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const { data: artist, isLoading, error } = useArtistPublic(slug);
@@ -363,347 +205,247 @@ export default function ArtistProfilePage() {
   useArtistSeo(artist);
 
   const [lbItems, setLbItems] = useState<LightboxItem[] | null>(null);
-  const [lbIndex, setLbIndex] = useState<number>(0);
-  const openLightbox = (items: LightboxItem[], index = 0) => {
-    setLbItems(items);
-    setLbIndex(index);
-  };
-  const closeLightbox = () => setLbItems(null);
+  const [lbIndex, setLbIndex] = useState(0);
+  const openLb = (items: LightboxItem[], i = 0) => { setLbItems(items); setLbIndex(i); };
+  const closeLb = () => setLbItems(null);
 
-  // Derive data for hooks (must be before any conditional returns)
-  const projects = (artist?.projects ?? []).filter(
-    (project): project is NonNullable<typeof project> => !!project
-  );
-  const events = (artist?.events ?? []).filter(
-    (event): event is NonNullable<typeof event> => !!event
-  );
+  const projects = (artist?.projects ?? []).filter(Boolean);
+  const events = (artist?.events ?? []).filter(Boolean);
 
-  // Hooks must be called unconditionally
   const {
-    visible: projectsVisible,
-    canLoadMore: projectsCanMore,
-    loadMore: projectsMore,
-    sentinelRef: projectsSentinel,
-    busy: projectsBusy,
-    ioSupported: projectsIOSupported,
-    reset: projectsReset,
+    visible: projectsVisible, canLoadMore: projMore, loadMore: projNext,
+    sentinelRef: projSentinel, busy: projBusy, ioSupported: projIO, reset: projReset,
   } = useInfiniteChunk({ items: projects, batch: 6 });
-
   const {
-    visible: eventsVisible,
-    canLoadMore: eventsCanMore,
-    loadMore: eventsMore,
-    sentinelRef: eventsSentinel,
-    busy: eventsBusy,
-    ioSupported: eventsIOSupported,
-    reset: eventsReset,
+    visible: eventsVisible, canLoadMore: evMore, loadMore: evNext,
+    sentinelRef: evSentinel, busy: evBusy, ioSupported: evIO, reset: evReset,
   } = useInfiniteChunk({ items: events, batch: 6 });
 
-  useEffect(() => {
-    projectsReset();
-    eventsReset();
-  }, [artist?.id, projectsReset, eventsReset]);
-
-  const renderStatus = (title: string, message: string) => (
-    <ArtistPageShell>
-      <div className="mx-auto max-w-2xl rounded-2xl border border-[var(--elev-border)] bg-[var(--surface)] p-8 text-[var(--ink)] shadow-[var(--shadow-1)]">
-        <h2 className="text-2xl font-semibold text-[var(--ink)]">{title}</h2>
-        <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">{message}</p>
-      </div>
-    </ArtistPageShell>
-  );
+  useEffect(() => { projReset(); evReset(); }, [artist?.id, projReset, evReset]);
 
   if (error) {
-    const friendlyMessage = (() => {
-      const message = (error as Error).message;
-      if (message === "artist_not_found") return "Artista não encontrado.";
-      if (message === "internal_error") return "Erro interno ao carregar o artista.";
-      return message;
-    })();
-
-    return renderStatus("Ops! Não foi possível carregar o artista.", friendlyMessage);
+    const msg = (error as Error).message;
+    return <StatusPage title="Não foi possível carregar o artista." message={msg === "artist_not_found" ? "Artista não encontrado." : "Erro interno ao carregar o artista."} />;
   }
+  if (isLoading) return <StatusPage title="Carregando…" message="Estamos preparando o perfil com todos os detalhes." />;
+  if (!artist) return <StatusPage title="Artista não encontrado." message="Verifique o link ou explore outros talentos da plataforma." />;
 
-  if (isLoading) {
-    return renderStatus(
-      "Carregando artista…",
-      "Estamos preparando o perfil com todos os detalhes."
-    );
-  }
+  const socials = (artist.socials ?? []).filter(s => s?.url);
+  const photos = (artist.photos ?? []).filter(p => p?.url);
+  const videos = (artist.videos ?? []).filter(v => v?.url) as VideoItem[];
+  const locationParts = [artist.city, artist.country].filter(Boolean);
 
-  if (!artist) {
-    return renderStatus(
-      "Artista não encontrado.",
-      "Verifique o link ou explore outros talentos disponíveis na plataforma."
-    );
-  }
+  const photoItems: LightboxItem[] = photos.map(p => ({ type: "image", src: p.url, alt: p.alt?.trim() || artist.stageName }));
+  const videoItems: LightboxItem[] = videos.map((v, i) => ({ type: "video", src: toEmbedSrc(v) || v.url, title: `Vídeo ${i + 1} — ${artist.stageName}` }));
 
-  const socialLinks = (artist.socials ?? []).filter((item) => item && item.url);
-  const heroPills = [artist.country, artist.city].filter(
-    (item): item is string => !!item && item.trim().length > 0
-  );
-  const stats = (artist.stats ?? []).filter(
-    (stat): stat is ArtistStat =>
-      stat != null && stat.value != null && `${stat.value}`.toString().trim().length > 0
-  );
-  const [primaryStat, ...otherStats] = stats;
-  const highlight = primaryStat
-    ? [formatStatValue(primaryStat.value), primaryStat.key].filter(Boolean).join(" · ") ||
-      formatStatValue(primaryStat.value)
-    : undefined;
-  const statPills = otherStats.map((stat) => ({
-    key: stat.key,
-    value: formatStatValue(stat.value),
-  }));
-  const photos = (artist?.photos ?? []).filter((photo) => photo && photo.url);
-  const videos = (artist?.videos ?? []).filter((video) => video && video.url) as VideoItem[];
-  const primaryContact = socialLinks[0];
-
-  const heroActions = (
-    <>
-      <button type="button" className="btn btn--accent">Seguir</button>
-      <a className="btn" href="#fotos">Fotos</a>
-      <a className="btn" href="#videos">Vídeos</a>
-      {primaryContact ? (
-        <a className="btn" href={primaryContact.url} target="_blank" rel="noopener noreferrer">
-          Contato
-        </a>
-      ) : (
-        <button type="button" className="btn" disabled aria-disabled="true" style={{ opacity: 0.45, cursor: "not-allowed" }}>
-          Contato
-        </button>
-      )}
-    </>
-  );
-
-  const photoItems: LightboxItem[] = photos.map((p) => ({
-    type: "image",
-    src: p.url,
-    alt: p.alt && p.alt.trim().length > 0 ? p.alt : artist.stageName,
-  }));
-
-  const videoItems: LightboxItem[] = videos.map((v, i) => ({
-    type: "video",
-    src: toEmbedSrc(v) || v.url,
-    title: `Vídeo ${i + 1} — ${artist.stageName}`,
-  }));
+  const hasBio = !!(artist.vision || artist.history || artist.career || artist.more);
 
   return (
-    <ArtistPageShell>
-      <div className="artist-page overflow-hidden rounded-[32px] border border-[rgba(255,255,255,0.08)] bg-[#0f0f10] shadow-[0_32px_120px_rgba(12,10,10,0.6)]">
-        <Hero
-          name={artist.stageName}
-          coverUrl={artist.coverUrl}
-          avatarUrl={artist.avatarUrl}
-          pills={heroPills}
-          highlight={highlight}
-          actions={heroActions}
-        />
+    <div className="ap-root">
+      <Header />
 
-        <div className="container h-grid pb-16 pt-10">
-          <aside className="card contact-card">
-            <h2 className="title-lg">Contatos & Redes</h2>
+      {/* ── Hero ── */}
+      <section className="ap-hero">
+        <div className="ap-hero__bg" aria-hidden="true">
+          {artist.coverUrl ? (
+            <img src={artist.coverUrl} alt="" />
+          ) : artist.avatarUrl ? (
+            <img src={artist.avatarUrl} alt="" style={{ filter: "brightness(0.35) saturate(0.5) blur(8px)", transform: "scale(1.08)" }} />
+          ) : (
+            <div className="ap-hero__fallback" />
+          )}
+          <div className="ap-hero__gradient" />
+        </div>
 
-            {socialLinks.length > 0 ? (
-              <ul className="social-list">
-                {socialLinks.map((item) => (
-                  <li className="social-item" key={item.url}>
-                    <span className="social-dot" aria-hidden="true" />
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Abrir ${item.label || "link externo"}`}
-                      title={item.label || item.url}
-                    >
-                      {item.label || item.url}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-md" style={{ marginTop: 12 }}>
-                Nenhum contato informado até o momento.
-              </p>
-            )}
-          </aside>
+        <div className="ap-hero__content">
+          <Link to="/artistas" className="ap-hero__back">
+            <ArrowLeft className="h-4 w-4" /> Artistas
+          </Link>
 
-          <section>
-            <StatPills stats={statPills} title="Números & Reconhecimentos" />
-
-            {/* Guias laterais de apresentação */}
-            <SectionTabs
-              sections={[
-                { title: "Visão Geral", html: artist.vision ?? "" },
-                { title: "História", html: artist.history ?? "" },
-                { title: "Carreira", html: artist.career ?? "" },
-                { title: "Mais", html: artist.more ?? "" },
-              ]}
-            />
-
-            {projects.length > 0 && (
-              <div className="section" id="projetos">
-                <h2 className="title-lg">Projetos em destaque</h2>
-                <div className="mini-list">
-                  {projectsVisible.map((project) => {
-                    const href = `/artistas/${artist.slug || slug}/projetos/${project.id}`;
-                    const mini: ProjectMini = {
-                      id: project.id,
-                      title: project.title,
-                      coverUrl: project.coverUrl,
-                      bannerUrl: project.bannerUrl,
-                      about: project.about,
-                      partners: project.partners,
-                      teamArt: project.teamArt,
-                      teamTech: project.teamTech,
-                      projectSheetUrl: project.projectSheetUrl,
-                      href,
-                    };
-                    return <ProjectMiniCard key={project.id} project={mini} />;
-                  })}
-                </div>
-
-                <div ref={projectsSentinel} className="sentinel" aria-hidden="true" />
-
-                <LoadMore
-                  onClick={projectsMore}
-                  busy={projectsBusy}
-                  hidden={!projectsCanMore || (projectsIOSupported && !projectsBusy)}
-                  label="Ver mais projetos"
-                />
-              </div>
-            )}
-
-            {events.length > 0 && (
-              <div className="section" id="eventos">
-                <h2 className="title-lg">Eventos</h2>
-                <div className="mini-list">
-                  {eventsVisible.map((event) => {
-                    const href = event.ctaLink || `/artistas/${artist.slug || slug}/eventos/${event.id}`;
-                    const mini: EventMini = {
-                      id: event.id,
-                      name: event.name,
-                      bannerUrl: event.bannerUrl,
-                      date: event.date,
-                      startTime: event.startTime,
-                      endTime: event.endTime,
-                      place: event.place,
-                      description: event.description,
-                      href,
-                    };
-                    return <EventMiniCard key={event.id} event={mini} />;
-                  })}
-                </div>
-
-                <div ref={eventsSentinel} className="sentinel" aria-hidden="true" />
-
-                <LoadMore
-                  onClick={eventsMore}
-                  busy={eventsBusy}
-                  hidden={!eventsCanMore || (eventsIOSupported && !eventsBusy)}
-                  label="Ver mais eventos"
-                />
-              </div>
-            )}
-
-            {/* Fotos */}
-            <div className="section" id="fotos">
-              <h2 className="title-lg">Galeria de Fotos</h2>
-              {photos.length > 0 ? (
-                <div className="photo-grid">
-                  {photos.map((photo, index) => (
-                    <figure className="photo" key={`${photo.url}-${index}`}>
-                      <button
-                        type="button"
-                        className="photo-hit"
-                        onClick={() => openLightbox(photoItems, index)}
-                        aria-label="Ampliar foto"
-                      >
-                        <img
-                          src={photo.url}
-                          alt={photo.alt && photo.alt.trim().length > 0 ? photo.alt : artist.stageName}
-                          loading="lazy"
-                        />
-                      </button>
-                    </figure>
-                  ))}
-                </div>
+          <div className="ap-hero__bottom">
+            <div className="ap-hero__avatar">
+              {artist.avatarUrl ? (
+                <img src={artist.avatarUrl} alt={`Foto de ${artist.stageName}`} />
               ) : (
-                <p className="text-md">Nenhuma fotografia enviada.</p>
+                <div className="ap-hero__avatar-fallback">
+                  {artist.stageName[0].toUpperCase()}
+                </div>
               )}
             </div>
 
-            {/* Vídeos */}
-            <div className="section" id="videos">
-              <h2 className="title-lg">Galeria de Vídeos</h2>
-              <MediaGrid
-                items={videos}
-                emptyMessage="Nenhum vídeo disponível no momento."
-                renderItem={(video, index) => {
-                  const src = toEmbedSrc(video);
-                  const key = `${video.url}-${index}`;
-                  if (!src) {
-                    return (
-                      <div className="media" key={key} aria-hidden="true">
-                        <div
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            background:
-                              "linear-gradient(135deg, rgba(225,29,72,0.25), rgba(40,40,45,0.85))",
-                          }}
-                        />
-                      </div>
-                    );
-                  }
-                  const handleClick = () => openLightbox(videoItems, index);
-                  if (/(\.mp4|\.webm|\.ogg)(\?.*)?$/i.test(src)) {
-                    return (
-                      <button
-                        type="button"
-                        className="media"
-                        key={key}
-                        onClick={handleClick}
-                        aria-label={`Assistir ${artist.stageName}`}
-                      >
-                        <video
-                          style={{ width: "100%", height: "100%", objectFit: "cover", backgroundColor: "#000" }}
-                          preload="metadata"
-                          muted
-                          playsInline
-                          controls={false}
-                        >
-                          <source src={src} />
-                        </video>
-                      </button>
-                    );
-                  }
-                  return (
-                    <button
-                      type="button"
-                      className="media"
-                      key={key}
-                      onClick={handleClick}
-                      aria-label={`Assistir ${artist.stageName}`}
+            <div className="ap-hero__info">
+              {artist.category && (
+                <span className="ap-hero__category">{artist.category}</span>
+              )}
+              <h1 className="ap-hero__name">{artist.stageName}</h1>
+              <div className="ap-hero__meta">
+                {locationParts.length > 0 && (
+                  <span className="ap-hero__location">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {locationParts.join(", ")}
+                  </span>
+                )}
+              </div>
+              <div className="ap-hero__actions">
+                {photos.length > 0 && <a href="#fotos" className="ap-btn">Fotos</a>}
+                {videos.length > 0 && <a href="#videos" className="ap-btn">Vídeos</a>}
+                {socials[0] && (
+                  <a href={socials[0].url} target="_blank" rel="noopener noreferrer" className="ap-btn ap-btn--accent">
+                    Contato
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Anchor nav ── */}
+      <AnchorNav
+        hasPhotos={photos.length > 0}
+        hasVideos={videos.length > 0}
+        hasProjects={projects.length > 0}
+        hasEvents={events.length > 0}
+        hasSocials={socials.length > 0}
+      />
+
+      {/* ── Main content ── */}
+      <main className="ap-content">
+
+        {/* Sobre */}
+        <section id="sobre" className="ap-section">
+          <div className="ap-about-grid">
+            <div>
+              {hasBio ? (
+                <div className="ap-bio">
+                  <BioSection title="Visão Geral" html={artist.vision} />
+                  <BioSection title="História" html={artist.history} />
+                  <BioSection title="Carreira" html={artist.career} />
+                  <BioSection title="Mais" html={artist.more} />
+                </div>
+              ) : (
+                <p className="ap-empty">Biografia em breve.</p>
+              )}
+            </div>
+
+            {socials.length > 0 && (
+              <aside id="contato" className="ap-sidebar">
+                <p className="ap-sidebar__label">Contatos & Redes</p>
+                <div className="ap-socials">
+                  {socials.map(s => (
+                    <a
+                      key={s.url}
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ap-social-item"
                     >
-                      <iframe
-                        src={src}
-                        title={`Vídeo ${index + 1} de ${artist.stageName}`}
-                        loading="lazy"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        style={{ pointerEvents: "none" }}
-                      />
-                    </button>
-                  );
-                }}
-              />
+                      <span className="ap-social-icon">
+                        <SocialIcon label={s.label} />
+                      </span>
+                      <span className="ap-social-label">{s.label}</span>
+                    </a>
+                  ))}
+                </div>
+              </aside>
+            )}
+          </div>
+        </section>
+
+        {/* Fotos */}
+        {photos.length > 0 && (
+          <section id="fotos" className="ap-section">
+            <h2 className="ap-section__title">Galeria de Fotos</h2>
+            <div className={`ap-photos ap-photos--${Math.min(photos.length, 3)}col`}>
+              {photos.map((photo, i) => (
+                <button
+                  key={`${photo.url}-${i}`}
+                  type="button"
+                  className={`ap-photo${i === 0 && photos.length > 2 ? " ap-photo--featured" : ""}`}
+                  onClick={() => openLb(photoItems, i)}
+                  aria-label="Ampliar foto"
+                >
+                  <img
+                    src={photo.url}
+                    alt={photo.alt?.trim() || artist.stageName}
+                    loading="lazy"
+                  />
+                </button>
+              ))}
             </div>
           </section>
-        </div>
-      </div>
-      {lbItems && <Lightbox items={lbItems} startIndex={lbIndex} onClose={closeLightbox} />}
-    </ArtistPageShell>
+        )}
+
+        {/* Vídeos */}
+        {videos.length > 0 && (
+          <section id="videos" className="ap-section">
+            <h2 className="ap-section__title">Vídeos</h2>
+            <div className="ap-videos">
+              {videos.map((v, i) => {
+                const src = toEmbedSrc(v);
+                const thumb = getYouTubeThumbnail(v.url);
+                return (
+                  <button
+                    key={`${v.url}-${i}`}
+                    type="button"
+                    className="ap-video"
+                    onClick={() => openLb(videoItems, i)}
+                    aria-label={`Assistir vídeo ${i + 1} de ${artist.stageName}`}
+                  >
+                    {thumb ? (
+                      <img src={thumb} alt="" loading="lazy" className="ap-video__thumb" />
+                    ) : src && /(\.mp4|\.webm)/.test(src) ? (
+                      <video src={src} muted playsInline preload="metadata" className="ap-video__thumb" />
+                    ) : (
+                      <div className="ap-video__placeholder" />
+                    )}
+                    <div className="ap-video__overlay">
+                      <span className="ap-video__play">
+                        <Play className="h-6 w-6 fill-white" />
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Projetos */}
+        {projects.length > 0 && (
+          <section id="projetos" className="ap-section">
+            <h2 className="ap-section__title">Projetos em Destaque</h2>
+            <div className="mini-list">
+              {projectsVisible.map(project => {
+                const href = `/artistas/${artist.slug || slug}/projetos/${project.id}`;
+                const mini: ProjectMini = { id: project.id, title: project.title, coverUrl: project.coverUrl, bannerUrl: project.bannerUrl, about: project.about, partners: project.partners, teamArt: project.teamArt, teamTech: project.teamTech, projectSheetUrl: project.projectSheetUrl, href };
+                return <ProjectMiniCard key={project.id} project={mini} />;
+              })}
+            </div>
+            <div ref={projSentinel} className="sentinel" aria-hidden="true" />
+            <LoadMore onClick={projNext} busy={projBusy} hidden={!projMore || (projIO && !projBusy)} label="Ver mais projetos" />
+          </section>
+        )}
+
+        {/* Eventos */}
+        {events.length > 0 && (
+          <section id="eventos" className="ap-section">
+            <h2 className="ap-section__title">Eventos</h2>
+            <div className="mini-list">
+              {eventsVisible.map(event => {
+                const href = event.ctaLink || `/artistas/${artist.slug || slug}/eventos/${event.id}`;
+                const mini: EventMini = { id: event.id, name: event.name, bannerUrl: event.bannerUrl, date: event.date, startTime: event.startTime, endTime: event.endTime, place: event.place, description: event.description, href };
+                return <EventMiniCard key={event.id} event={mini} />;
+              })}
+            </div>
+            <div ref={evSentinel} className="sentinel" aria-hidden="true" />
+            <LoadMore onClick={evNext} busy={evBusy} hidden={!evMore || (evIO && !evBusy)} label="Ver mais eventos" />
+          </section>
+        )}
+      </main>
+
+      <Footer />
+      {lbItems && <Lightbox items={lbItems} startIndex={lbIndex} onClose={closeLb} />}
+    </div>
   );
 }
