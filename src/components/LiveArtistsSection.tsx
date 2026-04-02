@@ -197,23 +197,26 @@ export default function LiveArtistsSection() {
   useEffect(() => {
     fetchAllArtists()
       .then((all) => {
-        // Group by how_is_it_defined / category
+        const CATEGORY_ORDER = [
+          "INSTRUMENTISTAS CLÁSSICOS",
+          "VOZES LÍRICAS",
+          "DIRETORES, MAESTROS E MAIS",
+          "WORLD MUSIC E JAZZ",
+        ];
+
+        // Group by category — skip artists without a defined category
         const map = new Map<string, ArtistCard[]>();
         for (const a of all) {
-          const key = a.category?.trim() || "Outros";
+          const key = a.category?.trim();
+          if (!key || !CATEGORY_ORDER.includes(key)) continue;
           if (!map.has(key)) map.set(key, []);
           map.get(key)!.push(a);
         }
 
-        // Sort categories by size desc, put "Outros" last
-        const sorted = [...map.entries()]
-          .sort(([ka, va], [kb, vb]) => {
-            if (ka === "Outros") return 1;
-            if (kb === "Outros") return -1;
-            return vb.length - va.length;
-          })
-          .filter(([, v]) => v.length >= 1)
-          .map(([title, artists]) => ({ title, artists }));
+        // Preserve the defined order
+        const sorted = CATEGORY_ORDER
+          .filter((cat) => map.has(cat))
+          .map((cat) => ({ title: cat, artists: map.get(cat)! }));
 
         setCategories(sorted);
       })
