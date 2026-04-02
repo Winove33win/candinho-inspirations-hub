@@ -49,7 +49,8 @@ router.get('/artists', async (req, res) => {
 
     const [rows] = await db.query(
       `SELECT id, slug, member_id, artistic_name, full_name,
-              country_residence, city, profile_image, profile_text2
+              country_residence, city, profile_image, profile_text2,
+              how_is_it_defined
        FROM artist_details
        WHERE ${where}
        ORDER BY updated_at DESC
@@ -74,6 +75,7 @@ router.get('/artists', async (req, res) => {
       city:        r.city,
       avatarUrl:   resolveFileUrl(r.profile_image, baseUrl),
       impactPhrase: r.profile_text2 || null,
+      category:    r.how_is_it_defined || null,
     }));
 
     return res.json({

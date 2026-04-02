@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Search, X } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { api } from "@/lib/apiClient";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 
 interface ArtistCard {
   id: string;
@@ -11,98 +13,116 @@ interface ArtistCard {
   city: string | null;
   avatarUrl: string | null;
   impactPhrase: string | null;
+  category: string | null;
 }
 
-export default function LiveArtistsSection() {
-  const [artists, setArtists] = useState<ArtistCard[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+interface ArtistsResponse {
+  data: ArtistCard[];
+  total: number;
+  pages: number;
+}
 
-  // Debounce search
-  const handleSearch = (val: string) => {
-    setSearch(val);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => setDebouncedSearch(val), 400);
-  };
+// Fetch all pages
+async function fetchAllArtists(): Promise<ArtistCard[]> {
+  const first = await api.get<ArtistsResponse>("/api/public/artists?limit=100&page=1");
+  const items = first.data ?? [];
+  if (first.pages <= 1) return items;
+  const rest = await Promise.all(
+    Array.from({ length: first.pages - 1 }, (_, i) =>
+      api.get<ArtistsResponse>(`/api/public/artists?limit=100&page=${i + 2}`)
+        .then(r => r.data ?? [])
+    )
+  );
+  return [...items, ...rest.flat()];
+}
+
+// ── Single carousel section ──────────────────────────────────────
+function CategoryCarousel({
+  title,
+  artists,
+}: {
+  title: string;
+  artists: ArtistCard[];
+}) {
+  const autoplay = useRef(Autoplay({ delay: 3200, stopOnInteraction: true, stopOnMouseEnter: true }));
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, align: "start", dragFree: false },
+    [autoplay.current]
+  );
+  const [current, setCurrent] = useState(0);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    setLoading(true);
-    const params = new URLSearchParams({ limit: "12", page: "1" });
-    if (debouncedSearch) params.set("q", debouncedSearch);
-
-    api
-      .get<{ data: ArtistCard[] }>(`/api/public/artists?${params}`)
-      .then((res) => setArtists(res.data ?? []))
-      .catch(() => setArtists([]))
-      .finally(() => setLoading(false));
-  }, [debouncedSearch]);
+    if (!emblaApi) return;
+    const update = () => {
+      setCurrent(emblaApi.selectedScrollSnap());
+      setTotal(emblaApi.scrollSnapList().length);
+    };
+    update();
+    emblaApi.on("select", update);
+    return () => { emblaApi.off("select", update); };
+  }, [emblaApi]);
 
   return (
-    <section id="artistasSmartx" className="site-container space-y-8">
+    <section className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-2">
-          <span className="inline-flex items-center rounded-full bg-[rgba(255,255,255,0.08)] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.28em] text-[rgba(250,250,252,0.75)]">
-            Artistas SMARTx
-          </span>
-          <h2 className="text-3xl font-['League_Spartan'] font-bold text-white md:text-4xl">
-            Conheça nossa rede de artistas
-          </h2>
-          <p className="max-w-2xl text-sm text-[rgba(250,250,252,0.7)] md:text-base">
-            Músicos, performers e criadores que integram o ecossistema SMARTx.
-          </p>
+      <div className="flex items-end justify-between">
+        <div className="space-y-1">
+          <span className="block h-0.5 w-10 bg-[var(--brand)]" />
+          <h2 className="text-xl font-['League_Spartan'] font-bold text-white md:text-2xl">{title}</h2>
         </div>
-
-        {/* Search */}
-        <div className="relative w-full max-w-xs shrink-0">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[rgba(255,255,255,0.4)]" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Buscar artista..."
-            className="h-10 w-full rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.06)] pl-9 pr-9 text-sm text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[var(--brand)] focus:outline-none"
-          />
-          {search && (
-            <button
-              type="button"
-              onClick={() => handleSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgba(255,255,255,0.4)] hover:text-white"
-            >
-              <X className="h-4 w-4" />
-            </button>
+        <div className="flex items-center gap-3">
+          {/* Dots */}
+          {total > 1 && (
+            <div className="hidden items-center gap-1.5 sm:flex">
+              {Array.from({ length: total }).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => emblaApi?.scrollTo(i)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    i === current
+                      ? "w-5 bg-[var(--brand)]"
+                      : "w-1.5 bg-[rgba(255,255,255,0.2)]"
+                  }`}
+                  aria-label={`Ir para slide ${i + 1}`}
+                />
+              ))}
+            </div>
           )}
+          {/* Arrows */}
+          <button
+            type="button"
+            onClick={() => emblaApi?.scrollPrev()}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.05)] text-white transition hover:border-[var(--brand)] hover:bg-[rgba(144,8,11,0.2)]"
+            aria-label="Anterior"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => emblaApi?.scrollNext()}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.05)] text-white transition hover:border-[var(--brand)] hover:bg-[rgba(144,8,11,0.2)]"
+            aria-label="Próximo"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        {loading
-          ? Array.from({ length: 12 }).map((_, i) => (
+      {/* Carousel */}
+      <div className="overflow-hidden" ref={emblaRef}>
+        <div className="flex gap-4">
+          {artists.map((artist) => {
+            const href = `/artistas/${artist.slug ?? artist.id}`;
+            return (
               <div
-                key={i}
-                className="animate-pulse space-y-3 rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] p-4"
+                key={artist.id}
+                className="min-w-0 shrink-0 basis-[72%] sm:basis-[46%] md:basis-[32%] lg:basis-[23%] xl:basis-[18%]"
               >
-                <div className="aspect-square w-full rounded-xl bg-[rgba(255,255,255,0.06)]" />
-                <div className="h-4 w-3/4 rounded bg-[rgba(255,255,255,0.06)]" />
-                <div className="h-3 w-1/2 rounded bg-[rgba(255,255,255,0.06)]" />
-              </div>
-            ))
-          : artists.length === 0
-          ? (
-            <div className="col-span-full py-16 text-center text-[rgba(255,255,255,0.4)]">
-              {search ? `Nenhum artista encontrado para "${search}".` : "Nenhum artista disponível."}
-            </div>
-          )
-          : artists.map((artist) => {
-              const href = `/artistas/${artist.slug ?? artist.id}`;
-              return (
                 <Link
-                  key={artist.id}
                   to={href}
-                  className="group flex flex-col rounded-2xl border border-[rgba(255,255,255,0.10)] bg-[rgba(18,0,0,0.55)] p-4 shadow-[0_4px_24px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-[var(--brand)]/40 hover:shadow-[0_12px_40px_rgba(0,0,0,0.55)]"
+                  className="group flex flex-col rounded-2xl border border-[rgba(255,255,255,0.10)] bg-[rgba(18,0,0,0.55)] p-3.5 shadow-[0_4px_24px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-[var(--brand)]/40 hover:shadow-[0_12px_40px_rgba(0,0,0,0.55)]"
                 >
                   <div className="aspect-square w-full overflow-hidden rounded-xl bg-[rgba(255,255,255,0.05)]">
                     {artist.avatarUrl ? (
@@ -114,43 +134,131 @@ export default function LiveArtistsSection() {
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[rgba(144,8,11,0.3)] to-[rgba(255,255,255,0.03)]">
-                        <span className="text-4xl font-bold text-[var(--brand)] opacity-60">
+                        <span className="text-3xl font-bold text-[var(--brand)] opacity-60">
                           {(artist.stageName ?? "?")[0].toUpperCase()}
                         </span>
                       </div>
                     )}
                   </div>
-
-                  <h3 className="mt-3 text-sm font-semibold leading-snug text-white line-clamp-1 md:text-base">
+                  <h3 className="mt-3 text-sm font-semibold leading-snug text-white line-clamp-1">
                     {artist.stageName ?? "Artista SMARTx"}
                   </h3>
-
                   {artist.impactPhrase && (
-                    <p className="mt-1 flex-1 text-xs text-[rgba(250,250,252,0.6)] line-clamp-2">
+                    <p className="mt-1 text-xs text-[rgba(250,250,252,0.55)] line-clamp-2">
                       {artist.impactPhrase}
                     </p>
                   )}
-
                   {(artist.city || artist.country) && (
-                    <p className="mt-2 text-xs uppercase tracking-wide text-[rgba(250,250,252,0.4)]">
+                    <p className="mt-2 text-[10px] uppercase tracking-wide text-[rgba(250,250,252,0.35)]">
                       {[artist.city, artist.country].filter(Boolean).join(", ")}
                     </p>
                   )}
                 </Link>
-              );
-            })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Skeleton carousel ────────────────────────────────────────────
+function SkeletonCarousel() {
+  return (
+    <section className="space-y-5">
+      <div className="flex items-end justify-between">
+        <div className="space-y-2">
+          <div className="h-0.5 w-10 rounded bg-[rgba(255,255,255,0.1)]" />
+          <div className="h-6 w-48 rounded bg-[rgba(255,255,255,0.07)]" />
+        </div>
+      </div>
+      <div className="flex gap-4 overflow-hidden">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div
+            key={i}
+            className="min-w-0 shrink-0 basis-[72%] animate-pulse space-y-3 rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-3.5 sm:basis-[46%] md:basis-[32%] lg:basis-[23%] xl:basis-[18%]"
+          >
+            <div className="aspect-square w-full rounded-xl bg-[rgba(255,255,255,0.05)]" />
+            <div className="h-4 w-3/4 rounded bg-[rgba(255,255,255,0.05)]" />
+            <div className="h-3 w-1/2 rounded bg-[rgba(255,255,255,0.05)]" />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ── Main section ─────────────────────────────────────────────────
+export default function LiveArtistsSection() {
+  const [categories, setCategories] = useState<{ title: string; artists: ArtistCard[] }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAllArtists()
+      .then((all) => {
+        // Group by how_is_it_defined / category
+        const map = new Map<string, ArtistCard[]>();
+        for (const a of all) {
+          const key = a.category?.trim() || "Outros";
+          if (!map.has(key)) map.set(key, []);
+          map.get(key)!.push(a);
+        }
+
+        // Sort categories by size desc, put "Outros" last
+        const sorted = [...map.entries()]
+          .sort(([ka, va], [kb, vb]) => {
+            if (ka === "Outros") return 1;
+            if (kb === "Outros") return -1;
+            return vb.length - va.length;
+          })
+          .filter(([, v]) => v.length >= 1)
+          .map(([title, artists]) => ({ title, artists }));
+
+        setCategories(sorted);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <section id="artistasSmartx" className="site-container space-y-12">
+      {/* Section header */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="space-y-2">
+          <span className="inline-flex items-center rounded-full bg-[rgba(255,255,255,0.08)] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.28em] text-[rgba(250,250,252,0.75)]">
+            Artistas SMARTx
+          </span>
+          <h2 className="text-3xl font-['League_Spartan'] font-bold text-white md:text-4xl">
+            Conheça nossa rede de artistas
+          </h2>
+          <p className="max-w-2xl text-sm text-[rgba(250,250,252,0.65)]">
+            Músicos, performers e criadores que integram o ecossistema SMARTx — organizados por área artística.
+          </p>
+        </div>
+        <Link
+          to="/artistas"
+          className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[rgba(255,255,255,0.18)] px-5 py-2.5 text-sm font-semibold text-white transition-all hover:border-[var(--brand)] hover:bg-[rgba(144,8,11,0.15)] hover:gap-3"
+        >
+          Ver todos
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       </div>
 
-      {/* CTA */}
-      {!loading && artists.length > 0 && (
-        <div className="flex justify-center">
-          <Link
-            to="/artistas"
-            className="inline-flex items-center gap-2 rounded-full border border-[rgba(255,255,255,0.2)] px-6 py-3 text-sm font-semibold text-white transition-all hover:border-[var(--brand)] hover:bg-[rgba(144,8,11,0.15)] hover:gap-3"
-          >
-            Ver todos os artistas
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+      {/* Categories */}
+      {loading ? (
+        <div className="space-y-12">
+          <SkeletonCarousel />
+          <SkeletonCarousel />
+          <SkeletonCarousel />
+        </div>
+      ) : categories.length === 0 ? (
+        <p className="py-16 text-center text-[rgba(255,255,255,0.4)]">Nenhum artista disponível.</p>
+      ) : (
+        <div className="space-y-12">
+          {categories.map(({ title, artists }) => (
+            <CategoryCarousel key={title} title={title} artists={artists} />
+          ))}
         </div>
       )}
     </section>
