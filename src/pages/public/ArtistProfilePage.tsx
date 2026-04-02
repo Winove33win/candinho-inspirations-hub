@@ -127,27 +127,58 @@ function getYouTubeThumbnail(url: string) {
   return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
 }
 
-/* ── Expandable bio section ──────────────────────────────────────── */
-function BioSection({ title, html }: { title: string; html?: string | null }) {
-  const [open, setOpen] = useState(true);
-  if (!html) return null;
+/* ── Bio tabs ────────────────────────────────────────────────────── */
+function BioTabs({ sections }: { sections: { title: string; html?: string | null }[] }) {
+  const tabs = sections.filter(s => s.html?.trim());
+  const [active, setActive] = useState(0);
+  const [expanded, setExpanded] = useState(false);
+
+  if (tabs.length === 0) return <p className="ap-empty">Biografia em breve.</p>;
+
+  const current = tabs[Math.min(active, tabs.length - 1)];
+
+  // reset expanded when tab changes
+  const handleTab = (i: number) => { setActive(i); setExpanded(false); };
+
   return (
-    <div className="ap-bio-block">
-      <button
-        type="button"
-        className="ap-bio-header"
-        onClick={() => setOpen(o => !o)}
-        aria-expanded={open}
-      >
-        <span className="ap-bio-title">{title}</span>
-        <ChevronDown className={`ap-bio-chevron${open ? " ap-bio-chevron--open" : ""}`} />
-      </button>
-      {open && (
-        <div
-          className="ap-bio-body prose-artist"
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
+    <div className="ap-biotabs">
+      {/* Tab pills */}
+      {tabs.length > 1 && (
+        <div className="ap-biotabs__nav" role="tablist">
+          {tabs.map((t, i) => (
+            <button
+              key={t.title}
+              type="button"
+              role="tab"
+              aria-selected={i === active}
+              className={`ap-biotabs__pill${i === active ? " ap-biotabs__pill--active" : ""}`}
+              onClick={() => handleTab(i)}
+            >
+              {t.title}
+            </button>
+          ))}
+        </div>
       )}
+
+      {/* Content card */}
+      <div className="ap-biotabs__card">
+        {tabs.length === 1 && (
+          <p className="ap-biotabs__heading">{current.title}</p>
+        )}
+        <div
+          className={`prose-artist ap-biotabs__body${!expanded ? " ap-biotabs__body--clamped" : ""}`}
+          dangerouslySetInnerHTML={{ __html: current.html! }}
+        />
+        {!expanded && (
+          <button
+            type="button"
+            className="ap-biotabs__readmore"
+            onClick={() => setExpanded(true)}
+          >
+            Ler mais <ChevronDown className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -238,7 +269,6 @@ export default function ArtistProfilePage() {
   const photoItems: LightboxItem[] = photos.map(p => ({ type: "image", src: p.url, alt: p.alt?.trim() || artist.stageName }));
   const videoItems: LightboxItem[] = videos.map((v, i) => ({ type: "video", src: toEmbedSrc(v) || v.url, title: `Vídeo ${i + 1} — ${artist.stageName}` }));
 
-  const hasBio = !!(artist.vision || artist.history || artist.career || artist.more);
 
   return (
     <div className="ap-root">
@@ -316,16 +346,12 @@ export default function ArtistProfilePage() {
         <section id="sobre" className="ap-section">
           <div className="ap-about-grid">
             <div>
-              {hasBio ? (
-                <div className="ap-bio">
-                  <BioSection title="Visão Geral" html={artist.vision} />
-                  <BioSection title="História" html={artist.history} />
-                  <BioSection title="Carreira" html={artist.career} />
-                  <BioSection title="Mais" html={artist.more} />
-                </div>
-              ) : (
-                <p className="ap-empty">Biografia em breve.</p>
-              )}
+              <BioTabs sections={[
+                { title: "Visão Geral", html: artist.vision },
+                { title: "História",    html: artist.history },
+                { title: "Carreira",    html: artist.career },
+                { title: "Mais",        html: artist.more },
+              ]} />
             </div>
 
             {socials.length > 0 && (
