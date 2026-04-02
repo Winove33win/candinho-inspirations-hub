@@ -224,12 +224,21 @@ export default function DadosPessoais({ artistDetails, onUpsert, onDirtyChange }
             </div>
 
             <div className="md:col-span-6">
-              <Label htmlFor="input98">Especificação</Label>
-              <Input
-                id="input98"
+              <Label htmlFor="input98">Categoria artística</Label>
+              <Select
                 value={formData.how_is_it_defined}
-                onChange={(e) => setFormData({ ...formData, how_is_it_defined: e.target.value })}
-              />
+                onValueChange={(value) => setFormData({ ...formData, how_is_it_defined: value })}
+              >
+                <SelectTrigger id="input98">
+                  <SelectValue placeholder="Selecione sua categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="INSTRUMENTISTAS CLÁSSICOS">Instrumentistas Clássicos</SelectItem>
+                  <SelectItem value="VOZES LÍRICAS">Vozes Líricas</SelectItem>
+                  <SelectItem value="DIRETORES, MAESTROS E MAIS">Diretores, Maestros e Mais</SelectItem>
+                  <SelectItem value="WORLD MUSIC E JAZZ">World Music e Jazz</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="md:col-span-6">
